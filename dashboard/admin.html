@@ -554,26 +554,112 @@
             </div>
             
             <div id="admin-users-pane" class="hidden space-y-6">
-                <!-- User Accounts list panel -->
-                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
-                        <i data-lucide="users" class="h-4 w-4 text-indigo-400 mr-2"></i>
-                        <span>Registered Users</span>
-                    </h3>
+                <!-- Search, Filter & Bulk Actions Header Panel -->
+                <div class="glass-panel p-5 bg-white border border-slate-200 text-slate-800 rounded-2xl space-y-4 shadow-xs">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                <i data-lucide="users" class="h-4 w-4 text-indigo-600"></i>
+                                <span>User Accounts Control Center</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Manage user credentials, grant credits, inspect API keys, and control account statuses.</p>
+                        </div>
+
+                        <!-- Bulk Actions Toolbar -->
+                        <div class="flex items-center space-x-2 w-full lg:w-auto">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline">Bulk Actions:</span>
+                            <button onclick="triggerAdminBulkAction('bulk_grant_credits')" class="px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                                <i data-lucide="gift" class="h-3.5 w-3.5"></i>
+                                <span>+ Grant Credits</span>
+                            </button>
+                            <button onclick="triggerAdminBulkAction('bulk_reset_passwords')" class="px-3 py-1.5 bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                                <i data-lucide="key" class="h-3.5 w-3.5"></i>
+                                <span>Reset Password</span>
+                            </button>
+                            <button onclick="triggerAdminBulkAction('bulk_suspend')" class="px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                                <i data-lucide="user-x" class="h-3.5 w-3.5"></i>
+                                <span>Suspend Selected</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search and Filter Bar Row -->
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+                        <!-- Search Box (Name, Email, User ID) -->
+                        <div class="relative sm:col-span-2">
+                            <i data-lucide="search" class="h-4 w-4 absolute left-3 top-2.5 text-slate-400"></i>
+                            <input type="text" id="users-search-input" onkeyup="filterAdminUsersTable()" placeholder="Search by Name, Email, or User ID..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <!-- Role Filter Dropdown -->
+                        <div>
+                            <select id="users-role-filter" onchange="filterAdminUsersTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">All Roles (Admin & User)</option>
+                                <option value="admin">Admin Accounts</option>
+                                <option value="user">Regular Users</option>
+                            </select>
+                        </div>
+
+                        <!-- Account Status Filter Dropdown -->
+                        <div>
+                            <select id="users-status-filter" onchange="filterAdminUsersTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">All Account Statuses</option>
+                                <option value="active">Active Accounts</option>
+                                <option value="suspended">Suspended Accounts</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Accounts Main Table Panel -->
+                <div class="glass-panel p-5 bg-white border border-slate-200 text-slate-800 rounded-2xl space-y-4 shadow-xs">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider" id="users-count-display">Showing 0 Registered Users</span>
+                        <div class="flex items-center space-x-2 text-xs">
+                            <span class="text-slate-400">Select All</span>
+                            <input type="checkbox" id="users-master-checkbox" onchange="toggleSelectAllUsers(this.checked)" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse custom-table text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800">
-                                    <th>User</th>
-                                    <th>Role</th>
-                                    <th>Registered</th>
-                                    <th class="text-right">Actions</th>
+                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase text-[9px]">
+                                    <th class="py-2.5 px-3 w-8"></th>
+                                    <th class="py-2.5 px-3">User & Email</th>
+                                    <th class="py-2.5 px-3">Role</th>
+                                    <th class="py-2.5 px-3">Credit Balance</th>
+                                    <th class="py-2.5 px-3">Account Status</th>
+                                    <th class="py-2.5 px-3">Registered</th>
+                                    <th class="py-2.5 px-3 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="admin-users-tbody">
-                                <tr><td colspan="4" class="text-center py-6 text-slate-500">Loading user lists...</td></tr>
+                                <tr><td colspan="7" class="text-center py-6 text-slate-500">Loading registered user accounts...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USER INSPECTOR MODAL DRAWER -->
+            <div id="user-inspector-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex justify-end hidden">
+                <div class="bg-white w-full max-w-2xl h-full shadow-2xl flex flex-col overflow-hidden animate-slide-left">
+                    <!-- Drawer Header -->
+                    <div class="p-5 bg-slate-900 text-white flex justify-between items-center border-b border-slate-800">
+                        <div>
+                            <span class="text-[9px] font-mono font-bold text-indigo-400 uppercase tracking-widest block">USER INSPECTOR DRAWER</span>
+                            <h3 class="text-base font-bold text-white flex items-center space-x-2" id="inspector-user-name">Loading...</h3>
+                            <span class="text-xs text-slate-400 font-mono" id="inspector-user-email">...</span>
+                        </div>
+                        <button onclick="closeUserInspectorModal()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Drawer Content Body (Scrollable) -->
+                    <div class="flex-grow overflow-y-auto p-6 space-y-6 text-xs text-slate-800" id="inspector-modal-body">
+                        <div class="text-center py-12 text-slate-500">Fetching user inspector details...</div>
                     </div>
                 </div>
             </div>
@@ -1344,32 +1430,263 @@
             }
         }
 
-        async function loadAdminUsersData() {
+        let loadedAdminUsersList = [];
+
+        window.loadAdminUsersData = async function() {
             try {
-                const res = await apiCall('admin/users.php');
-                const tbody = document.getElementById('admin-users-tbody');
-                
-                tbody.innerHTML = res.users.map(u => `
+                const searchVal = document.getElementById('users-search-input')?.value || '';
+                const roleVal = document.getElementById('users-role-filter')?.value || '';
+                const statusVal = document.getElementById('users-status-filter')?.value || '';
+
+                let queryParams = [];
+                if (searchVal) queryParams.push(`search=${encodeURIComponent(searchVal)}`);
+                if (roleVal) queryParams.push(`role=${encodeURIComponent(roleVal)}`);
+                if (statusVal) queryParams.push(`status=${encodeURIComponent(statusVal)}`);
+
+                const url = 'admin/users.php' + (queryParams.length ? '?' + queryParams.join('&') : '');
+                const res = await apiCall(url);
+                loadedAdminUsersList = res.users || [];
+
+                renderAdminUsersTable(loadedAdminUsersList);
+            } catch (err) {
+                showNotification('error', 'Failed to load user accounts: ' + err.message);
+            }
+        };
+
+        function renderAdminUsersTable(users) {
+            const tbody = document.getElementById('admin-users-tbody');
+            const countDisp = document.getElementById('users-count-display');
+            if (countDisp) countDisp.textContent = `Showing ${users.length} Registered Users`;
+
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-500">No matching user accounts found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => {
+                const isSuspended = u.status === 'suspended';
+                const statusBadge = isSuspended 
+                    ? '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-rose-50 text-rose-600 border border-rose-200">Suspended</span>'
+                    : '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-200">Active</span>';
+
+                const roleBadge = u.role === 'admin'
+                    ? '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-purple-50 text-purple-600 border border-purple-200">Admin</span>'
+                    : '<span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">User</span>';
+
+                return `
                     <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="py-3 px-4 font-bold text-slate-800">${u.name}<div class="text-[10px] text-slate-500 font-medium">${u.email}</div></td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${u.role === 'admin' ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
-                                ${u.role.toUpperCase()}
-                            </span>
+                        <td class="py-3 px-3">
+                            <input type="checkbox" class="user-select-checkbox h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" value="${u.id}">
                         </td>
-                        <td class="py-3 px-4 text-slate-500">${new Date(u.created_at).toLocaleDateString()}</td>
-                        <td class="py-3 px-4 text-right">
-                            <button onclick="impersonateUser(${u.id})" class="text-[10px] px-2 py-1 bg-emerald-50 border border-emerald-200 text-emerald-755 rounded hover:bg-emerald-100 transition mr-2" style="color: #059669 !important;">Login As User</button>
-                            <button onclick="openManageUserModal(${u.id})" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-2" style="color: #4f46e5 !important;">Manage</button>
-                            <button onclick="toggleUserAdminRole(${u.id})" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-2">Toggle Role</button>
-                            <button onclick="deleteUserPermanently(${u.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition" style="color: #dc2626 !important;">Delete</button>
+                        <td class="py-3 px-3">
+                            <div class="font-bold text-slate-900 flex items-center space-x-1.5">
+                                <span>${u.name}</span>
+                                <span class="text-[10px] text-slate-400 font-mono">#${u.id}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 font-mono">${u.email}</div>
+                        </td>
+                        <td class="py-3 px-3">${roleBadge}</td>
+                        <td class="py-3 px-3 font-bold text-indigo-600 font-mono">${Number(u.remaining_credits || 200).toLocaleString()} CR</td>
+                        <td class="py-3 px-3">
+                            <div class="flex items-center space-x-2">
+                                ${statusBadge}
+                                <label class="relative inline-flex items-center cursor-pointer" title="Toggle Account Status">
+                                    <input type="checkbox" ${!isSuspended ? 'checked' : ''} onchange="toggleUserStatus(${u.id}, this.checked)" class="sr-only peer">
+                                    <div class="w-7 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
+                                </label>
+                            </div>
+                        </td>
+                        <td class="py-3 px-3 text-slate-500 text-[11px]">${new Date(u.created_at).toLocaleDateString()}</td>
+                        <td class="py-3 px-3 text-right">
+                            <button onclick="openUserInspectorModal(${u.id})" class="text-[10px] px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-lg hover:bg-indigo-100 font-bold transition mr-1.5" style="color: #4f46e5 !important;">
+                                Inspect
+                            </button>
+                            <button onclick="impersonateUser(${u.id})" class="text-[10px] px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg hover:bg-emerald-100 font-bold transition mr-1.5" style="color: #059669 !important;">
+                                Login As
+                            </button>
+                            <button onclick="deleteUserPermanently(${u.id})" class="text-[10px] px-2 py-1 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg hover:bg-rose-100 font-bold transition" style="color: #dc2626 !important;">
+                                Delete
+                            </button>
                         </td>
                     </tr>
-                `).join('');
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        window.filterAdminUsersTable = function() {
+            loadAdminUsersData();
+        };
+
+        window.toggleSelectAllUsers = function(isChecked) {
+            document.querySelectorAll('.user-select-checkbox').forEach(cb => cb.checked = isChecked);
+        };
+
+        window.toggleUserStatus = async function(userId, isActive) {
+            const newStatus = isActive ? 'active' : 'suspended';
+            try {
+                const res = await apiCall('admin/users.php', 'POST', { action: 'toggle_status', user_id: userId, status: newStatus });
+                showNotification('success', res.message);
+                loadAdminUsersData();
             } catch (err) {
                 showNotification('error', err.message);
+                loadAdminUsersData();
             }
-        }
+        };
+
+        window.triggerAdminBulkAction = async function(actionType) {
+            const selectedIds = Array.from(document.querySelectorAll('.user-select-checkbox:checked')).map(cb => parseInt(cb.value));
+            if (selectedIds.length === 0) {
+                showNotification('warning', 'Please select at least one user account using the checkboxes.');
+                return;
+            }
+
+            if (actionType === 'bulk_grant_credits') {
+                const amountStr = prompt(`Enter number of credits to grant to ${selectedIds.length} user(s):`, '100');
+                if (!amountStr) return;
+                const amount = parseInt(amountStr);
+                if (isNaN(amount) || amount <= 0) {
+                    showNotification('warning', 'Please enter a valid credit amount.');
+                    return;
+                }
+                try {
+                    const res = await apiCall('admin/users.php', 'POST', { action: 'bulk_grant_credits', user_ids: selectedIds, amount });
+                    showNotification('success', res.message);
+                    loadAdminUsersData();
+                } catch (err) {
+                    showNotification('error', err.message);
+                }
+
+            } else if (actionType === 'bulk_reset_passwords') {
+                if (!confirm(`Are you sure you want to reset passwords for ${selectedIds.length} user(s) to "LinkPilot2026!"?`)) return;
+                try {
+                    const res = await apiCall('admin/users.php', 'POST', { action: 'bulk_reset_passwords', user_ids: selectedIds });
+                    showNotification('success', res.message);
+                } catch (err) {
+                    showNotification('error', err.message);
+                }
+
+            } else if (actionType === 'bulk_suspend') {
+                if (!confirm(`Are you sure you want to SUSPEND ${selectedIds.length} selected user account(s)?`)) return;
+                try {
+                    const res = await apiCall('admin/users.php', 'POST', { action: 'bulk_suspend', user_ids: selectedIds });
+                    showNotification('success', res.message);
+                    loadAdminUsersData();
+                } catch (err) {
+                    showNotification('error', err.message);
+                }
+            }
+        };
+
+        window.openUserInspectorModal = async function(userId) {
+            const modal = document.getElementById('user-inspector-modal');
+            const modalBody = document.getElementById('inspector-modal-body');
+            modal.classList.remove('hidden');
+            modalBody.innerHTML = '<div class="text-center py-16 text-slate-500 font-medium">Fetching detailed user metrics...</div>';
+
+            try {
+                const res = await apiCall(`admin/users.php?user_id=${userId}`);
+                const u = res.user;
+                const c = res.credits || {};
+                const wa = res.whatsapp;
+                const ai = res.ai_keys || [];
+                const smtp = res.smtp;
+                const tx = res.transactions || [];
+
+                document.getElementById('inspector-user-name').textContent = u.name;
+                document.getElementById('inspector-user-email').textContent = u.email;
+
+                modalBody.innerHTML = `
+                    <!-- 1. Profile Overview -->
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Profile Info</span>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div><strong class="text-slate-500">User ID:</strong> #${u.id}</div>
+                            <div><strong class="text-slate-500">Role:</strong> <span class="uppercase font-bold text-indigo-600">${u.role}</span></div>
+                            <div><strong class="text-slate-500">Phone:</strong> ${u.phone_number || 'N/A'}</div>
+                            <div><strong class="text-slate-500">Status:</strong> <span class="font-bold ${u.status === 'suspended' ? 'text-rose-600' : 'text-emerald-600'}">${(u.status || 'active').toUpperCase()}</span></div>
+                            <div><strong class="text-slate-500">Company:</strong> ${u.company_name || 'N/A'}</div>
+                            <div><strong class="text-slate-500">Job Title:</strong> ${u.job_title || 'N/A'}</div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Wallet & Credits Breakdown -->
+                    <div class="p-4 bg-indigo-50/60 border border-indigo-200 rounded-xl space-y-3">
+                        <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Credit Wallet Stats</span>
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="p-2 bg-white rounded-lg border border-indigo-100">
+                                <span class="block text-[9px] text-slate-400 uppercase">Remaining</span>
+                                <span class="text-lg font-black text-indigo-700">${Number(c.remaining_credits || 0).toLocaleString()}</span>
+                            </div>
+                            <div class="p-2 bg-white rounded-lg border border-indigo-100">
+                                <span class="block text-[9px] text-slate-400 uppercase">Total Granted</span>
+                                <span class="text-lg font-black text-slate-800">${Number(c.total_credits || 0).toLocaleString()}</span>
+                            </div>
+                            <div class="p-2 bg-white rounded-lg border border-indigo-100">
+                                <span class="block text-[9px] text-slate-400 uppercase">Used</span>
+                                <span class="text-lg font-black text-rose-600">${Number(c.used_credits || 0).toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Integrations (WhatsApp, AI Keys & SMTP) -->
+                    <div class="space-y-3">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Connected Integrations</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="p-3 bg-white border border-slate-200 rounded-xl">
+                                <span class="font-bold text-slate-800 text-xs block">WhatsApp</span>
+                                <span class="text-[10px] ${wa ? 'text-emerald-600 font-bold' : 'text-slate-400'}">${wa ? 'Connected (' + (wa.display_phone_number || wa.phone_number_id) + ')' : 'Not Connected'}</span>
+                            </div>
+                            <div class="p-3 bg-white border border-slate-200 rounded-xl">
+                                <span class="font-bold text-slate-800 text-xs block">Active AI Provider</span>
+                                <span class="text-[10px] text-indigo-600 font-bold">${u.active_ai_provider || 'google_ai_studio'}</span>
+                            </div>
+                            <div class="p-3 bg-white border border-slate-200 rounded-xl">
+                                <span class="font-bold text-slate-800 text-xs block">SMTP Config</span>
+                                <span class="text-[10px] ${smtp ? 'text-emerald-600 font-bold' : 'text-slate-400'}">${smtp ? smtp.sender_email : 'System Default'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Credit Transaction History -->
+                    <div class="space-y-3">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Recent Credit Transactions</span>
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                            <table class="w-full text-left custom-table text-[11px]">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[9px]">
+                                        <th class="py-2 px-3">Type</th>
+                                        <th class="py-2 px-3">Credits</th>
+                                        <th class="py-2 px-3">Description</th>
+                                        <th class="py-2 px-3 text-right">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tx.length > 0 ? tx.map(t => `
+                                        <tr class="border-b border-slate-100">
+                                            <td class="py-2 px-3 uppercase font-bold text-slate-700">${t.type}</td>
+                                            <td class="py-2 px-3 font-bold ${t.type === 'deduction' ? 'text-rose-600' : 'text-emerald-600'}">${t.type === 'deduction' ? '-' : '+'}${t.credits}</td>
+                                            <td class="py-2 px-3 text-slate-500">${t.description || 'N/A'}</td>
+                                            <td class="py-2 px-3 text-right text-slate-400">${new Date(t.created_at).toLocaleDateString()}</td>
+                                        </tr>
+                                    `).join('') : '<tr><td colspan="4" class="text-center py-4 text-slate-400">No transaction logs available.</td></tr>'}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                lucide.createIcons();
+            } catch (err) {
+                showNotification('error', 'Failed to inspect user profile: ' + err.message);
+                closeUserInspectorModal();
+            }
+        };
+
+        window.closeUserInspectorModal = function() {
+            const modal = document.getElementById('user-inspector-modal');
+            if (modal) modal.classList.add('hidden');
+        };
 
         async function toggleUserAdminRole(userId) {
             if (!confirm('Are you sure you want to change this user\'s access privilege role?')) return;

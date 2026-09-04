@@ -2753,16 +2753,6 @@
                     showNotification('error', err.message);
                 });
         };
-            
-            apiCall('whatsapp/admin.php?action=save_meta_keys', 'POST', payload)
-                .then(res => {
-                    showNotification('success', res.message);
-                    loadAdminWhatsAppDetails();
-                })
-                .catch(err => {
-                    showNotification('error', err.message);
-                });
-        };
         
         window.retryFailedWhatsAppQueue = function() {
             apiCall('whatsapp/admin.php?action=retry_queue', 'POST')

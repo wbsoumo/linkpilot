@@ -114,77 +114,77 @@
             <div id="admin-overview-pane" class="space-y-6">
                 <!-- Summary Stats Row -->
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-9 w-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-xs">
+                        <div class="h-9 w-9 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0">
                             <i data-lucide="users" class="h-5 w-5"></i>
                         </div>
                         <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Registered Users</span>
-                            <span class="text-lg font-black text-white" id="stat-total-users">0</span>
-                            <span class="block text-[9px] text-indigo-400 font-medium" id="stat-active-users-7d">0 active (7d)</span>
+                            <span class="block text-slate-500 font-bold text-[10px] uppercase tracking-wider">Registered Users</span>
+                            <span class="text-xl font-extrabold text-slate-900" id="stat-total-users">0</span>
+                            <span class="block text-[10px] text-indigo-600 font-semibold" id="stat-active-users-7d">0 active (7d)</span>
                         </div>
                     </div>
-                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-9 w-9 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0">
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-xs">
+                        <div class="h-9 w-9 rounded-lg bg-sky-50 text-sky-600 border border-sky-100 flex items-center justify-center shrink-0">
                             <i data-lucide="eye" class="h-5 w-5"></i>
                         </div>
                         <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Live Sessions</span>
-                            <span class="text-lg font-black text-white" id="stat-active-sessions">0</span>
-                            <span class="block text-[9px] text-sky-400 font-medium" id="stat-total-sessions">0 total sessions</span>
+                            <span class="block text-slate-500 font-bold text-[10px] uppercase tracking-wider">Live Sessions</span>
+                            <span class="text-xl font-extrabold text-slate-900" id="stat-active-sessions">0</span>
+                            <span class="block text-[10px] text-sky-600 font-semibold" id="stat-total-sessions">0 total sessions</span>
                         </div>
                     </div>
-                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-xs">
+                        <div class="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
                             <i data-lucide="award" class="h-5 w-5"></i>
                         </div>
                         <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Platform Leads</span>
-                            <span class="text-lg font-black text-white" id="stat-total-leads">0</span>
-                            <span class="block text-[9px] text-emerald-400 font-medium">Synced in Lead Vault</span>
+                            <span class="block text-slate-500 font-bold text-[10px] uppercase tracking-wider">Platform Leads</span>
+                            <span class="text-xl font-extrabold text-slate-900" id="stat-total-leads">0</span>
+                            <span class="block text-[10px] text-emerald-600 font-semibold">Synced in Lead Vault</span>
                         </div>
                     </div>
-                    <div class="glass-panel p-4 bg-slate-900/40 border border-slate-800/10 rounded-2xl flex items-center space-x-3.5">
-                        <div class="h-9 w-9 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center shrink-0">
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl flex items-center space-x-3.5 shadow-xs">
+                        <div class="h-9 w-9 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
                             <i data-lucide="cpu" class="h-5 w-5"></i>
                         </div>
                         <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">AI Keys status</span>
-                            <span class="text-lg font-black text-white" id="stat-active-keys">0 active</span>
-                            <span class="block text-[9px] text-rose-400 font-medium" id="stat-invalid-keys">0 inactive / invalid</span>
+                            <span class="block text-slate-500 font-bold text-[10px] uppercase tracking-wider">AI Keys status</span>
+                            <span class="text-xl font-extrabold text-slate-900" id="stat-active-keys">0 active</span>
+                            <span class="block text-[10px] text-rose-600 font-semibold" id="stat-invalid-keys">0 inactive / invalid</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- NEW: Revenue & Credit Summary Widget -->
+                <!-- Financial Revenue & Cost Ledger Widget -->
                 <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
                     <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                         <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
-                            <i data-lucide="dollar-sign" class="h-4 w-4 text-emerald-500"></i>
+                            <i data-lucide="dollar-sign" class="h-4 w-4 text-emerald-600"></i>
                             <span>Financial Revenue & Cost Ledger</span>
                         </h3>
-                        <span class="text-[10px] font-semibold text-slate-400 uppercase">Real-Time Sync</span>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Real-Time Sync</span>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Daily Revenue</span>
-                            <span class="text-base font-black text-slate-800 mt-1 block" id="rev-daily">₹0.00</span>
-                            <span class="text-[9px] text-emerald-600 font-semibold">Today's Wallet Topups</span>
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Daily Revenue</span>
+                            <span class="text-lg font-black text-slate-900 mt-1 block" id="rev-daily">₹0.00</span>
+                            <span class="text-[10px] text-emerald-600 font-semibold">Today's Wallet Topups</span>
                         </div>
-                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Weekly Revenue</span>
-                            <span class="text-base font-black text-slate-800 mt-1 block" id="rev-weekly">₹0.00</span>
-                            <span class="text-[9px] text-indigo-600 font-semibold">Last 7 Days Total</span>
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Weekly Revenue</span>
+                            <span class="text-lg font-black text-slate-900 mt-1 block" id="rev-weekly">₹0.00</span>
+                            <span class="text-[10px] text-indigo-600 font-semibold">Last 7 Days Total</span>
                         </div>
-                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
-                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Est. AI API Cost</span>
-                            <span class="text-base font-black text-rose-600 mt-1 block" id="rev-ai-cost">$0.00</span>
-                            <span class="text-[9px] text-slate-400 font-semibold" id="rev-ai-cost-inr">₹0.00 est. cost</span>
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                            <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Est. AI API Cost</span>
+                            <span class="text-lg font-black text-rose-600 mt-1 block" id="rev-ai-cost">$0.00</span>
+                            <span class="text-[10px] text-slate-500 font-semibold" id="rev-ai-cost-inr">₹0.00 est. cost</span>
                         </div>
-                        <div class="p-3.5 bg-emerald-50/50 border border-emerald-200/60 rounded-xl">
-                            <span class="block text-[10px] font-bold text-emerald-700 uppercase">Net Revenue</span>
-                            <span class="text-base font-black text-emerald-700 mt-1 block" id="rev-net">₹0.00</span>
-                            <span class="text-[9px] text-emerald-600 font-semibold">Profit after AI Costs</span>
+                        <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl">
+                            <span class="block text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Net Revenue</span>
+                            <span class="text-lg font-black text-emerald-700 mt-1 block" id="rev-net">₹0.00</span>
+                            <span class="text-[10px] text-emerald-600 font-semibold">Profit after AI Costs</span>
                         </div>
                     </div>
                 </div>
@@ -203,81 +203,81 @@
                     </div>
 
                     <!-- Right: Quick Server Control Switches (1 col) -->
-                    <div class="glass-panel p-5 bg-slate-900/40 text-slate-300 rounded-2xl space-y-4">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center justify-between">
+                    <div class="glass-panel p-5 bg-white border border-slate-200 text-slate-800 rounded-2xl space-y-4 shadow-xs">
+                        <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
                             <span class="flex items-center">
-                                <i data-lucide="sliders" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                                <i data-lucide="sliders" class="h-4 w-4 text-indigo-600 mr-2"></i>
                                 <span>Quick Server Controls</span>
                             </span>
-                            <span class="text-[9px] px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-mono">LIVE SWITCH</span>
+                            <span class="text-[9px] px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded font-mono font-bold">LIVE SWITCH</span>
                         </h3>
-                        <div class="space-y-4 text-xs">
+                        <div class="space-y-3.5 text-xs">
                             <!-- Switch 1: Maintenance Mode -->
-                            <div class="flex items-center justify-between p-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                 <div>
-                                    <span class="block font-bold text-white text-xs">Maintenance Mode</span>
-                                    <span class="text-[10px] text-slate-400">Lock non-admin access</span>
+                                    <span class="block font-bold text-slate-900 text-xs">Maintenance Mode</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">Lock non-admin access</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="switch-maintenance-mode" onchange="toggleServerControl('maintenance_mode', this.checked)" class="sr-only peer">
-                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
+                                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
                                 </label>
                             </div>
 
                             <!-- Switch 2: Disable Registration -->
-                            <div class="flex items-center justify-between p-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                 <div>
-                                    <span class="block font-bold text-white text-xs">Disable Registration</span>
-                                    <span class="text-[10px] text-slate-400">Pause new signup portal</span>
+                                    <span class="block font-bold text-slate-900 text-xs">Disable Registration</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">Pause new signup portal</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="switch-disable-registration" onchange="toggleServerControl('disable_registration', this.checked)" class="sr-only peer">
-                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
                                 </label>
                             </div>
 
                             <!-- Switch 3: Emergency Auto-Reply Pause -->
-                            <div class="flex items-center justify-between p-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl">
+                            <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                 <div>
-                                    <span class="block font-bold text-white text-xs">Emergency Auto-Reply Pause</span>
-                                    <span class="text-[10px] text-slate-400">Freeze WA & AI replies</span>
+                                    <span class="block font-bold text-slate-900 text-xs">Emergency Auto-Reply Pause</span>
+                                    <span class="text-[10px] text-slate-500 font-medium">Freeze WA & AI replies</span>
                                 </div>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" id="switch-emergency-pause-ai" onchange="toggleServerControl('emergency_pause_ai', this.checked)" class="sr-only peer">
-                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+                                    <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
                                 </label>
                             </div>
                         </div>
 
                         <!-- Quick actions -->
-                        <div class="pt-3 border-t border-slate-800 space-y-2">
+                        <div class="pt-3 border-t border-slate-100 space-y-2">
                             <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Admin Quick Actions</span>
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick="switchAdminTab('ai-settings')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg transition flex items-center justify-center">
-                                    <i data-lucide="key" class="h-3 w-3 mr-1"></i> AI Keys
+                                <button onclick="switchAdminTab('ai-settings')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg transition flex items-center justify-center border border-slate-200">
+                                    <i data-lucide="key" class="h-3 w-3 mr-1 text-indigo-600"></i> AI Keys
                                 </button>
-                                <button onclick="switchAdminTab('users')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg transition flex items-center justify-center">
-                                    <i data-lucide="users" class="h-3 w-3 mr-1"></i> User Accounts
+                                <button onclick="switchAdminTab('users')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] font-bold rounded-lg transition flex items-center justify-center border border-slate-200">
+                                    <i data-lucide="users" class="h-3 w-3 mr-1 text-indigo-600"></i> User Accounts
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- NEW: Live Real-Time Activity Feed Section -->
-                <div class="glass-panel p-5 bg-slate-900/40 border border-slate-800/80 text-slate-300 rounded-2xl space-y-4">
-                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
-                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <!-- Live Real-Time Activity Feed Section -->
+                <div class="glass-panel p-5 bg-white border border-slate-200 text-slate-800 rounded-2xl space-y-4 shadow-xs">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                             <span>Live Real-Time Activity Stream</span>
                         </h3>
-                        <span class="text-[10px] font-mono text-slate-400">Auto-refreshing live log</span>
+                        <span class="text-[10px] font-mono text-slate-400 font-semibold">Auto-refreshing live log</span>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse custom-table text-xs">
                             <thead>
-                                <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase text-[9px]">
+                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase text-[9px]">
                                     <th class="py-2">Event Type</th>
                                     <th class="py-2">User / Actor</th>
                                     <th class="py-2">Details</th>
@@ -2377,15 +2377,15 @@
                         const dateFormatted = new Date(item.created_at).toLocaleDateString();
 
                         return `
-                            <tr class="hover:bg-slate-900/20 border-b border-slate-800/40">
+                            <tr class="hover:bg-slate-50 border-b border-slate-100">
                                 <td class="py-2.5 px-3">
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${badgeStyle}">
                                         ${item.title}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-3 font-bold text-white">${item.user_name || 'System User'}</td>
-                                <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${item.detail || 'N/A'}</td>
-                                <td class="py-2.5 px-3 text-right text-slate-500 text-[10px]">${dateFormatted} ${timeAgo}</td>
+                                <td class="py-2.5 px-3 font-bold text-slate-800">${item.user_name || 'System User'}</td>
+                                <td class="py-2.5 px-3 text-slate-600 font-mono text-[11px]">${item.detail || 'N/A'}</td>
+                                <td class="py-2.5 px-3 text-right text-slate-400 text-[10px] font-medium">${dateFormatted} ${timeAgo}</td>
                             </tr>
                         `;
                     }).join('');

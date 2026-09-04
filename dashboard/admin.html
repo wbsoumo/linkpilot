@@ -444,52 +444,134 @@
 
             <!-- 3. FINANCIAL LEDGER PANE -->
             <div id="admin-ledger-pane" class="hidden space-y-6">
+                <!-- Top Action Header & Export Toolbar -->
+                <div class="glass-panel p-5 bg-white border border-slate-200 text-slate-800 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-xs">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="receipt" class="h-4 w-4 text-emerald-600"></i>
+                            <span>Financial Ledger & Revenue Hub</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Track paid top-ups, revenue analytics metrics, export audit logs, and issue manual invoices.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <button onclick="openManualInvoiceModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-sm transition flex items-center space-x-1.5">
+                            <i data-lucide="file-plus" class="h-4 w-4"></i>
+                            <span>+ Issue Manual Invoice</span>
+                        </button>
+                        <button onclick="exportLedgerData('csv')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold rounded-lg text-xs transition flex items-center space-x-1.5">
+                            <i data-lucide="download" class="h-3.5 w-3.5 text-indigo-600"></i>
+                            <span>Export CSV</span>
+                        </button>
+                        <button onclick="exportLedgerData('pdf')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold rounded-lg text-xs transition flex items-center space-x-1.5">
+                            <i data-lucide="file-text" class="h-3.5 w-3.5 text-rose-600"></i>
+                            <span>Export PDF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. Revenue Analytics Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Total Revenue Card -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Total Gross Revenue</span>
+                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                                <i data-lucide="dollar-sign" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-slate-900 tracking-tight" id="ledger-total-revenue">₹0.00</div>
+                        <p class="text-[10px] text-slate-400 font-medium" id="ledger-total-orders-sub">0 successful checkout orders</p>
+                    </div>
+
+                    <!-- Average Order Value (AOV) Card -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Average Order Value</span>
+                            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <i data-lucide="trending-up" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-slate-900 tracking-tight" id="ledger-aov">₹0.00</div>
+                        <p class="text-[10px] text-slate-400 font-medium">Per completed recharge order</p>
+                    </div>
+
+                    <!-- Refunded Transactions Card -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Refunded Transactions</span>
+                            <div class="p-2 bg-amber-50 text-amber-600 rounded-xl">
+                                <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-amber-600 tracking-tight" id="ledger-refunded-amount">₹0.00</div>
+                        <p class="text-[10px] text-slate-400 font-medium" id="ledger-refunded-count-sub">0 refunded payments</p>
+                    </div>
+
+                    <!-- Failed Transactions Card -->
+                    <div class="glass-panel p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                        <div class="flex items-center justify-between text-slate-500 text-xs font-semibold">
+                            <span>Failed / Cancelled</span>
+                            <div class="p-2 bg-rose-50 text-rose-600 rounded-xl">
+                                <i data-lucide="x-circle" class="h-4 w-4"></i>
+                            </div>
+                        </div>
+                        <div class="text-2xl font-black text-rose-600 tracking-tight" id="ledger-failed-count">0</div>
+                        <p class="text-[10px] text-slate-400 font-medium" id="ledger-failed-amount-sub">₹0.00 uncollected value</p>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Transactions log -->
-                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
-                            <i data-lucide="receipt" class="h-4 w-4 text-emerald-400 mr-2"></i>
-                            <span>Credit Wallet Transaction Feed</span>
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                        <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                            <span class="flex items-center">
+                                <i data-lucide="receipt" class="h-4 w-4 text-emerald-600 mr-2"></i>
+                                <span>Credit Wallet Transaction Feed</span>
+                            </span>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full">Live Logs</span>
                         </h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse custom-table text-xs">
                                 <thead>
-                                    <tr class="border-b border-slate-800">
-                                        <th>Tx ID</th>
-                                        <th>User</th>
-                                        <th>Type</th>
-                                        <th>Credits</th>
-                                        <th>Amount</th>
-                                        <th>Date</th>
+                                    <tr class="border-b border-slate-100 text-slate-400 font-semibold uppercase text-[10px]">
+                                        <th class="py-2 px-3">Tx ID</th>
+                                        <th class="py-2 px-3">User</th>
+                                        <th class="py-2 px-3">Type</th>
+                                        <th class="py-2 px-3">Credits</th>
+                                        <th class="py-2 px-3">Amount</th>
+                                        <th class="py-2 px-3">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ledger-tx-tbody">
-                                    <tr><td colspan="6" class="text-center py-6 text-slate-500">Loading wallet records...</td></tr>
+                                    <tr><td colspan="6" class="text-center py-6 text-slate-400">Loading wallet records...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
                     <!-- Payment Orders log -->
-                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
-                            <i data-lucide="credit-card" class="h-4 w-4 text-indigo-400 mr-2"></i>
-                            <span>Razorpay Checkout Orders</span>
+                    <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                        <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                            <span class="flex items-center">
+                                <i data-lucide="credit-card" class="h-4 w-4 text-indigo-600 mr-2"></i>
+                                <span>Razorpay Checkout Orders</span>
+                            </span>
+                            <span class="text-[10px] bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full">Gateway Feed</span>
                         </h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse custom-table text-xs">
                                 <thead>
-                                    <tr class="border-b border-slate-800">
-                                        <th>Razorpay ID</th>
-                                        <th>User</th>
-                                        <th>Amount</th>
-                                        <th>Credits</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
+                                    <tr class="border-b border-slate-100 text-slate-400 font-semibold uppercase text-[10px]">
+                                        <th class="py-2 px-3">Order Ref</th>
+                                        <th class="py-2 px-3">User</th>
+                                        <th class="py-2 px-3">Amount</th>
+                                        <th class="py-2 px-3">Credits</th>
+                                        <th class="py-2 px-3">Status</th>
+                                        <th class="py-2 px-3">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody id="ledger-orders-tbody">
-                                    <tr><td colspan="6" class="text-center py-6 text-slate-500">Loading order records...</td></tr>
+                                    <tr><td colspan="6" class="text-center py-6 text-slate-400">Loading order records...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -3088,54 +3170,235 @@
             });
         }
 
-        // 3. FINANCIAL LEDGER DATA LOADERS
+        // 3. FINANCIAL LEDGER DATA LOADERS & ACTIONS
         window.loadAdminLedgerData = async function() {
             try {
                 const res = await apiCall('admin/financial_ledger.php');
-                
+                window.lastLedgerData = res;
+
+                // Update Revenue Analytics Cards
+                if (res.analytics) {
+                    const a = res.analytics;
+                    document.getElementById('ledger-total-revenue').textContent = `₹${a.total_revenue.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    document.getElementById('ledger-total-orders-sub').textContent = `${a.total_orders} successful checkout orders`;
+                    
+                    document.getElementById('ledger-aov').textContent = `₹${a.avg_order_value.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    
+                    document.getElementById('ledger-refunded-amount').textContent = `₹${a.refunded_amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                    document.getElementById('ledger-refunded-count-sub').textContent = `${a.refunded_count} refunded transactions`;
+                    
+                    document.getElementById('ledger-failed-count').textContent = a.failed_count;
+                    document.getElementById('ledger-failed-amount-sub').textContent = `₹${a.failed_amount.toLocaleString('en-IN', {minimumFractionDigits: 2})} uncollected value`;
+                }
+
                 // Render Transaction feed
                 const txBody = document.getElementById('ledger-tx-tbody');
-                if (res.transactions.length === 0) {
-                    txBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No credit adjustments logged.</td></tr>`;
+                if (!res.transactions || res.transactions.length === 0) {
+                    txBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No credit adjustments logged.</td></tr>`;
                 } else {
                     txBody.innerHTML = res.transactions.map(tx => `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100">
-                            <td class="py-2.5 px-4 font-mono font-bold text-slate-500">#${tx.id}</td>
-                            <td class="py-2.5 px-4 font-bold text-slate-800">${tx.user_name || 'System'}<div class="text-[9px] text-slate-500 font-medium">${tx.user_email || ''}</div></td>
-                            <td class="py-2.5 px-4">
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${tx.type === 'recharge' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 text-xs">
+                            <td class="py-2.5 px-3 font-mono font-bold text-slate-500">#${tx.id}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800">${tx.user_name || 'System'}<div class="text-[9px] text-slate-400 font-medium">${tx.user_email || ''}</div></td>
+                            <td class="py-2.5 px-3">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${tx.type === 'recharge' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
                                     ${tx.type}
                                 </span>
                             </td>
-                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">${tx.credits > 0 ? '+' : ''}${tx.credits}</td>
-                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">₹${tx.amount}</td>
-                            <td class="py-2.5 px-4 text-slate-550 font-semibold font-mono text-[10px]">${new Date(tx.created_at).toLocaleString()}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800 font-mono">${tx.credits > 0 ? '+' : ''}${tx.credits}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800 font-mono">₹${parseFloat(tx.amount || 0).toFixed(2)}</td>
+                            <td class="py-2.5 px-3 text-slate-500 font-semibold font-mono text-[10px]">${new Date(tx.created_at).toLocaleString()}</td>
                         </tr>
                     `).join('');
                 }
 
                 // Render Checkout Orders feed
                 const orderBody = document.getElementById('ledger-orders-tbody');
-                if (res.orders.length === 0) {
-                    orderBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">No payment orders found.</td></tr>`;
+                if (!res.orders || res.orders.length === 0) {
+                    orderBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No payment orders found.</td></tr>`;
                 } else {
                     orderBody.innerHTML = res.orders.map(o => `
-                        <tr class="hover:bg-slate-50 border-b border-slate-100">
-                            <td class="py-2.5 px-4 font-mono font-bold text-slate-500 truncate max-w-[120px]" title="${o.order_id}">${o.order_id}</td>
-                            <td class="py-2.5 px-4 font-bold text-slate-800">${o.user_name || 'System'}<div class="text-[9px] text-slate-500 font-medium">${o.user_email || ''}</div></td>
-                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">₹${(o.amount/100).toFixed(2)}</td>
-                            <td class="py-2.5 px-4 font-bold text-slate-700 font-mono">+${o.credits}</td>
-                            <td class="py-2.5 px-4">
-                                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${o.status === 'paid' || o.status === 'captured' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}">
+                        <tr class="hover:bg-slate-50 border-b border-slate-100 text-xs">
+                            <td class="py-2.5 px-3 font-mono font-bold text-slate-500 truncate max-w-[120px]" title="${o.order_id}">${o.order_id}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800">${o.user_name || 'System'}<div class="text-[9px] text-slate-400 font-medium">${o.user_email || ''}</div></td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800 font-mono">₹${(parseFloat(o.amount)/100).toFixed(2)}</td>
+                            <td class="py-2.5 px-3 font-bold text-slate-800 font-mono">+${o.credits}</td>
+                            <td class="py-2.5 px-3">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${o.status === 'paid' || o.status === 'completed' || o.status === 'captured' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (o.status === 'refunded' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')}">
                                     ${o.status}
                                 </span>
                             </td>
-                            <td class="py-2.5 px-4 text-slate-555 font-semibold font-mono text-[10px]">${new Date(o.created_at).toLocaleString()}</td>
+                            <td class="py-2.5 px-3 text-slate-500 font-semibold font-mono text-[10px]">${new Date(o.created_at).toLocaleString()}</td>
                         </tr>
                     `).join('');
                 }
+                lucide.createIcons();
             } catch (err) {
                 showNotification('error', 'Failed to load ledger: ' + err.message);
+            }
+        };
+
+        // Export Financial Ledger (CSV or PDF)
+        window.exportLedgerData = function(format) {
+            if (!window.lastLedgerData || !window.lastLedgerData.transactions) {
+                showNotification('error', 'No financial data loaded to export.');
+                return;
+            }
+
+            const txs = window.lastLedgerData.transactions;
+
+            if (format === 'csv') {
+                let csv = 'Transaction ID,User Name,User Email,Type,Credits,Amount (INR),Date\n';
+                txs.forEach(t => {
+                    const name = `"${(t.user_name || 'System').replace(/"/g, '""')}"`;
+                    const email = `"${(t.user_email || '').replace(/"/g, '""')}"`;
+                    csv += `${t.id},${name},${email},${t.type},${t.credits},${t.amount},${t.created_at}\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.setAttribute('download', `Financial_Ledger_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showNotification('success', 'Financial CSV Export downloaded successfully.');
+            } else if (format === 'pdf') {
+                // Print/PDF View generator window
+                const printWin = window.open('', '_blank');
+                let rowsHTML = txs.map(t => `
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-family: monospace;">#${t.id}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;"><strong>${t.user_name || 'System'}</strong><br/><small style="color: #64748b;">${t.user_email || ''}</small></td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; text-transform: uppercase;">${t.type}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">${t.credits}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold;">₹${parseFloat(t.amount || 0).toFixed(2)}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px;">${new Date(t.created_at).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+
+                const analytics = window.lastLedgerData.analytics || {};
+                printWin.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Financial Ledger Audit Report</title>
+                        <style>
+                            body { font-family: system-ui, -apple-system, sans-serif; margin: 30px; color: #0f172a; }
+                            h1 { font-size: 20px; font-weight: 800; margin-bottom: 5px; }
+                            p { color: #64748b; font-size: 12px; margin-top: 0; }
+                            .metrics { display: flex; gap: 20px; margin: 20px 0; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; background: #f8fafc; }
+                            .metric-box { flex: 1; }
+                            .metric-box label { font-size: 10px; font-weight: bold; text-transform: uppercase; color: #64748b; display: block; }
+                            .metric-box val { font-size: 18px; font-weight: 900; color: #0f172a; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+                            th { background: #f1f5f9; padding: 10px 8px; text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #cbd5e1; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>LinkPilot AI — Financial Ledger Statement</h1>
+                        <p>Generated on ${new Date().toLocaleString()} | Official Admin Accounting Audit</p>
+                        <div class="metrics">
+                            <div class="metric-box"><label>Total Revenue</label><val>₹${(analytics.total_revenue || 0).toFixed(2)}</val></div>
+                            <div class="metric-box"><label>Avg Order Value</label><val>₹${(analytics.avg_order_value || 0).toFixed(2)}</val></div>
+                            <div class="metric-box"><label>Refunded</label><val>₹${(analytics.refunded_amount || 0).toFixed(2)}</val></div>
+                            <div class="metric-box"><label>Failed Orders</label><val>${analytics.failed_count || 0}</val></div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr><th>Tx ID</th><th>User</th><th>Type</th><th>Credits</th><th>Amount</th><th>Timestamp</th></tr>
+                            </thead>
+                            <tbody>${rowsHTML}</tbody>
+                        </table>
+                        <script>window.onload = () => { window.print(); };</script>
+                    </body>
+                    </html>
+                `);
+                printWin.document.close();
+            }
+        };
+
+        // Manual Invoice Generator Modal Handler
+        window.openManualInvoiceModal = function() {
+            const existing = document.getElementById('manual-invoice-modal');
+            if (existing) existing.remove();
+
+            const userOptions = (window.allAdminUsers || []).map(u => `<option value="${u.id}">${u.name} (${u.email}) - ID: #${u.id}</option>`).join('');
+
+            const modalHTML = `
+                <div id="manual-invoice-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
+                    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden text-slate-800 animate-slide-up">
+                        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+                                    <i data-lucide="file-plus" class="h-4 w-4 text-emerald-600"></i>
+                                    <span>Issue Manual Top-up Invoice</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Credit user's wallet manually and issue a tax invoice receipt.</p>
+                            </div>
+                            <button onclick="document.getElementById('manual-invoice-modal').remove()" class="h-7 w-7 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                        <form id="manual-invoice-form" onsubmit="submitManualInvoice(event)" class="p-6 space-y-4 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Select Target User Account</label>
+                                <select id="invoice-user-id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                    <option value="">-- Choose User --</option>
+                                    ${userOptions}
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Credits to Grant</label>
+                                    <input type="number" id="invoice-credits" min="1" placeholder="e.g. 500" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Billed Amount (₹ INR)</label>
+                                    <input type="number" step="0.01" id="invoice-amount" min="0" placeholder="e.g. 499.00" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Invoice Notes / Description</label>
+                                <textarea id="invoice-notes" rows="2" placeholder="Custom credit package / Enterprise agreement..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2">
+                                <button type="button" onclick="document.getElementById('manual-invoice-modal').remove()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-lg transition">Cancel</button>
+                                <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition flex items-center space-x-1.5">
+                                    <i data-lucide="check-circle" class="h-4 w-4"></i>
+                                    <span>Generate & Issue Invoice</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            lucide.createIcons();
+        };
+
+        window.submitManualInvoice = async function(e) {
+            e.preventDefault();
+            const userId = document.getElementById('invoice-user-id').value;
+            const credits = document.getElementById('invoice-credits').value;
+            const amount = document.getElementById('invoice-amount').value;
+            const notes = document.getElementById('invoice-notes').value;
+
+            try {
+                const res = await apiCall('admin/financial_ledger.php', 'POST', {
+                    user_id: parseInt(userId),
+                    credits: parseInt(credits),
+                    amount: parseFloat(amount),
+                    notes: notes
+                });
+
+                showNotification('success', res.message);
+                document.getElementById('manual-invoice-modal').remove();
+                window.loadAdminLedgerData();
+            } catch (err) {
+                showNotification('error', err.message);
             }
         };
 

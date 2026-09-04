@@ -12,13 +12,21 @@ $db = Database::getConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
 try {
+    // Ensure status column exists in users table
+    try {
+        $cCheck = $db->query("SHOW COLUMNS FROM `users` LIKE 'status'");
+        if (!$cCheck->fetch()) {
+            $db->exec("ALTER TABLE `users` ADD COLUMN `status` VARCHAR(20) DEFAULT 'active'");
+        }
+    } catch (Exception $ex) {}
+
     if ($method === 'GET') {
         if (isset($_GET['user_id'])) {
             $targetUserId = (int)$_GET['user_id'];
 
             // Fetch user info
             $stmtUser = $db->prepare("
-                SELECT u.id, u.name, u.email, u.phone_number, u.role, u.is_verified, u.status, u.created_at,
+                SELECT u.id, u.name, u.email, u.phone_number, u.role, u.is_verified, COALESCE(u.status, 'active') as status, u.created_at,
                        p.user_type, p.job_title, p.company_name, p.website, p.linkedin_url, p.about_me,
                        p.active_ai_provider, p.active_ai_model
                 FROM users u

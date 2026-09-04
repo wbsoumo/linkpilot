@@ -22,12 +22,17 @@ try {
         }
 
         // 2. Queue Monitoring
-        $stmtQueue = $db->query("
-            SELECT status, COUNT(*) as count 
-            FROM email_processing_logs 
-            GROUP BY status
-        ");
-        $queueStats = $stmtQueue->fetchAll();
+        $queueStats = [];
+        try {
+            $stmtQueue = $db->query("
+                SELECT status, COUNT(*) as count 
+                FROM email_processing_logs 
+                GROUP BY status
+            ");
+            if ($stmtQueue) {
+                $queueStats = $stmtQueue->fetchAll();
+            }
+        } catch (Exception $ex) {}
 
         // 3. System Telemetry & Resource Usage Metrics
         // CPU Usage
@@ -80,19 +85,26 @@ try {
         }
         
         // Check for stalled condition (if queue items exist in 'processing' state for > 15 mins)
-        $stalledCount = (int)$db->query("
-            SELECT COUNT(*) FROM email_processing_logs 
-            WHERE status = 'processing' AND created_at < NOW() - INTERVAL 15 MINUTE
-        ")->fetchColumn();
+        $stalledCount = 0;
+        try {
+            $stalledCount = (int)$db->query("
+                SELECT COUNT(*) FROM email_processing_logs 
+                WHERE status = 'processing' AND created_at < NOW() - INTERVAL 15 MINUTE
+            ")->fetchColumn();
+        } catch (Exception $ex) {}
         if ($stalledCount > 0 && $queueWorkerStatus === 'running') {
             $queueWorkerStatus = 'stalled';
         }
 
         // 5. System Health Checklist
-        $mysqlVersion = $db->query("SELECT VERSION()")->fetchColumn();
-        $totalUsers = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-        $totalLeads = (int)$db->query("SELECT COUNT(*) FROM crm_leads")->fetchColumn();
-        $totalCompanies = (int)$db->query("SELECT COUNT(*) FROM crm_companies")->fetchColumn();
+        $mysqlVersion = 'Unknown';
+        try { $mysqlVersion = $db->query("SELECT VERSION()")->fetchColumn(); } catch (Exception $ex) {}
+        $totalUsers = 0;
+        try { $totalUsers = (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn(); } catch (Exception $ex) {}
+        $totalLeads = 0;
+        try { $totalLeads = (int)$db->query("SELECT COUNT(*) FROM crm_leads")->fetchColumn(); } catch (Exception $ex) {}
+        $totalCompanies = 0;
+        try { $totalCompanies = (int)$db->query("SELECT COUNT(*) FROM crm_companies")->fetchColumn(); } catch (Exception $ex) {}
         
         $health = [
             'database_status' => 'healthy',
@@ -158,7 +170,7 @@ try {
                         $optimized[] = $tbl;
                     } catch (Exception $ex) {}
                 }
-                sendJsonResponse('success', 'Database tables optimized successfully: ' + implode(', ', $optimized));
+                sendJsonResponse('success', 'Database tables optimized successfully: ' . implode(', ', $optimized));
             } 
             elseif ($type === 'cleanup_sessions') {
                 // Cleanup expired sessions older than 30 days

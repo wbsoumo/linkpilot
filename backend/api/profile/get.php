@@ -25,9 +25,12 @@ try {
     }
     
     // Check if there is at least one key in user_ai_keys table for each provider (non-invalid)
-    $stmtKeysCount = $db->prepare("SELECT provider, COUNT(*) as cnt FROM user_ai_keys WHERE user_id = ? AND status != 'invalid' GROUP BY provider");
-    $stmtKeysCount->execute([$userId]);
-    $keysCounts = $stmtKeysCount->fetchAll(PDO::FETCH_KEY_PAIR);
+    $keysCounts = [];
+    try {
+        $stmtKeysCount = $db->prepare("SELECT provider, COUNT(*) as cnt FROM user_ai_keys WHERE user_id = ? AND status != 'invalid' GROUP BY provider");
+        $stmtKeysCount->execute([$userId]);
+        $keysCounts = $stmtKeysCount->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Exception $ex) {}
 
     $userData['has_openrouter_key'] = !empty($keysCounts['openrouter']);
     $userData['has_github_key'] = !empty($keysCounts['github_models']);

@@ -15,14 +15,17 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 try {
     if ($method === 'GET') {
         // Retrieve keys safely
-        $stmt = $db->prepare("
-            SELECT k.id, k.provider, k.api_key, k.status, k.error_message, k.created_at, k.updated_at
-            FROM user_ai_keys k
-            WHERE k.user_id = ?
-            ORDER BY k.id ASC
-        ");
-        $stmt->execute([$userId]);
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = [];
+        try {
+            $stmt = $db->prepare("
+                SELECT k.id, k.provider, k.api_key, k.status, k.error_message, k.created_at, k.updated_at
+                FROM user_ai_keys k
+                WHERE k.user_id = ?
+                ORDER BY k.id ASC
+            ");
+            $stmt->execute([$userId]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $ex) {}
 
         $keys = [];
         foreach ($rows as $row) {

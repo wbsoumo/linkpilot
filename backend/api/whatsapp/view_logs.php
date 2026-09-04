@@ -37,11 +37,16 @@ $buffer = fread($fp, $readSize);
 fclose($fp);
 
 $lines = explode("\n", $buffer);
-if (count($lines) > 1 && $readSize < $fileSize) {
-    array_shift($lines); // Drop incomplete first line snippet
+
+$filteredLines = [];
+foreach ($lines as $line) {
+    if (strpos($line, 'sendJsonResponse output') !== false) continue;
+    if (strpos($line, 'inbox.php') !== false) continue;
+    if (strpos($line, 'found 0 pending queue item') !== false) continue;
+    $filteredLines[] = $line;
 }
 
-$lastLines = array_slice($lines, -150);
+$lastLines = array_slice($filteredLines, -100);
 
-echo "=== LINKPILOT WHATSAPP DEBUG LOGS (LAST 150 ENTRIES | FILE SIZE: " . round($fileSize / 1024 / 1024, 2) . " MB) ===\n\n";
+echo "=== LINKPILOT WHATSAPP DEBUG LOGS (LAST 100 FILTERED ENTRIES | FILE SIZE: " . round($fileSize / 1024 / 1024, 2) . " MB) ===\n\n";
 echo implode("\n", $lastLines);

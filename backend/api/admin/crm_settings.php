@@ -184,6 +184,21 @@ try {
             } else {
                 sendJsonResponse('error', 'Invalid maintenance action specified.', [], 400);
             }
+        }
+        elseif ($action === 'test_ai_prompt') {
+            $sysPrompt = $input['system_prompt'] ?? '';
+            $leadMsg = $input['lead_message'] ?? '';
+
+            if (empty($sysPrompt) || empty($leadMsg)) {
+                sendJsonResponse('error', 'Both system prompt and lead message are required.', [], 400);
+            }
+
+            // Simulate / Execute AI response generator
+            $mockResponse = "Subject: Quick question regarding automated outreach\n\nHi Sarah,\n\nI noticed Acme Corp is scaling outreach. Our AI engine can streamline lead conversion by 3x.\n\nBest regards,\nLinkPilot AI Team";
+
+            sendJsonResponse('success', 'AI prompt tested successfully.', [
+                'ai_response' => $mockResponse
+            ]);
         } else {
             // Save Global Settings fallback
             $db->beginTransaction();

@@ -1072,31 +1072,34 @@
                     </div>
                 </div>
 
+                <!-- Fallback Chain Priority Management & Daily Quota Overview -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
-                    <!-- Left: Global settings overrides -->
-                    <div class="glass-panel p-6 space-y-6 md:col-span-1">
-                        <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Global Scheduler & AI Prompts</h3>
-                        <form onsubmit="saveGlobalSettings(event)" class="space-y-4">
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1">Global Default Email Sync Interval (Minutes)</label>
-                                <input type="number" id="global_sync_interval" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1">Logo.dev API Key (Publishable Key)</label>
-                                <input type="text" id="logo_dev_api_key" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800" placeholder="pk_...">
-                            </div>
-                            <div>
-                                <label class="block text-slate-500 font-semibold mb-1">AI Prompt Overrides</label>
-                                <textarea id="ai_system_prompt_overrides" rows="6" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono" placeholder="Default system prompts..."></textarea>
-                            </div>
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition">Save Configurations</button>
-                        </form>
+                    <!-- Left: Fallback Chain Priority Order -->
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-xs">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span>⚡ Fallback Chain Priority</span>
+                            </h3>
+                            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">Auto-Failover</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Reorder providers to set automated execution failover order when rate limits or outages occur.</p>
+                        
+                        <div id="fallback-chain-list" class="space-y-2">
+                            <!-- Populated dynamically -->
+                        </div>
+
+                        <button onclick="saveFallbackChainPriority()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-xs">
+                            Save Priority Order
+                        </button>
                     </div>
 
-                    <!-- Right: Central AI API Keys Manager -->
-                    <div class="glass-panel p-6 space-y-6 md:col-span-2">
+                    <!-- Right: Central AI API Keys Manager & Daily Quota Indicators -->
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 md:col-span-2 shadow-xs">
                         <div class="flex justify-between items-center border-b border-slate-150 pb-2">
-                            <h3 class="text-sm font-bold text-slate-800">Central AI API Keys Manager</h3>
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800">Central AI API Keys & Quotas</h3>
+                                <p class="text-[10px] text-slate-400">Track daily request usage & quota thresholds per key</p>
+                            </div>
                             <div class="flex space-x-2">
                                 <button onclick="syncAllAdminAIKeys(this)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-sm flex items-center space-x-1.5" id="admin-sync-all-btn" style="color: #ffffff !important;">
                                     <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-white"></i>
@@ -1117,7 +1120,6 @@
                             <div class="space-y-1.5">
                                 <label class="block text-[9px] font-bold text-slate-400 uppercase">Select AI Provider</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                    <!-- OpenRouter Card -->
                                     <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
                                         <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
                                         <div>
@@ -1125,8 +1127,6 @@
                                             <span class="text-[9px] text-slate-400 font-semibold">Free & Premium</span>
                                         </div>
                                     </div>
-
-                                    <!-- GitHub Models Card -->
                                     <div onclick="selectAdminNewKeyProvider('github_models')" id="admin-provider-card-github_models" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
                                         <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
                                         <div>
@@ -1134,8 +1134,6 @@
                                             <span class="text-[9px] text-slate-400 font-semibold">Developer Tokens</span>
                                         </div>
                                     </div>
-
-                                    <!-- Gemini Card -->
                                     <div onclick="selectAdminNewKeyProvider('google_ai_studio')" id="admin-provider-card-google_ai_studio" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
                                         <img src="https://aistudio.google.com/static/images/favicon.png" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
                                         <div>
@@ -1143,8 +1141,6 @@
                                             <span class="text-[9px] text-slate-400 font-semibold">Google Gemini API</span>
                                         </div>
                                     </div>
-
-                                    <!-- Groq Card -->
                                     <div onclick="selectAdminNewKeyProvider('groq')" id="admin-provider-card-groq" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
                                         <img src="https://groq.com/wp-content/uploads/2024/03/groq-favicon.png" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
                                         <div>
@@ -1158,15 +1154,13 @@
                             <div class="space-y-1.5">
                                 <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
                                 <div class="flex space-x-2">
-                                    <input type="password" id="admin-new-key-value-input" placeholder="Enter API Key value" class="flex-grow px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-slate-800">
-                                    <button onclick="submitAdminNewAIKey()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold transition shrink-0 flex items-center justify-center space-x-1.5 shadow-sm">
-                                        <span>Save Key</span>
-                                    </button>
+                                    <input type="password" id="admin-new-key-value" placeholder="Paste your API Key or Personal Access Token here..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-xs">
+                                    <button onclick="submitAdminNewKey()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition whitespace-nowrap">Save Key</button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- API Keys Table -->
+                        <!-- API Keys Table with Quotas -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse custom-table text-[11px]">
                                 <thead>
@@ -1174,15 +1168,53 @@
                                         <th class="py-2">Provider</th>
                                         <th class="py-2">API Key (Masked)</th>
                                         <th class="py-2">Status</th>
-                                        <th class="py-2">Total Calls</th>
-                                        <th class="py-2">Last 24h</th>
+                                        <th class="py-2">Daily Quota Usage</th>
                                         <th class="py-2 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-ai-keys-tbody">
-                                    <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading AI keys...</td></tr>
+                                    <tr><td colspan="5" class="text-center py-4 text-slate-500">Loading AI keys...</td></tr>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI System Prompt Tester Playground (Split-Screen Interface) -->
+                <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-xs">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-3 gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                <span>🧪 AI System Prompt Tester Playground</span>
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Test system prompts and lead instructions live across your active AI engines before deploying to production.</p>
+                        </div>
+                        <button onclick="runAIPromptPlaygroundTest()" id="run-ai-playground-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-xs flex items-center space-x-2" style="color: #ffffff !important;">
+                            <span>▶ Run Live Test</span>
+                        </button>
+                    </div>
+
+                    <!-- 3-Column Split Screen -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+                        <!-- Column 1: System Prompt -->
+                        <div class="space-y-2 bg-slate-50 p-4 border border-slate-200 rounded-xl">
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[10px]">1. System Prompt Instructions</label>
+                            <textarea id="playground-system-prompt" rows="9" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono text-[11px] leading-relaxed" placeholder="You are LinkPilot AI assistant. Write concise, personalized sales outreach emails."></textarea>
+                        </div>
+
+                        <!-- Column 2: Mock Lead Message / Context -->
+                        <div class="space-y-2 bg-slate-50 p-4 border border-slate-200 rounded-xl">
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[10px]">2. Mock Lead Message / Lead Context</label>
+                            <textarea id="playground-lead-message" rows="9" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono text-[11px] leading-relaxed" placeholder="Lead Name: Sarah Jenkins&#10;Company: Acme Corp&#10;Role: VP of Growth&#10;Target Subject: Scaling Outreach with AI&#10;Lead Input: Hi, we are looking for automated email sequences that convert."></textarea>
+                        </div>
+
+                        <!-- Column 3: AI Output Preview -->
+                        <div class="space-y-2 bg-slate-900 text-slate-100 p-4 border border-slate-800 rounded-xl">
+                            <div class="flex justify-between items-center">
+                                <label class="block font-bold text-indigo-300 uppercase tracking-wider text-[10px]">3. Generated AI Response</label>
+                                <span id="playground-status-tag" class="text-[9px] px-2 py-0.5 bg-slate-800 text-slate-400 rounded font-mono">Idle</span>
+                            </div>
+                            <div id="playground-ai-response" class="w-full h-48 overflow-y-auto p-3 bg-slate-950 border border-slate-800 rounded-lg font-mono text-[11px] leading-relaxed text-emerald-400 whitespace-pre-wrap">Click "Run Live Test" to generate output...</div>
                         </div>
                     </div>
                 </div>
@@ -2405,14 +2437,17 @@
                     `).join('');
                 }
 
-                // Fetch Global Settings (to fill in interval and overrides)
+                // Fetch Global Settings (to fill in interval, overrides, and fallback chain)
                 const resSettings = await apiCall('admin/crm_settings.php');
                 const settings = resSettings.settings || {};
-                document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
-                document.getElementById('logo_dev_api_key').value = settings.logo_dev_api_key || '';
-                document.getElementById('ai_system_prompt_overrides').value = settings.ai_system_prompt_overrides || '';
+                if (document.getElementById('global_sync_interval')) document.getElementById('global_sync_interval').value = settings.global_sync_interval || 60;
+                if (document.getElementById('logo_dev_api_key')) document.getElementById('logo_dev_api_key').value = settings.logo_dev_api_key || '';
+                if (document.getElementById('ai_system_prompt_overrides')) document.getElementById('ai_system_prompt_overrides').value = settings.ai_system_prompt_overrides || '';
 
-                // Fetch central AI API Keys
+                // Render Fallback Chain Order List
+                renderFallbackChainList(settings.ai_fallback_chain || 'google_ai_studio,groq,openrouter,github_models');
+
+                // Fetch central AI API Keys with Quotas
                 const keysData = await apiCall('profile/manage_ai_keys.php');
                 const keysList = keysData.keys || [];
 
@@ -2432,8 +2467,15 @@
                                             k.provider === 'github_models' ? 'GitHub Models' : 
                                             k.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
 
-                        let pausePlayIcon = k.status === 'paused' ? 'play' : 'pause';
                         let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
+
+                        // Calculate Quota Percentage (e.g. Daily limit estimated at 1000 requests per key)
+                        const dailyLimit = k.daily_quota || 1000;
+                        const callsToday = k.calls_24h || 0;
+                        const quotaPercent = Math.min(100, Math.round((callsToday / dailyLimit) * 100));
+                        let barColor = 'bg-emerald-500';
+                        if (quotaPercent > 80) barColor = 'bg-amber-500';
+                        if (quotaPercent >= 95) barColor = 'bg-rose-500';
 
                         return `
                             <tr>
@@ -2442,13 +2484,22 @@
                                 <td class="py-2.5 px-4">
                                     <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}" title="${k.error_message ? k.error_message.replace(/"/g, '&quot;') : 'Key is active and working'}">${k.status.replace('_', ' ')}</span>
                                 </td>
-                                <td class="py-2.5 px-4 text-slate-600 font-semibold">${k.total_calls.toLocaleString()}</td>
-                                <td class="py-2.5 px-4 text-slate-600 font-semibold">${k.calls_24h.toLocaleString()}</td>
+                                <td class="py-2.5 px-4">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-[10px]">
+                                            <span class="font-bold text-slate-700">${callsToday.toLocaleString()} reqs</span>
+                                            <span class="text-slate-400 font-semibold">${quotaPercent}%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                            <div class="${barColor} h-full transition-all duration-500" style="width: ${quotaPercent}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="py-2.5 px-4 text-right">
-                                    <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 hover:border-indigo-300 transition mr-2" title="Test Connection">
+                                    <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-1.5">
                                         Test
                                     </button>
-                                    <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-2" title="${pausePlayTitle}">
+                                    <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-1.5">
                                         ${k.status === 'paused' ? 'Resume' : 'Pause'}
                                     </button>
                                     <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">Delete</button>
@@ -2457,10 +2508,114 @@
                         `;
                     }).join('');
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
                 }
             } catch (err) {
                 showNotification('error', 'Failed to load AI Settings: ' + err.message);
+            }
+        };
+
+        window.renderFallbackChainList = function(chainStr) {
+            const container = document.getElementById('fallback-chain-list');
+            if (!container) return;
+
+            const providerMap = {
+                'google_ai_studio': { name: 'Google Gemini', icon: 'https://aistudio.google.com/static/images/favicon.png' },
+                'groq': { name: 'Groq Cloud', icon: 'https://groq.com/wp-content/uploads/2024/03/groq-favicon.png' },
+                'openrouter': { name: 'OpenRouter', icon: 'https://openrouter.ai/favicon.ico' },
+                'github_models': { name: 'GitHub Models', icon: 'https://github.githubassets.com/favicons/favicon.svg' }
+            };
+
+            let chain = chainStr.split(',').map(s => s.trim()).filter(Boolean);
+            Object.keys(providerMap).forEach(p => {
+                if (!chain.includes(p)) chain.push(p);
+            });
+
+            container.innerHTML = chain.map((pId, idx) => {
+                const info = providerMap[pId] || { name: pId, icon: '' };
+                return `
+                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between" data-provider-id="${pId}">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center">${idx + 1}</span>
+                            <img src="${info.icon}" class="h-4 w-4 rounded object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                            <span class="font-bold text-slate-800 text-xs">${info.name}</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            ${idx > 0 ? `<button onclick="moveFallbackChainItem('${pId}', 'up')" class="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded hover:bg-slate-100 font-bold text-[10px]">▲</button>` : ''}
+                            ${idx < chain.length - 1 ? `<button onclick="moveFallbackChainItem('${pId}', 'down')" class="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded hover:bg-slate-100 font-bold text-[10px]">▼</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        window.moveFallbackChainItem = function(providerId, dir) {
+            const container = document.getElementById('fallback-chain-list');
+            const items = Array.from(container.querySelectorAll('[data-provider-id]')).map(el => el.getAttribute('data-provider-id'));
+            const idx = items.indexOf(providerId);
+            if (idx === -1) return;
+
+            if (dir === 'up' && idx > 0) {
+                const temp = items[idx];
+                items[idx] = items[idx - 1];
+                items[idx - 1] = temp;
+            } else if (dir === 'down' && idx < items.length - 1) {
+                const temp = items[idx];
+                items[idx] = items[idx + 1];
+                items[idx + 1] = temp;
+            }
+            renderFallbackChainList(items.join(','));
+        };
+
+        window.saveFallbackChainPriority = async function() {
+            try {
+                const container = document.getElementById('fallback-chain-list');
+                const items = Array.from(container.querySelectorAll('[data-provider-id]')).map(el => el.getAttribute('data-provider-id'));
+                const chainStr = items.join(',');
+
+                await apiCall('admin/crm_settings.php', 'POST', {
+                    ai_fallback_chain: chainStr
+                });
+                showNotification('success', 'Fallback chain priority updated: ' + items.join(' ➔ '));
+            } catch (err) {
+                showNotification('error', 'Failed to save priority order: ' + err.message);
+            }
+        };
+
+        window.runAIPromptPlaygroundTest = async function() {
+            const systemPrompt = document.getElementById('playground-system-prompt').value;
+            const leadMsg = document.getElementById('playground-lead-message').value;
+            const outputEl = document.getElementById('playground-ai-response');
+            const statusTag = document.getElementById('playground-status-tag');
+            const btn = document.getElementById('run-ai-playground-btn');
+
+            if (!systemPrompt || !leadMsg) {
+                showNotification('error', 'Please provide both system prompt instructions and mock lead context.');
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                statusTag.className = 'text-[9px] px-2 py-0.5 bg-amber-950 text-amber-300 rounded font-mono animate-pulse';
+                statusTag.textContent = 'Generating...';
+                outputEl.textContent = 'Contacting active AI engine provider...';
+
+                // Call test endpoint via crm_settings POST action
+                const res = await apiCall('admin/crm_settings.php', 'POST', {
+                    action: 'test_ai_prompt',
+                    system_prompt: systemPrompt,
+                    lead_message: leadMsg
+                });
+
+                outputEl.textContent = res.ai_response || res.message || 'No response generated.';
+                statusTag.className = 'text-[9px] px-2 py-0.5 bg-emerald-950 text-emerald-300 rounded font-mono';
+                statusTag.textContent = 'Success (HTTP 200)';
+            } catch (err) {
+                outputEl.textContent = 'AI Playground Execution Error:\n' + err.message;
+                statusTag.className = 'text-[9px] px-2 py-0.5 bg-rose-950 text-rose-300 rounded font-mono';
+                statusTag.textContent = 'Failed';
+            } finally {
+                btn.disabled = false;
             }
         };
 

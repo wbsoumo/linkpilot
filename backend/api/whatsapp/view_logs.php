@@ -28,7 +28,7 @@ if ($fileSize === 0) {
     exit;
 }
 
-define('LOG_VIEWER_VERSION', 'v1.0.6');
+define('LOG_VIEWER_VERSION', 'v1.0.7');
 
 // Read backward in 64KB chunks to find meaningful logs
 $chunkSize = 65536;

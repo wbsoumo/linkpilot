@@ -153,25 +153,45 @@ if (!function_exists('callAIProvider')) {
         } catch (Exception $e) {}
 
         if (empty($apiKeysList)) {
-            if ($provider === 'github_models') {
-                $apiKey = getenv('GITHUB_API_KEY') ?: getenv('GITHUB_TOKEN') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
-                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
-                    $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
-                }
-            } elseif ($provider === 'google_ai_studio') {
-                $apiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '');
-                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
-                    $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
-                }
-            } elseif ($provider === 'groq') {
-                $apiKey = getenv('GROQ_API_KEY') ?: (defined('GROQ_API_KEY') ? GROQ_API_KEY : '');
-                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
-                    $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
-                }
-            } else {
-                $apiKey = getenv('OPENROUTER_API_KEY') ?: (defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '');
-                if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
-                    $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
+            if ($userId !== null) {
+                try {
+                    $stmtUserKeys = $db->prepare("SELECT openrouter_key, github_key, google_key FROM users WHERE id = ?");
+                    $stmtUserKeys->execute([$userId]);
+                    $userKeyRow = $stmtUserKeys->fetch();
+                    if ($userKeyRow) {
+                        $col = '';
+                        if ($provider === 'openrouter') $col = 'openrouter_key';
+                        elseif ($provider === 'github_models') $col = 'github_key';
+                        elseif ($provider === 'google_ai_studio') $col = 'google_key';
+
+                        if (!empty($col) && !empty($userKeyRow[$col])) {
+                            $apiKeysList[] = ['id' => null, 'api_key' => $userKeyRow[$col], 'status' => 'active'];
+                        }
+                    }
+                } catch (Exception $e) {}
+            }
+
+            if (empty($apiKeysList)) {
+                if ($provider === 'github_models') {
+                    $apiKey = getenv('GITHUB_API_KEY') ?: getenv('GITHUB_TOKEN') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
+                    if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
+                        $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
+                    }
+                } elseif ($provider === 'google_ai_studio') {
+                    $apiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '');
+                    if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
+                        $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
+                    }
+                } elseif ($provider === 'groq') {
+                    $apiKey = getenv('GROQ_API_KEY') ?: (defined('GROQ_API_KEY') ? GROQ_API_KEY : '');
+                    if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
+                        $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
+                    }
+                } else {
+                    $apiKey = getenv('OPENROUTER_API_KEY') ?: (defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '');
+                    if (!empty($apiKey) && strpos($apiKey, 'placeholder') === false) {
+                        $apiKeysList[] = ['id' => null, 'api_key' => encryptData($apiKey), 'status' => 'active'];
+                    }
                 }
             }
         }

@@ -28,7 +28,7 @@ if ($fileSize === 0) {
     exit;
 }
 
-define('LOG_VIEWER_VERSION', 'v1.1.0');
+define('LOG_VIEWER_VERSION', 'v1.1.1');
 
 // Read backward up to 2MB to find the most recent 100 entries
 $chunkSize = 65536;
@@ -58,7 +58,6 @@ while ($pos > $startPos && count($filteredLines) < 100) {
         if (strpos($trimmed, 'found 0 pending queue item') !== false) continue;
         if (strpos($trimmed, '"threads":[{') !== false) continue;
         if (strpos($trimmed, '"messages":[{') !== false) continue;
-        if (strpos($trimmed, 'Key ID ENV: API Key not configured or empty.') !== false) continue;
         
         $filteredLines[] = $trimmed;
         if (count($filteredLines) >= 100) break;

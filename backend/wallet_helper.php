@@ -542,9 +542,9 @@ if (!function_exists('callAI')) {
             }
         } catch (Exception $e) {}
 
-        // Construct failover chain starting with primary provider
-        $allProviders = ['google_ai_studio', 'groq', 'github_models', 'openrouter'];
-        $failoverChain = array_merge([$primaryProvider], array_diff($allProviders, [$primaryProvider]));
+        // Construct failover chain: start with user/admin preferred provider, then fallback to others
+        $defaultChain = ['google_ai_studio', 'openrouter', 'github_models', 'groq'];
+        $failoverChain = array_unique(array_merge([$primaryProvider], $defaultChain));
 
         $providerErrors = [];
         foreach ($failoverChain as $currentProvider) {

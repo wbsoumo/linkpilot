@@ -14,12 +14,14 @@ $method = $_SERVER['REQUEST_METHOD'];
 try {
     if ($method === 'GET') {
         // 1. Fetch Global Settings
-        $stmtSettings = $db->query("SELECT * FROM admin_settings");
-        $rawSettings = $stmtSettings->fetchAll();
         $settings = [];
-        foreach ($rawSettings as $s) {
-            $settings[$s['setting_key']] = $s['setting_value'];
-        }
+        try {
+            $stmtSettings = $db->query("SELECT * FROM admin_settings");
+            $rawSettings = $stmtSettings->fetchAll();
+            foreach ($rawSettings as $s) {
+                $settings[$s['setting_key']] = $s['setting_value'];
+            }
+        } catch (Exception $ex) {}
 
         // 2. Queue Monitoring
         $queueStats = [];
@@ -183,8 +185,10 @@ try {
         try {
             $stmtLogs = $db->prepare($logsQuery);
             $stmtLogs->execute($params);
-            $processingLogs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $ex) {}
+            $processingLogs = $stmtLogs->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (Exception $ex) {
+            $processingLogs = [];
+        }
 
         sendJsonResponse('success', 'Admin health settings loaded', [
             'settings' => $settings,

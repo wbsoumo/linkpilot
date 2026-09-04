@@ -14,11 +14,9 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 try {
     if ($method === 'GET') {
-        // Retrieve keys with call logs counts
+        // Retrieve keys safely
         $stmt = $db->prepare("
-            SELECT k.id, k.provider, k.api_key, k.status, k.error_message, k.created_at, k.updated_at,
-                   (SELECT COUNT(*) FROM user_ai_key_logs l WHERE l.key_id = k.id) as total_calls,
-                   (SELECT COUNT(*) FROM user_ai_key_logs l WHERE l.key_id = k.id AND l.created_at >= NOW() - INTERVAL 1 DAY) as calls_24h
+            SELECT k.id, k.provider, k.api_key, k.status, k.error_message, k.created_at, k.updated_at
             FROM user_ai_keys k
             WHERE k.user_id = ?
             ORDER BY k.id ASC
@@ -36,14 +34,26 @@ try {
             $last4 = ($len > 4) ? substr($rawKey, -4) : $rawKey;
             $masked = str_repeat('•', min(8, max(4, $len - 4))) . $last4;
 
+            $totalCalls = 0;
+            $calls24h = 0;
+            try {
+                $stmtLogs = $db->prepare("SELECT COUNT(*) as total, SUM(CASE WHEN created_at >= NOW() - INTERVAL 1 DAY THEN 1 ELSE 0 END) as c24h FROM user_ai_key_logs WHERE key_id = ?");
+                $stmtLogs->execute([$row['id']]);
+                $logRow = $stmtLogs->fetch();
+                if ($logRow) {
+                    $totalCalls = (int)$logRow['total'];
+                    $calls24h = (int)$logRow['c24h'];
+                }
+            } catch (Exception $ex) {}
+
             $keys[] = [
                 'id' => $row['id'],
                 'provider' => $row['provider'],
                 'masked_key' => $masked,
                 'status' => $row['status'],
                 'error_message' => $row['error_message'],
-                'total_calls' => (int)$row['total_calls'],
-                'calls_24h' => (int)$row['calls_24h'],
+                'total_calls' => $totalCalls,
+                'calls_24h' => $calls24h,
                 'created_at' => $row['created_at'],
                 'updated_at' => $row['updated_at']
             ];

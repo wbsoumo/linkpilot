@@ -28,10 +28,10 @@ if ($fileSize === 0) {
     exit;
 }
 
-define('LOG_VIEWER_VERSION', 'v1.1.2');
+define('LOG_VIEWER_VERSION', 'v1.1.3');
 
-// Read last 1MB chunk to guarantee we get the absolute newest log entries
-$readLen = min($fileSize, 1048576); // 1 MB
+// Read last 16MB chunk to guarantee we reach actual event lines across large JSON entries
+$readLen = min($fileSize, 16777216); // 16 MB
 fseek($fp, -$readLen, SEEK_END);
 $buffer = fread($fp, $readLen);
 fclose($fp);

@@ -13,19 +13,32 @@ if (!file_exists($logFile)) {
     exit;
 }
 
-$content = @file_get_contents($logFile);
-if ($content === false) {
-    echo "Log file exists at " . $logFile . " but could not be read.";
-    exit;
-}
-
-if (trim($content) === '') {
+$fileSize = filesize($logFile);
+if ($fileSize === 0) {
     echo "Log file exists at " . $logFile . " but is currently empty.";
     exit;
 }
 
-$lines = explode("\n", $content);
-$lastLines = array_slice($lines, -250);
+// Memory-efficient log tail: read only the last 64KB without loading large files into RAM
+$maxRead = 65536; // 64 KB
+$readSize = min($fileSize, $maxRead);
 
-echo "=== LINKPILOT WHATSAPP DEBUG LOGS (LAST 250 ENTRIES) ===\n\n";
+$fp = @fopen($logFile, 'rb');
+if (!$fp) {
+    echo "Could not open log file for reading.";
+    exit;
+}
+
+fseek($fp, -$readSize, SEEK_END);
+$buffer = fread($fp, $readSize);
+fclose($fp);
+
+$lines = explode("\n", $buffer);
+if (count($lines) > 1 && $readSize < $fileSize) {
+    array_shift($lines); // Drop incomplete first line snippet
+}
+
+$lastLines = array_slice($lines, -150);
+
+echo "=== LINKPILOT WHATSAPP DEBUG LOGS (LAST 150 ENTRIES | FILE SIZE: " . round($fileSize / 1024 / 1024, 2) . " MB) ===\n\n";
 echo implode("\n", $lastLines);

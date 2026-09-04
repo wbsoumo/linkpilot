@@ -2324,36 +2324,46 @@
 
         // 1. OVERVIEW & ANALYTICS DATA LOADERS
         let overviewChart = null;
+        function setText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text;
+        }
+
         window.loadAdminOverviewData = async function() {
             try {
                 const res = await apiCall('admin/analytics_dashboard.php');
                 const s = res.summary;
                 
-                // Update stats counters
-                document.getElementById('stat-total-users').textContent = s.total_users;
-                document.getElementById('stat-active-users-7d').textContent = `${s.active_users_7d} active (7d)`;
-                document.getElementById('stat-total-leads').textContent = s.total_leads;
-                document.getElementById('stat-active-keys').textContent = `${s.active_ai_keys} active`;
-                document.getElementById('stat-invalid-keys').textContent = `${s.invalid_ai_keys} inactive / invalid`;
-                document.getElementById('stat-total-tokens').textContent = Number(s.total_tokens || 0).toLocaleString();
+                // Update stats counters safely
+                setText('stat-total-users', s.total_users);
+                setText('stat-active-users-7d', `${s.active_users_7d} active (7d)`);
+                setText('stat-total-leads', s.total_leads);
+                setText('stat-active-keys', `${s.active_ai_keys} active`);
+                setText('stat-invalid-keys', `${s.invalid_ai_keys} inactive / invalid`);
+                setText('stat-total-tokens', Number(s.total_tokens || 0).toLocaleString());
                 
                 // Estimate AI cost savings (approx 0.15$ per 1k tokens)
                 const savings = (s.total_tokens || 0) * 0.00015;
-                document.getElementById('stat-estimated-savings').textContent = `$${savings.toFixed(2)}`;
+                setText('stat-estimated-savings', `$${savings.toFixed(2)}`);
                 
-                // Format revenue ledger fields
-                document.getElementById('rev-daily').textContent = `₹${Number(s.revenue_daily || 0).toLocaleString()}`;
-                document.getElementById('rev-weekly').textContent = `₹${Number(s.revenue_weekly || 0).toLocaleString()}`;
-                document.getElementById('rev-ai-cost').textContent = `$${(s.ai_cost_usd || 0).toFixed(4)}`;
-                document.getElementById('rev-ai-cost-inr').textContent = `₹${(s.ai_cost_inr || 0).toFixed(2)} est. cost`;
-                document.getElementById('rev-net').textContent = `₹${Number(s.net_revenue || 0).toLocaleString()}`;
-                document.getElementById('stat-total-revenue').textContent = `₹${Number(s.total_revenue || 0).toLocaleString()}`;
+                // Format revenue ledger fields safely
+                setText('rev-daily', `₹${Number(s.revenue_daily || 0).toLocaleString()}`);
+                setText('rev-weekly', `₹${Number(s.revenue_weekly || 0).toLocaleString()}`);
+                setText('rev-ai-cost', `$${(s.ai_cost_usd || 0).toFixed(4)}`);
+                setText('rev-ai-cost-inr', `₹${(s.ai_cost_inr || 0).toFixed(2)} est. cost`);
+                setText('rev-net', `₹${Number(s.net_revenue || 0).toLocaleString()}`);
+                setText('stat-total-revenue', `₹${Number(s.total_revenue || 0).toLocaleString()}`);
 
-                // Populate Quick Server Controls switches
+                // Populate Quick Server Controls switches safely
                 const ctrls = res.server_controls || {};
-                document.getElementById('switch-maintenance-mode').checked = !!ctrls.maintenance_mode;
-                document.getElementById('switch-disable-registration').checked = !!ctrls.disable_registration;
-                document.getElementById('switch-emergency-pause-ai').checked = !!ctrls.emergency_pause_ai;
+                const swM = document.getElementById('switch-maintenance-mode');
+                if (swM) swM.checked = !!ctrls.maintenance_mode;
+
+                const swR = document.getElementById('switch-disable-registration');
+                if (swR) swR.checked = !!ctrls.disable_registration;
+
+                const swE = document.getElementById('switch-emergency-pause-ai');
+                if (swE) swE.checked = !!ctrls.emergency_pause_ai;
 
                 // Render Live Activity Feed Stream Table
                 const feedTbody = document.getElementById('overview-activity-feed-tbody');

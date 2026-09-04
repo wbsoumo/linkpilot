@@ -138,7 +138,7 @@ try {
         JOIN users u ON l.user_id = u.id
         WHERE l.action LIKE '%login%' OR l.action LIKE '%session%'
         UNION ALL
-        SELECT 'whatsapp' as type, u.name as user_name, w.recipient as detail, w.created_at, 'WhatsApp Message Sent' as title
+        SELECT 'whatsapp' as type, u.name as user_name, CONCAT('Contact #', w.wa_contact_id) as detail, w.created_at, 'WhatsApp Message Sent' as title
         FROM whatsapp_messages w
         JOIN users u ON w.user_id = u.id
         UNION ALL

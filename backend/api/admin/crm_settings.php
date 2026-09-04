@@ -39,9 +39,12 @@ try {
         // 3. System Telemetry & Resource Usage Metrics
         // CPU Usage
         $cpuUsage = 0;
-        if (function_exists('sys_getloadavg')) {
-            $load = sys_getloadavg();
-            $cpuUsage = round(($load[0] * 100) / max(1, (int)shell_exec('nproc 2>/dev/null' ?: 1)), 1);
+        if (function_exists('sys_getloadavg') && function_exists('shell_exec')) {
+            try {
+                $load = sys_getloadavg();
+                $nproc = (int)(@shell_exec('nproc 2>/dev/null') ?: 1);
+                $cpuUsage = round(($load[0] * 100) / max(1, $nproc), 1);
+            } catch (Throwable $ex) {}
         }
 
         // RAM Usage
@@ -51,7 +54,10 @@ try {
             $ramTotalMB = 8192;
             $ramPercent = round(($ramUsedMB / $ramTotalMB) * 100, 1);
         } else {
-            $freeOutput = shell_exec('free -m 2>/dev/null');
+            $freeOutput = null;
+            if (function_exists('shell_exec')) {
+                try { $freeOutput = @shell_exec('free -m 2>/dev/null'); } catch (Throwable $ex) {}
+            }
             if ($freeOutput && preg_match('/Mem:\s+(\d+)\s+(\d+)/i', $freeOutput, $matches)) {
                 $ramTotalMB = (int)$matches[1];
                 $ramUsedMB = (int)$matches[2];

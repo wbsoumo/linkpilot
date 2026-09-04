@@ -1508,34 +1508,104 @@
                                     <option value="error">Error</option>
                                 </select>
                             </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-slate-400 font-semibold mb-1">Auto-Reply Delay Min (s)</label>
+                                    <input type="number" id="adm-wa-delay-min" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-bold" value="3">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 font-semibold mb-1">Auto-Reply Delay Max (s)</label>
+                                    <input type="number" id="adm-wa-delay-max" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white font-bold" value="8">
+                                </div>
+                            </div>
                             <div>
                                 <label class="block text-slate-400 font-semibold mb-1">Default Messaging Settings</label>
                                 <textarea id="adm-wa-messaging-settings" rows="2" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500" placeholder="Default template or JSON settings..."></textarea>
                             </div>
-                            <button type="submit" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition">Save Meta Credentials</button>
+                            <button type="submit" class="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-bold transition">Save Meta Credentials & Delays</button>
                         </form>
                     </div>
 
-                    <!-- WABA Client Connections List -->
-                    <div class="glass-panel p-5 bg-slate-900/40 space-y-4 md:col-span-2">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Active WhatsApp Connections</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse custom-table text-[11px]">
-                                <thead>
-                                    <tr class="border-b border-slate-800">
-                                        <th>Owner Account</th>
-                                        <th>Display Number</th>
-                                        <th>WABA ID</th>
-                                        <th>Quality</th>
-                                        <th>Limit</th>
-                                        <th>Connected At</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="adm-wa-connections-tbody">
-                                    <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading connections...</td></tr>
-                                </tbody>
-                            </table>
+                    <!-- Right Column: Webhook Status, Ping Tester & Active WABA Connections -->
+                    <div class="glass-panel p-5 bg-slate-900/40 space-y-5 md:col-span-2">
+                        <!-- Webhook Status Indicator & Ping Tester Bar -->
+                        <div class="p-4 bg-slate-800/80 border border-slate-700 rounded-xl space-y-3">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div class="flex items-center space-x-3">
+                                    <span class="block font-bold text-white text-xs">Webhook Status:</span>
+                                    <span id="adm-wa-webhook-status-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-700 text-slate-300 border border-slate-600">
+                                        Checking...
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                    <span id="adm-wa-ping-response" class="text-[10px] font-mono text-slate-400 truncate max-w-[200px]">HTTP --</span>
+                                    <button onclick="pingWhatsAppWebhook()" id="adm-wa-ping-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1 whitespace-nowrap">
+                                        <span>⚡ Ping Webhook</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
+
+                        <!-- WABA Client Connections List -->
+                        <div class="space-y-3">
+                            <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2">Active WhatsApp Connections</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse custom-table text-[11px]">
+                                    <thead>
+                                        <tr class="border-b border-slate-800">
+                                            <th>Owner Account</th>
+                                            <th>Display Number</th>
+                                            <th>WABA ID</th>
+                                            <th>Quality</th>
+                                            <th>Limit</th>
+                                            <th>Connected At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="adm-wa-connections-tbody">
+                                        <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading connections...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Template Manager Card -->
+                <div class="glass-panel p-5 bg-slate-900/40 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                                <span>💬 WhatsApp Message Template Manager</span>
+                            </h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Manage, sync, and request Meta approval for HSM broadcast templates.</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="syncWhatsAppTemplates()" id="adm-wa-sync-tmpl-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition shadow-xs">
+                                🔄 Sync Templates from Meta
+                            </button>
+                            <button onclick="openRequestTemplateModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg transition shadow-xs">
+                                ➕ Request Template Approval
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Templates Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-[11px]">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400">
+                                    <th>Template Name</th>
+                                    <th>Language</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Header / Format</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adm-wa-templates-tbody">
+                                <tr><td colspan="6" class="text-center py-4 text-slate-500">Loading message templates...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -2350,7 +2420,7 @@
                 const res = await apiCall('whatsapp/admin.php');
                 const s = res.settings;
                 
-                // Load credentials input values
+                // Load credentials & delay values
                 document.getElementById('adm-wa-app-id').value = s.whatsapp_meta_app_id || '';
                 document.getElementById('adm-wa-app-secret').value = s.whatsapp_meta_app_secret || '';
                 document.getElementById('adm-wa-config-id').value = s.whatsapp_meta_config_id || '';
@@ -2365,10 +2435,58 @@
                 document.getElementById('adm-wa-timeout').value = s.whatsapp_global_api_timeout || '15';
                 document.getElementById('adm-wa-retries').value = s.whatsapp_retry_attempts || '3';
                 document.getElementById('adm-wa-logging-level').value = s.whatsapp_logging_level || 'debug';
+                document.getElementById('adm-wa-delay-min').value = s.whatsapp_auto_reply_delay_min || '3';
+                document.getElementById('adm-wa-delay-max').value = s.whatsapp_auto_reply_delay_max || '8';
                 document.getElementById('adm-wa-messaging-settings').value = s.whatsapp_default_messaging_settings || '';
                 document.getElementById('adm-wa-enable-embedded').checked = (s.whatsapp_enable_embedded_signup === '1');
                 document.getElementById('adm-wa-allow-manual').checked = (s.whatsapp_allow_manual_setup === '1');
-                
+
+                // Render Webhook Status badge if URL present
+                const badgeEl = document.getElementById('adm-wa-webhook-status-badge');
+                if (!s.whatsapp_webhook_url) {
+                    badgeEl.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-slate-700 text-slate-400 border border-slate-600";
+                    badgeEl.textContent = "Not Configured";
+                } else if (res.webhook_ping) {
+                    const code = res.webhook_ping.http_code;
+                    const isSuccess = code >= 200 && code < 400;
+                    badgeEl.className = isSuccess 
+                        ? "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                    badgeEl.textContent = isSuccess ? "Connected" : "Failed";
+                    const pingRespEl = document.getElementById('adm-wa-ping-response');
+                    if (pingRespEl) pingRespEl.textContent = `HTTP ${code} (${res.webhook_ping.total_time}s)`;
+                } else {
+                    badgeEl.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30";
+                    badgeEl.textContent = "Unchecked";
+                }
+
+                // Render templates
+                const tmplContainer = document.getElementById('adm-wa-templates-tbody');
+                if (tmplContainer) {
+                    if (!res.templates || res.templates.length === 0) {
+                        tmplContainer.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-500">No WhatsApp templates found. Click "Sync Templates from Meta" to pull templates.</td></tr>';
+                    } else {
+                        tmplContainer.innerHTML = res.templates.map(t => `
+                            <tr class="border-b border-slate-800 hover:bg-slate-900/10">
+                                <td class="py-2.5 font-bold text-white">${t.name}</td>
+                                <td class="py-2.5 font-mono text-slate-400">${t.language}</td>
+                                <td class="py-2.5 uppercase font-semibold text-slate-300">${t.category}</td>
+                                <td class="py-2.5">
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${
+                                        t.status === 'APPROVED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                                        t.status === 'PENDING' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                                        'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                    }">${t.status}</span>
+                                </td>
+                                <td class="py-2.5 font-mono text-slate-400 text-[10px]">${t.header_type || 'TEXT'} / ${t.waba_id ? 'WABA #'+t.waba_id.substring(0,8) : 'GLOBAL'}</td>
+                                <td class="py-2.5">
+                                    <button onclick="alert('${escapeHtml(t.components_json || t.name)}')" class="text-indigo-400 hover:text-indigo-300 font-semibold underline text-[10px]">View Payload</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+
                 // Render active connections
                 const connContainer = document.getElementById('adm-wa-connections-tbody');
                 if (res.connections.length === 0) {
@@ -2453,6 +2571,75 @@
                 showNotification('error', 'Failed to load external developer credentials: ' + err.message);
             }
         }
+
+        window.pingWhatsAppWebhook = async function() {
+            const btn = document.getElementById('adm-wa-ping-btn');
+            const respEl = document.getElementById('adm-wa-ping-response');
+            const badgeEl = document.getElementById('adm-wa-webhook-status-badge');
+            if (btn) btn.disabled = true;
+            if (respEl) respEl.textContent = 'Pinging...';
+            try {
+                const res = await apiCall('whatsapp/admin.php?action=PING_WEBHOOK', 'POST');
+                const code = res.http_code || 0;
+                const isSuccess = res.status === 'CONNECTED' || (code >= 200 && code < 400);
+                if (respEl) respEl.textContent = `HTTP ${code || 'ERR'} (${res.total_time || 0}s)`;
+                if (badgeEl) {
+                    badgeEl.className = isSuccess 
+                        ? "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                    badgeEl.textContent = isSuccess ? "Connected" : "Failed";
+                }
+                showNotification(isSuccess ? 'success' : 'error', `Webhook ping response: HTTP ${code}`);
+            } catch (err) {
+                if (respEl) respEl.textContent = 'HTTP ERR';
+                if (badgeEl) {
+                    badgeEl.className = "px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                    badgeEl.textContent = "Failed";
+                }
+                showNotification('error', 'Webhook ping failed: ' + err.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        window.syncWhatsAppTemplates = async function() {
+            const btn = document.getElementById('adm-wa-sync-tmpl-btn');
+            if (btn) btn.disabled = true;
+            try {
+                showNotification('info', 'Syncing templates with Meta...');
+                const res = await apiCall('whatsapp/admin.php?action=SYNC_TEMPLATES', 'POST');
+                showNotification('success', res.message || 'Templates synced successfully!');
+                loadAdminWhatsAppDetails();
+            } catch (err) {
+                showNotification('error', 'Sync failed: ' + err.message);
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        };
+
+        window.openRequestTemplateModal = async function() {
+            const name = prompt("Enter Template Name (e.g. order_update_v1):");
+            if (!name) return;
+            const category = prompt("Enter Category (MARKETING / UTILITY / AUTHENTICATION):", "UTILITY");
+            if (!category) return;
+            const bodyText = prompt("Enter Template Body Text:", "Hello {{1}}, your order #{{2}} is confirmed!");
+            if (!bodyText) return;
+
+            try {
+                const payload = {
+                    name: name.trim().toLowerCase().replace(/\s+/g, '_'),
+                    category: category.toUpperCase(),
+                    language: 'en_US',
+                    header_type: 'TEXT',
+                    body_text: bodyText
+                };
+                const res = await apiCall('whatsapp/admin.php?action=REQUEST_APPROVAL', 'POST', payload);
+                showNotification('success', res.message || 'Template approval requested!');
+                loadAdminWhatsAppDetails();
+            } catch (err) {
+                showNotification('error', 'Template approval request failed: ' + err.message);
+            }
+        };
 
         window.saveGoogleExternalAppKeys = async function(e) {
             if (e) e.preventDefault();
@@ -2550,10 +2737,22 @@
                 whatsapp_global_api_timeout: parseInt(document.getElementById('adm-wa-timeout').value),
                 whatsapp_retry_attempts: parseInt(document.getElementById('adm-wa-retries').value),
                 whatsapp_logging_level: document.getElementById('adm-wa-logging-level').value,
+                whatsapp_auto_reply_delay_min: parseInt(document.getElementById('adm-wa-delay-min').value),
+                whatsapp_auto_reply_delay_max: parseInt(document.getElementById('adm-wa-delay-max').value),
                 whatsapp_default_messaging_settings: document.getElementById('adm-wa-messaging-settings').value.trim(),
                 whatsapp_enable_embedded_signup: document.getElementById('adm-wa-enable-embedded').checked ? '1' : '0',
                 whatsapp_allow_manual_setup: document.getElementById('adm-wa-allow-manual').checked ? '1' : '0'
             };
+            
+            apiCall('whatsapp/admin.php?action=save_meta_keys', 'POST', payload)
+                .then(res => {
+                    showNotification('success', res.message);
+                    loadAdminWhatsAppDetails();
+                })
+                .catch(err => {
+                    showNotification('error', err.message);
+                });
+        };
             
             apiCall('whatsapp/admin.php?action=save_meta_keys', 'POST', payload)
                 .then(res => {

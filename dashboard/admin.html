@@ -156,9 +156,42 @@
                     </div>
                 </div>
 
-                <!-- Graphs Block -->
+                <!-- NEW: Revenue & Credit Summary Widget -->
+                <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                            <i data-lucide="dollar-sign" class="h-4 w-4 text-emerald-500"></i>
+                            <span>Financial Revenue & Cost Ledger</span>
+                        </h3>
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase">Real-Time Sync</span>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Daily Revenue</span>
+                            <span class="text-base font-black text-slate-800 mt-1 block" id="rev-daily">₹0.00</span>
+                            <span class="text-[9px] text-emerald-600 font-semibold">Today's Wallet Topups</span>
+                        </div>
+                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Weekly Revenue</span>
+                            <span class="text-base font-black text-slate-800 mt-1 block" id="rev-weekly">₹0.00</span>
+                            <span class="text-[9px] text-indigo-600 font-semibold">Last 7 Days Total</span>
+                        </div>
+                        <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl">
+                            <span class="block text-[10px] font-bold text-slate-400 uppercase">Est. AI API Cost</span>
+                            <span class="text-base font-black text-rose-600 mt-1 block" id="rev-ai-cost">$0.00</span>
+                            <span class="text-[9px] text-slate-400 font-semibold" id="rev-ai-cost-inr">₹0.00 est. cost</span>
+                        </div>
+                        <div class="p-3.5 bg-emerald-50/50 border border-emerald-200/60 rounded-xl">
+                            <span class="block text-[10px] font-bold text-emerald-700 uppercase">Net Revenue</span>
+                            <span class="text-base font-black text-emerald-700 mt-1 block" id="rev-net">₹0.00</span>
+                            <span class="text-[9px] text-emerald-600 font-semibold">Profit after AI Costs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphs & Control Switches Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Main Activity Trend -->
+                    <!-- Left: Main Activity Trend (2 cols) -->
                     <div class="glass-panel p-5 bg-white border border-slate-200 rounded-2xl lg:col-span-2 space-y-4 shadow-xs">
                         <div class="flex justify-between items-center">
                             <h3 class="text-sm font-bold text-slate-800">Platform Traffic & Deliveries</h3>
@@ -169,29 +202,55 @@
                         </div>
                     </div>
 
-                    <!-- Platform AI Key health checklist & diagnostic stats -->
+                    <!-- Right: Quick Server Control Switches (1 col) -->
                     <div class="glass-panel p-5 bg-slate-900/40 text-slate-300 rounded-2xl space-y-4">
-                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center">
-                            <i data-lucide="cpu" class="h-4 w-4 text-indigo-400 mr-2"></i>
-                            <span>AI Performance Overview</span>
+                        <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center justify-between">
+                            <span class="flex items-center">
+                                <i data-lucide="sliders" class="h-4 w-4 text-indigo-400 mr-2"></i>
+                                <span>Quick Server Controls</span>
+                            </span>
+                            <span class="text-[9px] px-2 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded font-mono">LIVE SWITCH</span>
                         </h3>
-                        <div class="space-y-3.5 text-xs">
-                            <div class="flex justify-between py-1 border-b border-slate-800/30">
-                                <span class="text-slate-450">Platform Total AI Tokens</span>
-                                <span class="font-bold text-white font-mono" id="stat-total-tokens">0</span>
+                        <div class="space-y-4 text-xs">
+                            <!-- Switch 1: Maintenance Mode -->
+                            <div class="flex items-center justify-between p-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl">
+                                <div>
+                                    <span class="block font-bold text-white text-xs">Maintenance Mode</span>
+                                    <span class="text-[10px] text-slate-400">Lock non-admin access</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="switch-maintenance-mode" onchange="toggleServerControl('maintenance_mode', this.checked)" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-600"></div>
+                                </label>
                             </div>
-                            <div class="flex justify-between py-1 border-b border-slate-800/30">
-                                <span class="text-slate-450">Estimated AI Key Savings</span>
-                                <span class="font-bold text-emerald-400 font-mono" id="stat-estimated-savings">$0.00</span>
+
+                            <!-- Switch 2: Disable Registration -->
+                            <div class="flex items-center justify-between p-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl">
+                                <div>
+                                    <span class="block font-bold text-white text-xs">Disable Registration</span>
+                                    <span class="text-[10px] text-slate-400">Pause new signup portal</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="switch-disable-registration" onchange="toggleServerControl('disable_registration', this.checked)" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                                </label>
                             </div>
-                            <div class="flex justify-between py-1 border-b border-slate-800/30">
-                                <span class="text-slate-450">SaaS Wallet Purchases</span>
-                                <span class="font-bold text-indigo-400 font-mono" id="stat-total-revenue">₹0.00</span>
+
+                            <!-- Switch 3: Emergency Auto-Reply Pause -->
+                            <div class="flex items-center justify-between p-2.5 bg-slate-950/40 border border-slate-800/60 rounded-xl">
+                                <div>
+                                    <span class="block font-bold text-white text-xs">Emergency Auto-Reply Pause</span>
+                                    <span class="text-[10px] text-slate-400">Freeze WA & AI replies</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="switch-emergency-pause-ai" onchange="toggleServerControl('emergency_pause_ai', this.checked)" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-rose-500"></div>
+                                </label>
                             </div>
                         </div>
-                        
+
                         <!-- Quick actions -->
-                        <div class="pt-4 border-t border-slate-800 space-y-2">
+                        <div class="pt-3 border-t border-slate-800 space-y-2">
                             <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-widest">Admin Quick Actions</span>
                             <div class="grid grid-cols-2 gap-2">
                                 <button onclick="switchAdminTab('ai-settings')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold rounded-lg transition flex items-center justify-center">
@@ -202,6 +261,33 @@
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- NEW: Live Real-Time Activity Feed Section -->
+                <div class="glass-panel p-5 bg-slate-900/40 border border-slate-800/80 text-slate-300 rounded-2xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-bold text-white flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>Live Real-Time Activity Stream</span>
+                        </h3>
+                        <span class="text-[10px] font-mono text-slate-400">Auto-refreshing live log</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse custom-table text-xs">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400 font-bold uppercase text-[9px]">
+                                    <th class="py-2">Event Type</th>
+                                    <th class="py-2">User / Actor</th>
+                                    <th class="py-2">Details</th>
+                                    <th class="py-2 text-right">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overview-activity-feed-tbody">
+                                <tr><td colspan="4" class="text-center py-6 text-slate-500">Loading activity feed...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -2255,15 +2341,78 @@
                 const savings = (s.total_tokens || 0) * 0.00015;
                 document.getElementById('stat-estimated-savings').textContent = `$${savings.toFixed(2)}`;
                 
-                // Format revenue in INR
-                const revenue = s.total_revenue || 0;
-                document.getElementById('stat-total-revenue').textContent = `₹${Number(revenue).toLocaleString()}`;
+                // Format revenue ledger fields
+                document.getElementById('rev-daily').textContent = `₹${Number(s.revenue_daily || 0).toLocaleString()}`;
+                document.getElementById('rev-weekly').textContent = `₹${Number(s.revenue_weekly || 0).toLocaleString()}`;
+                document.getElementById('rev-ai-cost').textContent = `$${(s.ai_cost_usd || 0).toFixed(4)}`;
+                document.getElementById('rev-ai-cost-inr').textContent = `₹${(s.ai_cost_inr || 0).toFixed(2)} est. cost`;
+                document.getElementById('rev-net').textContent = `₹${Number(s.net_revenue || 0).toLocaleString()}`;
+                document.getElementById('stat-total-revenue').textContent = `₹${Number(s.total_revenue || 0).toLocaleString()}`;
+
+                // Populate Quick Server Controls switches
+                const ctrls = res.server_controls || {};
+                document.getElementById('switch-maintenance-mode').checked = !!ctrls.maintenance_mode;
+                document.getElementById('switch-disable-registration').checked = !!ctrls.disable_registration;
+                document.getElementById('switch-emergency-pause-ai').checked = !!ctrls.emergency_pause_ai;
+
+                // Render Live Activity Feed Stream Table
+                const feedTbody = document.getElementById('overview-activity-feed-tbody');
+                const feed = res.activity_feed || [];
+                if (feed.length > 0) {
+                    feedTbody.innerHTML = feed.map(item => {
+                        let badgeStyle = 'bg-indigo-50 text-indigo-600 border border-indigo-200';
+                        let typeIcon = 'user';
+                        if (item.type === 'whatsapp') {
+                            badgeStyle = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
+                            typeIcon = 'message-circle';
+                        } else if (item.type === 'email') {
+                            badgeStyle = 'bg-amber-50 text-amber-600 border border-amber-200';
+                            typeIcon = 'mail';
+                        } else if (item.type === 'ai') {
+                            badgeStyle = 'bg-sky-50 text-sky-600 border border-sky-200';
+                            typeIcon = 'cpu';
+                        }
+
+                        const timeAgo = new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const dateFormatted = new Date(item.created_at).toLocaleDateString();
+
+                        return `
+                            <tr class="hover:bg-slate-900/20 border-b border-slate-800/40">
+                                <td class="py-2.5 px-3">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${badgeStyle}">
+                                        ${item.title}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-3 font-bold text-white">${item.user_name || 'System User'}</td>
+                                <td class="py-2.5 px-3 text-slate-400 font-mono text-[11px]">${item.detail || 'N/A'}</td>
+                                <td class="py-2.5 px-3 text-right text-slate-500 text-[10px]">${dateFormatted} ${timeAgo}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    feedTbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-slate-500">No activity logs recorded recently.</td></tr>';
+                }
                 
                 // Render Graph
                 renderOverviewChart(res.chart_data || []);
                 lucide.createIcons();
             } catch (err) {
                 showNotification('error', 'Failed to load analytical stats: ' + err.message);
+            }
+        };
+
+        window.toggleServerControl = async function(key, isEnabled) {
+            try {
+                const payload = {};
+                payload[key] = isEnabled ? '1' : '0';
+                const res = await apiCall('admin/crm_settings.php', 'POST', payload);
+                if (res.status === 'success') {
+                    showNotification('success', `Server control setting updated.`);
+                } else {
+                    showNotification('error', res.message || 'Failed to update setting.');
+                }
+            } catch (err) {
+                showNotification('error', err.message);
             }
         };
 

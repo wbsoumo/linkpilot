@@ -28,16 +28,18 @@ if ($fileSize === 0) {
     exit;
 }
 
-define('LOG_VIEWER_VERSION', 'v1.0.8');
+define('LOG_VIEWER_VERSION', 'v1.0.9');
 
-// Read backward in 64KB chunks to find meaningful logs
+// Read backward up to 2MB to find the most recent 100 entries
 $chunkSize = 65536;
+$maxScan = min($fileSize, 2097152); // Read up to 2 MB
 $pos = $fileSize;
+$startPos = max(0, $fileSize - $maxScan);
 $filteredLines = [];
 $leftover = '';
 
-while ($pos > 0 && count($filteredLines) < 100) {
-    $readLen = min($chunkSize, $pos);
+while ($pos > $startPos && count($filteredLines) < 100) {
+    $readLen = min($chunkSize, $pos - $startPos);
     $pos -= $readLen;
     fseek($fp, $pos, SEEK_SET);
     $chunk = fread($fp, $readLen) . $leftover;

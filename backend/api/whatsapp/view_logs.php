@@ -28,34 +28,37 @@ if ($fileSize === 0) {
     exit;
 }
 
-// Memory-efficient log tail: read only the last 512KB without loading large files into RAM
-$maxRead = 524288; // 512 KB
-$readSize = min($fileSize, $maxRead);
-
-fseek($fp, -$readSize, SEEK_END);
-$buffer = fread($fp, $readSize);
-fclose($fp);
-
-$lines = explode("\n", $buffer);
-
+// Read backward in 64KB chunks to find meaningful logs
+$chunkSize = 65536;
+$pos = $fileSize;
 $filteredLines = [];
-foreach ($lines as $line) {
-    $trimmed = trim($line);
-    // Ignore massive JSON payloads/responses
-    if (strpos($trimmed, 'sendJsonResponse output') !== false) continue;
-    if (strpos($trimmed, 'inbox.php') !== false) continue;
-    if (strpos($trimmed, 'found 0 pending queue item') !== false) continue;
-    if (strpos($trimmed, '"messages":[{') !== false) continue;
-    if (strpos($trimmed, '{"id":') !== false) continue;
-    if (strpos($trimmed, '"threads":[{') !== false) continue;
+
+while ($pos > 0 && count($filteredLines) < 100) {
+    $readLen = min($chunkSize, $pos);
+    $pos -= $readLen;
+    fseek($fp, $pos, SEEK_SET);
+    $chunk = fread($fp, $readLen);
     
-    // Only include timestamped log entries or explicitly debugged lines
-    if (preg_match('/^\[202\d-[0-9]{2}-[0-9]{2}/', $trimmed) || strpos($trimmed, 'WhatsApp') !== false || strpos($trimmed, 'Queue') !== false || strpos($trimmed, 'AI') !== false || strpos($trimmed, 'Error') !== false || strpos($trimmed, 'Exception') !== false) {
+    $chunkLines = explode("\n", $chunk);
+    // Reverse array to scan newest to oldest
+    $chunkLines = array_reverse($chunkLines);
+    
+    foreach ($chunkLines as $line) {
+        $trimmed = trim($line);
+        if (empty($trimmed)) continue;
+        if (strpos($trimmed, 'sendJsonResponse output') !== false) continue;
+        if (strpos($trimmed, 'inbox.php') !== false) continue;
+        if (strpos($trimmed, 'found 0 pending queue item') !== false) continue;
+        if (strpos($trimmed, '"threads":[{') !== false) continue;
+        if (strpos($trimmed, '"messages":[{') !== false) continue;
+        
         $filteredLines[] = $trimmed;
+        if (count($filteredLines) >= 100) break;
     }
 }
 
-$lastLines = array_slice($filteredLines, -100);
+fclose($fp);
+$finalLines = array_reverse($filteredLines);
 
-echo "=== LINKPILOT WHATSAPP DEBUG LOGS (LAST 100 FILTERED ENTRIES | FILE SIZE: " . round($fileSize / 1024 / 1024, 2) . " MB) ===\n\n";
-echo implode("\n", $lastLines);
+echo "=== LINKPILOT WHATSAPP DEBUG LOGS (LAST 100 ENTRIES | FILE SIZE: " . round($fileSize / 1024 / 1024, 2) . " MB) ===\n\n";
+echo implode("\n", $finalLines);

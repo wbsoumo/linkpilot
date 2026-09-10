@@ -1839,46 +1839,49 @@
                                         <div class="text-rose-400 font-bold mt-1">⚠️ Crucial: If these do not match Zoom settings exactly, you will get the "Invalid redirect (4,700)" error.</div>
                                     </li>
                                     <li>Under **Scopes**, request access to: <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">meeting:write</code>, <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">meeting:write:admin</code> and <code class="text-sky-400 bg-slate-900/60 px-1 py-0.5 rounded font-mono font-bold">user:read</code>.</li>
-                                    <li>Copy your **Client ID** and **Client Secret** into the fields on the left and click **Save Zoom Credentials**.</li>
                                     <li>Enable **Webhooks (Event Subscriptions)**, copy the **Secret Token** generated, paste it into the **Zoom Webhook Secret Token** field, and configure your webhook URL as `https://<your-domain>/backend/api/external_apps/zoom_callback.php` then click Validate.</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 12. SUPPORT TICKETS ADMIN MANAGEMENT PANE -->
+            <div id="admin-tickets-pane" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="life-buoy" class="h-6 w-6 text-indigo-600"></i>
+                            <span>Support Ticket Helpdesk</span>
+                        </h2>
+                        <p class="text-xs text-slate-500 font-semibold mt-0.5">Manage customer inquiries, view attached screenshots, and reply to support requests.</p>
+                    </div>
+                    <button onclick="loadAdminTicketsData()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-2xs cursor-pointer">
+                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-slate-500"></i>
+                        <span>Refresh Tickets</span>
+                    </button>
                 </div>
 
-                <!-- 12. SUPPORT TICKETS ADMIN MANAGEMENT PANE -->
-                <div id="admin-tickets-pane" class="space-y-6 hidden">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
-                        <div>
-                            <h2 class="text-xl font-black text-slate-900 flex items-center space-x-2">
-                                <i data-lucide="life-buoy" class="h-6 w-6 text-indigo-600"></i>
-                                <span>Support Ticket Helpdesk</span>
-                            </h2>
-                            <p class="text-xs text-slate-500 font-semibold mt-0.5">Manage customer inquiries, view attached screenshots, and reply to support requests.</p>
-                        </div>
-                        <button onclick="loadAdminTicketsData()" class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-2xs cursor-pointer">
-                            <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-slate-500"></i>
-                            <span>Refresh Tickets</span>
-                        </button>
-                    </div>
-
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs">
-                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-black tracking-wider">
-                                    <tr>
-                                        <th class="py-3 px-4">Ticket #</th>
-                                        <th class="py-3 px-4">User</th>
-                                        <th class="py-3 px-4">Subject</th>
-                                        <th class="py-3 px-4">Category</th>
-                                        <th class="py-3 px-4">Priority</th>
-                                        <th class="py-3 px-4">Status</th>
-                                        <th class="py-3 px-4">Updated</th>
-                                        <th class="py-3 px-4 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-tickets-tbody" class="divide-y divide-slate-100">
-                                    <tr><td colspan="8" class="text-center py-6 text-slate-400">Loading support tickets...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-black tracking-wider">
+                                <tr>
+                                    <th class="py-3 px-4">Ticket #</th>
+                                    <th class="py-3 px-4">User</th>
+                                    <th class="py-3 px-4">Subject</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Priority</th>
+                                    <th class="py-3 px-4">Status</th>
+                                    <th class="py-3 px-4">Updated</th>
+                                    <th class="py-3 px-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-tickets-tbody" class="divide-y divide-slate-100">
+                                <tr><td colspan="8" class="text-center py-6 text-slate-400">Loading support tickets...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

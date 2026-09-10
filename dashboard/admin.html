@@ -2378,7 +2378,7 @@
                     const rzp = payRes.razorpay;
                     if (document.getElementById('adm_rzp_enabled')) document.getElementById('adm_rzp_enabled').checked = rzp.is_enabled === 1;
                     if (document.getElementById('adm_rzp_currency')) document.getElementById('adm_rzp_currency').value = rzp.currency || 'INR';
-                    if (document.getElementById('adm_rzp_test_mode')) document.getElementById('adm_rzp_test_mode').value = rzp.test_mode ? '1' : '0';
+                    if (document.getElementById('adm_rzp_test_mode')) document.getElementById('adm_rzp_test_mode').value = parseInt(rzp.test_mode || 0) === 1 ? '1' : '0';
                     if (document.getElementById('adm_rzp_key_id')) document.getElementById('adm_rzp_key_id').value = rzp.key_id || '';
                     if (document.getElementById('adm_rzp_key_secret')) {
                         document.getElementById('adm_rzp_key_secret').value = '';

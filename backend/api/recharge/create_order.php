@@ -61,6 +61,8 @@ try {
         'receipt' => $receipt
     ];
 
+    $authHeader = 'Authorization: Basic ' . base64_encode($keyId . ':' . $secretKey);
+
     $ch = curl_init('https://api.razorpay.com/v1/orders');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -68,7 +70,8 @@ try {
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_USERPWD, $keyId . ':' . $secretKey);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json'
+        'Content-Type: application/json',
+        $authHeader
     ]);
     curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot/1.0');
     

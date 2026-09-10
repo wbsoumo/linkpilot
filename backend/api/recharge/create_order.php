@@ -35,12 +35,19 @@ try {
         sendJsonResponse('error', 'Razorpay payments are currently disabled. Please contact support.', [], 503);
     }
 
-    $keyId = decryptData($paySettings['key_id']);
-    $secretKey = decryptData($paySettings['secret_key']);
+    $rawKeyId = $paySettings['key_id'];
+    $rawSecretKey = $paySettings['secret_key'];
+
+    $decKeyId = decryptData($rawKeyId);
+    $keyId = ($decKeyId !== false && !empty($decKeyId)) ? $decKeyId : $rawKeyId;
+
+    $decSecretKey = decryptData($rawSecretKey);
+    $secretKey = ($decSecretKey !== false && !empty($decSecretKey)) ? $decSecretKey : $rawSecretKey;
+
     $currency = $paySettings['currency'] ?: 'INR';
 
     if (empty($keyId) || empty($secretKey)) {
-        sendJsonResponse('error', 'Razorpay API credentials are not configured in admin settings.', [], 500);
+        sendJsonResponse('error', 'Razorpay API credentials (Key ID / Key Secret) are missing or invalid in Admin Settings.', [], 500);
     }
 
     // 2. Calculate credits to allocate: ₹100 yields 500 credits

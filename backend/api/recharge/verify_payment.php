@@ -37,9 +37,12 @@ try {
         sendJsonResponse('error', 'Razorpay payment settings are not initialized.', [], 500);
     }
 
-    $secretKey = decryptData($paySettings['secret_key']);
+    $rawSecretKey = $paySettings['secret_key'];
+    $decSecretKey = decryptData($rawSecretKey);
+    $secretKey = ($decSecretKey !== false && !empty($decSecretKey)) ? $decSecretKey : $rawSecretKey;
+
     if (empty($secretKey)) {
-        sendJsonResponse('error', 'Razorpay Secret Key is not configured.', [], 500);
+        sendJsonResponse('error', 'Razorpay Secret Key is not configured in Admin Settings.', [], 500);
     }
 
     // 2. Validate Signature

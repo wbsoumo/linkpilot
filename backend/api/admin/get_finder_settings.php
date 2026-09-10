@@ -36,13 +36,17 @@ try {
 
     $cleanPay = null;
     if ($pay) {
+        $rawKeyId = $pay['key_id'] ?? '';
+        $decKeyId = decryptData($rawKeyId);
+        $displayKeyId = ($decKeyId !== false && !empty($decKeyId)) ? $decKeyId : $rawKeyId;
+
         $cleanPay = [
             'id' => $pay['id'],
             'name' => $pay['provider_name'],
             'is_enabled' => (int)$pay['is_enabled'],
             'test_mode' => (int)$pay['test_mode'],
             'currency' => $pay['currency'],
-            'key_id' => !empty($pay['key_id']) ? '••••••••' : '',
+            'key_id' => $displayKeyId,
             'has_key_id' => !empty($pay['key_id']),
             'has_secret_key' => !empty($pay['secret_key']),
             'has_webhook_secret' => !empty($pay['webhook_secret'])

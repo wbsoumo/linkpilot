@@ -23803,29 +23803,28 @@ function renderSettingsTabContent(tab, container) {
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Pay As You Go Wallet Card -->
-                            <div class="p-5 bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-2xl space-y-4 shadow-md relative overflow-hidden">
-                                <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                            <div class="p-5 bg-slate-50/80 border border-slate-200/90 rounded-2xl space-y-4 shadow-2xs relative overflow-hidden">
                                 <div class="flex justify-between items-start">
                                     <div>
-                                        <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Available Credits</span>
-                                        <h3 class="text-2xl font-black text-white mt-1">${(wallet.remaining || 500).toLocaleString()} <span class="text-xs font-semibold text-indigo-200">credits</span></h3>
+                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Available Credits</span>
+                                        <h3 class="text-2xl font-black text-slate-900 mt-1">${(wallet.remaining || 500).toLocaleString()} <span class="text-xs font-bold text-indigo-600">credits</span></h3>
                                     </div>
-                                    <span class="px-2.5 py-1 bg-indigo-500/30 border border-indigo-400/30 rounded-lg text-[10px] font-bold text-indigo-200 uppercase">Flex Wallet</span>
+                                    <span class="px-2.5 py-1 bg-indigo-50 border border-indigo-100 rounded-lg text-[10px] font-black text-indigo-700 uppercase">Flex Wallet</span>
                                 </div>
 
-                                <div class="pt-2 border-t border-indigo-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                                <div class="pt-2 border-t border-slate-200/70 grid grid-cols-2 gap-2 text-[11px]">
                                     <div>
-                                        <span class="text-indigo-300/80 text-[10px]">Free Tier Balance</span>
-                                        <p class="font-bold text-white mt-0.5">${wallet.free || 500} credits</p>
+                                        <span class="text-slate-400 text-[10px] font-semibold">Free Tier Balance</span>
+                                        <p class="font-black text-slate-800 mt-0.5">${wallet.free || 500} credits</p>
                                     </div>
                                     <div>
-                                        <span class="text-indigo-300/80 text-[10px]">Purchased Top-ups</span>
-                                        <p class="font-bold text-emerald-400 mt-0.5">${wallet.purchased || 0} credits</p>
+                                        <span class="text-slate-400 text-[10px] font-semibold">Purchased Top-ups</span>
+                                        <p class="font-black text-emerald-600 mt-0.5">${wallet.purchased || 0} credits</p>
                                     </div>
                                 </div>
 
                                 <div class="pt-1">
-                                    <a href="#/recharge" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2 text-xs" style="color: #ffffff !important;">
+                                    <a href="#/recharge" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-sm flex items-center justify-center space-x-2 text-xs" style="color: #ffffff !important;">
                                         <i data-lucide="zap" class="h-4 w-4"></i>
                                         <span>Top-up Wallet Credits</span>
                                     </a>

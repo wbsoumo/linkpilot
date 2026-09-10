@@ -23252,53 +23252,57 @@ function getSettingsBaseLayout(user) {
 
                 <!-- Right Sidebar Card -->
                 <div class="lg:col-span-12 xl:col-span-3 space-y-6">
-                    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 text-center flex flex-col items-center shadow-xs">
-                        <div class="relative h-20 w-20 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-black text-2xl mb-3 shadow-inner">
-                            <span id="settings-sidebar-initials">...</span>
-                            <button onclick="window.activeSettingsEditFocusOverride = true; switchSettingsTab('profile');" class="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white border border-slate-200/90 hover:bg-indigo-50 flex items-center justify-center text-slate-600 shadow-sm transition" title="Edit Profile">
+                    <div class="bg-gradient-to-b from-white to-slate-50/80 border border-slate-200/90 rounded-3xl p-6 text-center flex flex-col items-center shadow-md shadow-slate-100 relative overflow-hidden">
+                        <div class="absolute -top-10 -right-10 w-28 h-28 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div class="relative h-20 w-20 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 text-white font-black text-2xl mb-3 flex items-center justify-center shadow-lg shadow-indigo-500/20 border-2 border-white">
+                            <span id="settings-sidebar-initials" style="color:#ffffff !important;">...</span>
+                            <button onclick="window.activeSettingsEditFocusOverride = true; switchSettingsTab('profile');" class="absolute bottom-0 right-0 h-7 w-7 rounded-full bg-white border border-slate-200 hover:bg-indigo-50 flex items-center justify-center text-slate-700 shadow-md transition cursor-pointer" title="Edit Profile">
                                 <i data-lucide="edit-3" class="h-3.5 w-3.5 text-indigo-600"></i>
                             </button>
                         </div>
-                        <h3 class="text-base font-black text-slate-900" id="settings-sidebar-name">...</h3>
-                        <span class="mt-1 px-3 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-950 border border-indigo-300/80 tracking-wider uppercase" id="settings-sidebar-role">USER</span>
+                        <h3 class="text-base font-black text-slate-900 tracking-tight" id="settings-sidebar-name">...</h3>
+                        <span class="mt-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-blue-600 text-white border border-blue-500 shadow-3xs tracking-wider uppercase" id="settings-sidebar-role" style="color:#ffffff !important; background-color:#2563eb !important;">USER</span>
 
-                        <div class="w-full mt-5 space-y-3.5 pt-4 border-t border-slate-100 text-slate-650 text-xs">
-                            <div class="flex items-center space-x-3">
-                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                    <i data-lucide="calendar" class="h-3.5 w-3.5"></i>
+                        <div class="w-full mt-6 space-y-3 pt-5 border-t border-slate-200/60 text-slate-700 text-xs">
+                            <div class="flex items-center space-x-3 p-2.5 bg-white border border-slate-200/60 rounded-2xl shadow-3xs">
+                                <div class="h-8 w-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100/60">
+                                    <i data-lucide="calendar" class="h-4 w-4"></i>
                                 </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Member Since</p>
-                                    <p class="font-bold text-slate-800 text-xs" id="settings-sidebar-since">25 Jun, 2024</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Member Since</p>
+                                    <p class="font-extrabold text-slate-900 text-xs mt-0.5" id="settings-sidebar-since">25 Jun, 2024</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                    <i data-lucide="phone" class="h-3.5 w-3.5"></i>
+                            <div class="flex items-center space-x-3 p-2.5 bg-white border border-slate-200/60 rounded-2xl shadow-3xs">
+                                <div class="h-8 w-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100/60">
+                                    <i data-lucide="phone" class="h-4 w-4"></i>
                                 </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Phone</p>
-                                    <p class="font-bold text-slate-800 text-xs" id="settings-sidebar-phone">Not Set</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Phone</p>
+                                    <p class="font-extrabold text-slate-900 text-xs mt-0.5" id="settings-sidebar-phone">Not Set</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                    <i data-lucide="clock" class="h-3.5 w-3.5"></i>
+                            <div class="flex items-center space-x-3 p-2.5 bg-white border border-slate-200/60 rounded-2xl shadow-3xs">
+                                <div class="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100/60">
+                                    <i data-lucide="clock" class="h-4 w-4"></i>
                                 </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Time Zone</p>
-                                    <p class="font-bold text-slate-800 text-xs" id="settings-sidebar-timezone">Asia/Kolkata</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time Zone</p>
+                                    <p class="font-extrabold text-slate-900 text-xs mt-0.5" id="settings-sidebar-timezone">Asia/Kolkata</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0">
-                                    <i data-lucide="globe" class="h-3.5 w-3.5"></i>
+                            <div class="flex items-center space-x-3 p-2.5 bg-white border border-slate-200/60 rounded-2xl shadow-3xs">
+                                <div class="h-8 w-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 border border-purple-100/60">
+                                    <i data-lucide="globe" class="h-4 w-4"></i>
                                 </div>
                                 <div class="text-left">
-                                    <p class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Language</p>
-                                    <p class="font-bold text-slate-800 text-xs">English</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Language</p>
+                                    <p class="font-extrabold text-slate-900 text-xs mt-0.5">English</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
                         </div>
                     </div>
 

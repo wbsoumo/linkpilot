@@ -688,9 +688,18 @@
             
             const params = new URLSearchParams(window.location.search);
             const source = params.get('source');
+            const redirectUri = params.get('redirect_uri') || '';
+
             if (source === 'mobile_app' || source === 'mobile') {
                 const card = document.getElementById('mobile-auth-card');
                 if (card) card.classList.remove('hidden');
+
+                // If user is ALREADY logged in on the browser, jump directly to authorization page!
+                const existingToken = getAuthToken();
+                if (existingToken) {
+                    window.location.href = 'authorize.html?source=mobile_app&redirect_uri=' + encodeURIComponent(redirectUri);
+                    return;
+                }
             }
             
             // Add press enter key inside email field to trigger Continue button

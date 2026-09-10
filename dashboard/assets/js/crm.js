@@ -326,7 +326,7 @@ async function navigateTo(view, params = {}) {
         if (view === 'automation') {
             const smtpConfigured = await checkSmtpConfig();
             if (!smtpConfigured) {
-                window.location.href = 'smtp.html?setup_smtp=true';
+                window.location.href = 'setup.html?step=2';
                 return;
             }
         }

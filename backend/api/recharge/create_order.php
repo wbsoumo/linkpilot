@@ -88,7 +88,8 @@ try {
 
     if ($httpCode !== 200) {
         $maskedId = !empty($keyId) ? (substr($keyId, 0, 8) . '...' . substr($keyId, -4)) : 'EMPTY';
-        throw new Exception('Razorpay API order request returned status: ' . $httpCode . ' using KeyID [' . $maskedId . ']. Body: ' . $response);
+        $secretLen = strlen($secretKey);
+        throw new Exception('Razorpay API order request returned status: ' . $httpCode . ' using KeyID [' . $maskedId . '] (Secret Length: ' . $secretLen . '). Body: ' . $response);
     }
 
     $rzOrder = json_decode($response, true);

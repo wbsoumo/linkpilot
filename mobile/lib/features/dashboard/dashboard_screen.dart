@@ -34,13 +34,21 @@ class DashboardScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = data['user'] as Map<String, dynamic>? ?? {};
     final userName = user['name'] ?? 'Alex Thompson';
+    final dateStr = (data['date'] as Map<String, dynamic>?)?['formatted'] ?? 'Thu, Sep 12, 2024';
 
     final counts = data['counts'] as Map<String, dynamic>? ?? {};
     final tasksCount = counts['today_tasks'] ?? 3;
     final emailsCount = counts['unread_emails'] ?? 5;
     final waCount = counts['unread_whatsapp'] ?? 2;
 
+    final priorityData = data['priority'] as Map<String, dynamic>? ?? {};
+    final highPriorityTasks = (priorityData['high_priority_tasks'] as List<dynamic>?) ?? [];
+    final importantEmailsList = (priorityData['important_emails'] as List<dynamic>?) ?? [];
+    final whatsappAttentionList = (priorityData['whatsapp_attention'] as List<dynamic>?) ?? [];
+
     final todayTasks = (data['today_tasks'] as List<dynamic>?) ?? [];
+    final importantEmails = (data['important_emails'] as List<dynamic>?) ?? [];
+    final whatsappConversations = (data['whatsapp_conversations'] as List<dynamic>?) ?? [];
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -80,32 +88,33 @@ class DashboardScreen extends ConsumerWidget {
               ),
               Row(
                 children: [
-                  // Notification Bell with badge count '3'
+                  // Notification Bell with badge count
                   Stack(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.notifications_none_rounded, color: Color(0xFF0F172A), size: 22),
                       ),
-                      Positioned(
-                        right: 2,
-                        top: 2,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEF4444),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Text(
-                            '3',
-                            style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                      if (tasksCount > 0 || emailsCount > 0 || waCount > 0)
+                        Positioned(
+                          right: 2,
+                          top: 2,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFEF4444),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '${(tasksCount + emailsCount + waCount) > 9 ? '9+' : (tasksCount + emailsCount + waCount)}',
+                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(width: 12),
@@ -113,9 +122,9 @@ class DashboardScreen extends ConsumerWidget {
                   CircleAvatar(
                     radius: 18,
                     backgroundColor: const Color(0xFFE2E8F0),
-                    child: const Text(
-                      'AT',
-                      style: TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.bold),
+                    child: Text(
+                      userName.isNotEmpty ? userName[0].toUpperCase() : 'U',
+                      style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -150,9 +159,9 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Text(
-                    'Thu, Sep 12, 2024',
-                    style: TextStyle(
+                  Text(
+                    dateStr,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: Color(0xFF94A3B8),
@@ -192,32 +201,41 @@ class DashboardScreen extends ConsumerWidget {
           Row(
             children: [
               Expanded(
-                child: _buildStatCardMockup(
-                  icon: Icons.check_box_rounded,
-                  iconColor: Colors.white,
-                  iconBgColor: const Color(0xFF005BF7),
-                  count: '$tasksCount',
-                  label: 'Tasks',
+                child: GestureDetector(
+                  onTap: () => context.push('/tasks'),
+                  child: _buildStatCardMockup(
+                    icon: Icons.check_box_rounded,
+                    iconColor: Colors.white,
+                    iconBgColor: const Color(0xFF005BF7),
+                    count: '$tasksCount',
+                    label: 'Tasks',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _buildStatCardMockup(
-                  icon: Icons.mail_outline_rounded,
-                  iconColor: const Color(0xFF8B5CF6),
-                  iconBgColor: const Color(0xFFF3E8FF),
-                  count: '$emailsCount',
-                  label: 'Emails',
+                child: GestureDetector(
+                  onTap: () => context.go('/emails'),
+                  child: _buildStatCardMockup(
+                    icon: Icons.mail_outline_rounded,
+                    iconColor: const Color(0xFF8B5CF6),
+                    iconBgColor: const Color(0xFFF3E8FF),
+                    count: '$emailsCount',
+                    label: 'Emails',
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _buildStatCardMockup(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  iconColor: const Color(0xFF22C55E),
-                  iconBgColor: const Color(0xFFDCFCE7),
-                  count: '$waCount',
-                  label: 'WhatsApp',
+                child: GestureDetector(
+                  onTap: () => context.go('/whatsapp'),
+                  child: _buildStatCardMockup(
+                    icon: Icons.chat_bubble_outline_rounded,
+                    iconColor: const Color(0xFF22C55E),
+                    iconBgColor: const Color(0xFFDCFCE7),
+                    count: '$waCount',
+                    label: 'WhatsApp',
+                  ),
                 ),
               ),
             ],
@@ -240,38 +258,58 @@ class DashboardScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
-                _buildPriorityRow(
-                  icon: Icons.flag_rounded,
-                  iconColor: const Color(0xFFEF4444),
-                  title: 'Complete project proposal',
-                  subtitle: 'Send the final version to client',
-                  time: 'Today, 11:00 AM',
-                  tagText: 'High',
-                  tagBg: const Color(0xFFFEE2E2),
-                  tagColor: const Color(0xFFEF4444),
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildPriorityRow(
-                  icon: Icons.mail_rounded,
-                  iconColor: const Color(0xFFF59E0B),
-                  title: 'Re: Contract Review',
-                  subtitle: 'David Miller • Please find the updated contract...',
-                  time: '9:15 AM',
-                  tagText: 'Important',
-                  tagBg: const Color(0xFFFEF3C7),
-                  tagColor: const Color(0xFFD97706),
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildPriorityRow(
-                  icon: Icons.chat_bubble_rounded,
-                  iconColor: const Color(0xFF22C55E),
-                  title: 'Rahul Mehta',
-                  subtitle: 'Can you share the latest report?',
-                  time: '11:02 AM',
-                  tagText: 'Needs Reply',
-                  tagBg: const Color(0xFFDBEAFE),
-                  tagColor: const Color(0xFF2563EB),
-                ),
+                if (highPriorityTasks.isNotEmpty) ...[
+                  ...highPriorityTasks.take(3).map((t) {
+                    return Column(
+                      children: [
+                        _buildPriorityRow(
+                          icon: Icons.flag_rounded,
+                          iconColor: const Color(0xFFEF4444),
+                          title: t['title'] ?? 'High Priority Task',
+                          subtitle: t['description'] ?? 'Workspace task requiring attention',
+                          time: t['due_time'] ?? (t['due_date'] ?? 'Today'),
+                          tagText: (t['priority'] ?? 'High').toString().toUpperCase(),
+                          tagBg: const Color(0xFFFEE2E2),
+                          tagColor: const Color(0xFFEF4444),
+                        ),
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      ],
+                    );
+                  })
+                ] else ...[
+                  _buildPriorityRow(
+                    icon: Icons.flag_rounded,
+                    iconColor: const Color(0xFFEF4444),
+                    title: 'Complete project proposal',
+                    subtitle: 'Send the final version to client',
+                    time: 'Today, 11:00 AM',
+                    tagText: 'High',
+                    tagBg: const Color(0xFFFEE2E2),
+                    tagColor: const Color(0xFFEF4444),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildPriorityRow(
+                    icon: Icons.mail_rounded,
+                    iconColor: const Color(0xFFF59E0B),
+                    title: 'Re: Contract Review',
+                    subtitle: 'David Miller • Please find the updated contract...',
+                    time: '9:15 AM',
+                    tagText: 'Important',
+                    tagBg: const Color(0xFFFEF3C7),
+                    tagColor: const Color(0xFFD97706),
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildPriorityRow(
+                    icon: Icons.chat_bubble_rounded,
+                    iconColor: const Color(0xFF22C55E),
+                    title: 'Rahul Mehta',
+                    subtitle: 'Can you share the latest report?',
+                    time: '11:02 AM',
+                    tagText: 'Needs Reply',
+                    tagBg: const Color(0xFFDBEAFE),
+                    tagColor: const Color(0xFF2563EB),
+                  ),
+                ],
               ],
             ),
           ),
@@ -294,26 +332,43 @@ class DashboardScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
-                _buildTaskRowMockup(
-                  title: 'Review marketing plan',
-                  time: 'Today, 10:00 AM',
-                  flagColor: const Color(0xFFEF4444),
-                  isChecked: false,
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildTaskRowMockup(
-                  title: 'Prepare client presentation',
-                  time: 'Today, 2:00 PM',
-                  flagColor: const Color(0xFFF59E0B),
-                  isChecked: false,
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildTaskRowMockup(
-                  title: 'Update website content',
-                  time: 'Today, 4:00 PM',
-                  flagColor: const Color(0xFFCBD5E1),
-                  isChecked: true,
-                ),
+                if (todayTasks.isNotEmpty) ...[
+                  ...todayTasks.take(4).map((t) {
+                    final isDone = t['status'] == 'completed';
+                    return Column(
+                      children: [
+                        _buildTaskRowMockup(
+                          title: t['title'] ?? 'Task',
+                          time: t['due_time'] != null ? 'Today, ${t['due_time']}' : 'Today',
+                          flagColor: t['priority'] == 'high' ? const Color(0xFFEF4444) : (t['priority'] == 'medium' ? const Color(0xFFF59E0B) : const Color(0xFFCBD5E1)),
+                          isChecked: isDone,
+                        ),
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      ],
+                    );
+                  })
+                ] else ...[
+                  _buildTaskRowMockup(
+                    title: 'Review marketing plan',
+                    time: 'Today, 10:00 AM',
+                    flagColor: const Color(0xFFEF4444),
+                    isChecked: false,
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildTaskRowMockup(
+                    title: 'Prepare client presentation',
+                    time: 'Today, 2:00 PM',
+                    flagColor: const Color(0xFFF59E0B),
+                    isChecked: false,
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildTaskRowMockup(
+                    title: 'Update website content',
+                    time: 'Today, 4:00 PM',
+                    flagColor: const Color(0xFFCBD5E1),
+                    isChecked: true,
+                  ),
+                ],
               ],
             ),
           ),
@@ -336,38 +391,61 @@ class DashboardScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
-                _buildEmailRowMockup(
-                  initials: 'SJ',
-                  bgColor: const Color(0xFFDBEAFE),
-                  textColor: const Color(0xFF2563EB),
-                  sender: 'Sarah Johnson',
-                  subject: 'Re: Project Update',
-                  snippet: 'Let\'s schedule a call to discuss the next steps...',
-                  time: '10:24 AM',
-                  showBlueDot: true,
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildEmailRowMockup(
-                  initials: 'DM',
-                  bgColor: const Color(0xFFF3E8FF),
-                  textColor: const Color(0xFF9333EA),
-                  sender: 'David Miller',
-                  subject: 'Contract Review',
-                  snippet: 'Please find the updated contract attached...',
-                  time: '9:15 AM',
-                  showBlueDot: true,
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildEmailRowMockup(
-                  initials: 'MC',
-                  bgColor: const Color(0xFFCCFBF1),
-                  textColor: const Color(0xFF0D9488),
-                  sender: 'Michael Chen',
-                  subject: 'Meeting Tomorrow',
-                  snippet: 'Just confirming our meeting for tomorrow...',
-                  time: '8:32 AM',
-                  showBlueDot: false,
-                ),
+                if (importantEmails.isNotEmpty) ...[
+                  ...importantEmails.take(3).map((e) {
+                    final sender = e['sender_name'] ?? (e['sender_email'] ?? 'Sender');
+                    final initials = sender.isNotEmpty ? sender[0].toUpperCase() : 'M';
+                    final isUnread = (e['is_read'] == 0 || e['is_read'] == false);
+                    return Column(
+                      children: [
+                        _buildEmailRowMockup(
+                          initials: initials,
+                          bgColor: const Color(0xFFDBEAFE),
+                          textColor: const Color(0xFF2563EB),
+                          sender: sender,
+                          subject: e['subject'] ?? 'No Subject',
+                          snippet: e['body_text'] ?? '',
+                          time: e['received_date'] ?? 'Today',
+                          showBlueDot: isUnread,
+                        ),
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      ],
+                    );
+                  })
+                ] else ...[
+                  _buildEmailRowMockup(
+                    initials: 'SJ',
+                    bgColor: const Color(0xFFDBEAFE),
+                    textColor: const Color(0xFF2563EB),
+                    sender: 'Sarah Johnson',
+                    subject: 'Re: Project Update',
+                    snippet: 'Let\'s schedule a call to discuss the next steps...',
+                    time: '10:24 AM',
+                    showBlueDot: true,
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildEmailRowMockup(
+                    initials: 'DM',
+                    bgColor: const Color(0xFFF3E8FF),
+                    textColor: const Color(0xFF9333EA),
+                    sender: 'David Miller',
+                    subject: 'Contract Review',
+                    snippet: 'Please find the updated contract attached...',
+                    time: '9:15 AM',
+                    showBlueDot: true,
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildEmailRowMockup(
+                    initials: 'MC',
+                    bgColor: const Color(0xFFCCFBF1),
+                    textColor: const Color(0xFF0D9488),
+                    sender: 'Michael Chen',
+                    subject: 'Meeting Tomorrow',
+                    snippet: 'Just confirming our meeting for tomorrow...',
+                    time: '8:32 AM',
+                    showBlueDot: false,
+                  ),
+                ],
               ],
             ),
           ),
@@ -390,25 +468,47 @@ class DashboardScreen extends ConsumerWidget {
             ),
             child: Column(
               children: [
-                _buildWhatsAppRowMockup(
-                  initials: 'RM',
-                  bgColor: const Color(0xFF166534),
-                  textColor: Colors.white,
-                  name: 'Rahul Mehta',
-                  snippet: 'Can you share the latest report?',
-                  time: '11:02 AM',
-                  badgeCount: '2',
-                ),
-                const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                _buildWhatsAppRowMockup(
-                  initials: 'AC',
-                  bgColor: const Color(0xFF5EEAD4),
-                  textColor: const Color(0xFF0F766E),
-                  name: 'ABC Coaching',
-                  snippet: 'We need the final files by today.',
-                  time: '9:40 AM',
-                  badgeCount: '1',
-                ),
+                if (whatsappConversations.isNotEmpty) ...[
+                  ...whatsappConversations.take(3).map((w) {
+                    final name = w['name'] ?? 'WhatsApp Contact';
+                    final initials = name.isNotEmpty ? name[0].toUpperCase() : 'W';
+                    final unread = w['unread_count']?.toString() ?? '1';
+                    return Column(
+                      children: [
+                        _buildWhatsAppRowMockup(
+                          initials: initials,
+                          bgColor: const Color(0xFF166534),
+                          textColor: Colors.white,
+                          name: name,
+                          snippet: w['last_message'] ?? '',
+                          time: w['last_message_time'] ?? 'Today',
+                          badgeCount: unread,
+                        ),
+                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                      ],
+                    );
+                  })
+                ] else ...[
+                  _buildWhatsAppRowMockup(
+                    initials: 'RM',
+                    bgColor: const Color(0xFF166534),
+                    textColor: Colors.white,
+                    name: 'Rahul Mehta',
+                    snippet: 'Can you share the latest report?',
+                    time: '11:02 AM',
+                    badgeCount: '2',
+                  ),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  _buildWhatsAppRowMockup(
+                    initials: 'AC',
+                    bgColor: const Color(0xFF5EEAD4),
+                    textColor: const Color(0xFF0F766E),
+                    name: 'ABC Coaching',
+                    snippet: 'We need the final files by today.',
+                    time: '9:40 AM',
+                    badgeCount: '1',
+                  ),
+                ],
               ],
             ),
           ),

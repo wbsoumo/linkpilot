@@ -42,8 +42,7 @@ try {
             'is_enabled' => (int)$pay['is_enabled'],
             'test_mode' => (int)$pay['test_mode'],
             'currency' => $pay['currency'],
-            'success_url' => $pay['success_url'],
-            'failure_url' => $pay['failure_url'],
+            'key_id' => !empty($pay['key_id']) ? '••••••••' : '',
             'has_key_id' => !empty($pay['key_id']),
             'has_secret_key' => !empty($pay['secret_key']),
             'has_webhook_secret' => !empty($pay['webhook_secret'])

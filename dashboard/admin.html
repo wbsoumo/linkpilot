@@ -1335,8 +1335,53 @@
                                 <input type="number" id="alloc_agency_plan" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-bold" placeholder="10000">
                             </div>
 
-                            <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition shadow-xs">
-                                Save Allocation Rules
+                    <!-- 4. Razorpay Payment Gateway Config -->
+                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-xs lg:col-span-1">
+                        <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 flex items-center space-x-2">
+                                    <span>💳 Razorpay Gateway Configuration</span>
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Manage live API keys and payment status.</p>
+                            </div>
+                            <span id="adm-razorpay-badge" class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-slate-100 text-slate-500 border border-slate-200">Checking...</span>
+                        </div>
+
+                        <form onsubmit="saveAdminRazorpaySettings(event)" class="space-y-3.5 text-xs">
+                            <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                                <label class="text-slate-700 font-extrabold text-xs">Enable Razorpay Payments</label>
+                                <input type="checkbox" id="adm_rzp_enabled" class="h-4 w-4 text-indigo-600 rounded">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Razorpay Key ID</label>
+                                <input type="text" id="adm_rzp_key_id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono" placeholder="rzp_live_... or rzp_test_...">
+                            </div>
+
+                            <div>
+                                <label class="block text-slate-600 font-semibold mb-1">Razorpay Key Secret</label>
+                                <input type="password" id="adm_rzp_key_secret" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-mono" placeholder="Enter key secret">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-slate-600 font-semibold mb-1">Gateway Currency</label>
+                                    <select id="adm_rzp_currency" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-semibold">
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="USD">USD ($)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-600 font-semibold mb-1">Mode</label>
+                                    <select id="adm_rzp_test_mode" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 font-semibold">
+                                        <option value="0">Live Mode</option>
+                                        <option value="1">Test / Sandbox Mode</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-xs flex items-center justify-center space-x-1.5" style="color: #ffffff !important;">
+                                <span>Save Razorpay Credentials</span>
                             </button>
                         </form>
                     </div>
@@ -2326,10 +2371,52 @@
                 if (document.getElementById('alloc_free_plan')) document.getElementById('alloc_free_plan').value = s.alloc_free_plan || '100';
                 if (document.getElementById('alloc_pro_plan')) document.getElementById('alloc_pro_plan').value = s.alloc_pro_plan || '2500';
                 if (document.getElementById('alloc_agency_plan')) document.getElementById('alloc_agency_plan').value = s.alloc_agency_plan || '10000';
+
+                // Load Razorpay settings
+                const payRes = await apiCall('admin/get_finder_settings.php');
+                if (payRes.razorpay) {
+                    const rzp = payRes.razorpay;
+                    if (document.getElementById('adm_rzp_enabled')) document.getElementById('adm_rzp_enabled').checked = rzp.is_enabled === 1;
+                    if (document.getElementById('adm_rzp_currency')) document.getElementById('adm_rzp_currency').value = rzp.currency || 'INR';
+                    if (document.getElementById('adm_rzp_test_mode')) document.getElementById('adm_rzp_test_mode').value = rzp.test_mode ? '1' : '0';
+                    const badge = document.getElementById('adm-razorpay-badge');
+                    if (badge) {
+                        if (rzp.is_enabled) {
+                            badge.className = 'px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-600 border border-emerald-200';
+                            badge.textContent = 'ACTIVE';
+                        } else {
+                            badge.className = 'px-2.5 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-600 border border-rose-200';
+                            badge.textContent = 'DISABLED';
+                        }
+                    }
+                }
             } catch (err) {
                 console.warn('Credits settings load warning:', err);
             }
         }
+
+        window.saveAdminRazorpaySettings = async function(e) {
+            e.preventDefault();
+            const isEnabled = document.getElementById('adm_rzp_enabled').checked ? 1 : 0;
+            const keyId = document.getElementById('adm_rzp_key_id').value.trim();
+            const keySecret = document.getElementById('adm_rzp_key_secret').value.trim();
+            const currency = document.getElementById('adm_rzp_currency').value;
+            const testMode = parseInt(document.getElementById('adm_rzp_test_mode').value);
+
+            try {
+                const res = await apiCall('admin/save_payment_settings.php', 'POST', {
+                    is_enabled: isEnabled,
+                    key_id: keyId,
+                    secret_key: keySecret,
+                    currency: currency,
+                    test_mode: testMode
+                });
+                showNotification('success', res.message || 'Razorpay settings saved successfully!');
+                loadAdminCreditsData();
+            } catch (err) {
+                showNotification('error', err.message);
+            }
+        };
 
         async function saveCreditPricingTiers(e) {
             e.preventDefault();

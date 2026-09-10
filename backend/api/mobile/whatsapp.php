@@ -40,13 +40,13 @@ try {
 
             // Load messages
             $stmtMsgs = $db->prepare("
-                SELECT id, wa_contact_id, sender_type, message_text AS body, created_at, status 
+                SELECT id, wa_contact_id, COALESCE(direction, 'outbound') AS direction, COALESCE(direction, 'outbound') AS sender_type, COALESCE(body, '') AS body, created_at, status 
                 FROM whatsapp_messages 
-                WHERE user_id = ? AND wa_contact_id = ? 
+                WHERE user_id = ? AND (wa_contact_id = ? OR RIGHT(wa_contact_id, 10) = RIGHT((SELECT wa_id FROM whatsapp_contacts WHERE id = ?), 10))
                 ORDER BY created_at ASC 
                 LIMIT 100
             ");
-            $stmtMsgs->execute([$userId, $waContactId]);
+            $stmtMsgs->execute([$userId, $waContactId, $waContactId]);
             $messages = $stmtMsgs->fetchAll() ?: [];
 
             // Clear unread count

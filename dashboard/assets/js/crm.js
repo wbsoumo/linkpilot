@@ -23301,22 +23301,19 @@ function getSettingsBaseLayout(user) {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                        </div>
-                    </div>
 
-                    <div class="p-4 bg-gradient-to-br from-indigo-50/80 to-indigo-100/40 border border-indigo-200/80 rounded-2xl flex items-center justify-between shadow-2xs">
-                        <div class="flex items-center space-x-3">
-                            <div class="h-9 w-9 rounded-xl bg-white border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0 shadow-2xs">
-                                <i data-lucide="shield-check" class="h-4.5 w-4.5"></i>
+                        <div class="w-full mt-4 p-3 bg-gradient-to-br from-indigo-50/80 to-indigo-100/40 border border-indigo-200/80 rounded-2xl flex items-center justify-between shadow-2xs">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-8 w-8 rounded-xl bg-white border border-indigo-200/80 flex items-center justify-center text-indigo-600 shrink-0 shadow-2xs">
+                                    <i data-lucide="shield-check" class="h-4 w-4"></i>
+                                </div>
+                                <div class="text-left">
+                                    <p class="font-black text-slate-900 text-xs">Account Security</p>
+                                    <p class="text-[10px] text-slate-500 font-medium">Two-Factor Auth</p>
+                                </div>
                             </div>
-                            <div class="text-left">
-                                <p class="font-black text-slate-900 text-xs">Account Security</p>
-                                <p class="text-[10px] text-slate-500 mt-0.5 leading-relaxed font-medium">Two-Factor Auth</p>
-                            </div>
+                            <button onclick="toggleMock2FA(this)" id="settings-2fa-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-black transition shadow-xs" style="color: #ffffff !important;">Enable 2FA</button>
                         </div>
-                        <button onclick="toggleMock2FA(this)" id="settings-2fa-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-black transition shadow-xs" style="color: #ffffff !important;">Enable 2FA</button>
                     </div>
                 </div>
             </div>

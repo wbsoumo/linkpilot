@@ -23538,37 +23538,78 @@ function renderSettingsTabContent(tab, container) {
         `;
     } else if (tab === 'whatsapp') {
         container.innerHTML = `
-            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
-                <div class="pb-2 border-b border-slate-100 flex items-center justify-between">
+            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in text-left">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                     <div>
                         <h2 class="text-sm font-extrabold text-slate-800">WhatsApp API Integration</h2>
-                        <p class="text-slate-400 text-[10px]">Configure your linked WhatsApp account parameters and check status.</p>
+                        <p class="text-slate-400 text-[10px]">Configure your linked Meta WhatsApp account parameters and check live status.</p>
                     </div>
-                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center space-x-1">
-                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>API INSTANCE RUNNING</span>
-                    </span>
+                    <div id="settings-wa-status-badge">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200">Checking...</span>
+                    </div>
                 </div>
 
-                <div class="space-y-4 pt-2">
-                    <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-slate-655 font-mono text-[10px]">
-                        <p><strong>Device Provider:</strong> LinkPilot Cloud Node v2</p>
-                        <p><strong>Instance Key:</strong> LP-8349280918-WA</p>
-                        <p><strong>Webhook Sync:</strong> Active</p>
+                <div id="settings-wa-details-card" class="space-y-4 pt-2">
+                    <div class="p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 font-mono text-[11px] text-slate-700">
+                        <p><strong>Business Name:</strong> <span id="settings-wa-biz-name" class="font-bold text-slate-900">Loading...</span></p>
+                        <p><strong>WABA Account ID:</strong> <span id="settings-wa-waba-id" class="font-bold text-indigo-600">Loading...</span></p>
+                        <p><strong>Phone Number ID:</strong> <span id="settings-wa-phone-id" class="font-bold text-slate-800">Loading...</span></p>
+                        <p><strong>Webhook Sync Status:</strong> <span id="settings-wa-webhook-status" class="font-bold text-emerald-600">Checking...</span></p>
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">WhatsApp Linked Number</label>
-                        <input type="text" value="${user.phone_number || '+91 92423 22991'}" disabled class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-lg text-slate-450 cursor-not-allowed">
+                        <input type="text" id="settings-wa-display-phone" value="Loading linked number..." disabled class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-extrabold text-xs cursor-not-allowed">
                     </div>
 
-                    <div class="flex space-x-2 pt-2">
-                        <button onclick="testWhatsAppWebhook(this)" class="flex-1 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg font-bold transition">Test Webhook Sync</button>
-                        <button onclick="disconnectWhatsAppInstance(this)" class="px-4 py-2 border border-red-200 hover:bg-red-50 text-red-500 rounded-lg font-bold transition">Disconnect Instance</button>
+                    <div class="flex flex-col sm:flex-row gap-2 pt-2">
+                        <button onclick="testWhatsAppWebhook(this)" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition text-xs cursor-pointer">Test Webhook Sync</button>
+                        <button onclick="window.location.href='setup.html?step=3'" class="px-4 py-2.5 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold transition text-xs cursor-pointer">Re-configure Meta App</button>
+                        <button onclick="disconnectWhatsAppInstance(this)" class="px-4 py-2.5 border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl font-bold transition text-xs cursor-pointer">Disconnect Account</button>
                     </div>
                 </div>
             </div>
         `;
+
+        // Fetch real dynamic WhatsApp account data from backend
+        (async function loadDynamicWhatsAppSettings() {
+            try {
+                const res = await apiCall('whatsapp/setup.php');
+                const badge = document.getElementById('settings-wa-status-badge');
+                const bizName = document.getElementById('settings-wa-biz-name');
+                const wabaId = document.getElementById('settings-wa-waba-id');
+                const phoneId = document.getElementById('settings-wa-phone-id');
+                const webhookStatus = document.getElementById('settings-wa-webhook-status');
+                const displayPhone = document.getElementById('settings-wa-display-phone');
+
+                if (res && res.status === 'success' && res.account && res.account.status === 'connected') {
+                    const acc = res.account;
+                    if (badge) badge.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center space-x-1.5"><span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span><span>META API CONNECTED</span></span>`;
+                    if (bizName) bizName.textContent = acc.business_name || 'LinkPilot Verified WABA';
+                    if (wabaId) wabaId.textContent = acc.waba_id || 'Embedded Meta App';
+                    if (phoneId) phoneId.textContent = acc.phone_number_id || 'Active Phone ID';
+                    if (webhookStatus) webhookStatus.textContent = acc.webhook_status === 'active' ? 'Active Live Sync' : (acc.webhook_status || 'Active Live Sync');
+                    if (displayPhone) displayPhone.value = acc.display_phone_number || user.phone_number || 'Connected';
+                } else if (res && res.account) {
+                    const acc = res.account;
+                    if (badge) badge.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200">STATUS: ${(acc.status || 'UNVERIFIED').toUpperCase()}</span>`;
+                    if (bizName) bizName.textContent = acc.business_name || 'Pending Configuration';
+                    if (wabaId) wabaId.textContent = acc.waba_id || 'Not Set';
+                    if (phoneId) phoneId.textContent = acc.phone_number_id || 'Not Set';
+                    if (webhookStatus) webhookStatus.textContent = acc.webhook_status || 'Pending Verification';
+                    if (displayPhone) displayPhone.value = acc.display_phone_number || user.phone_number || 'Not Linked';
+                } else {
+                    if (badge) badge.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200">NOT CONNECTED</span>`;
+                    if (bizName) bizName.textContent = 'No Business Linked';
+                    if (wabaId) wabaId.textContent = 'None';
+                    if (phoneId) phoneId.textContent = 'None';
+                    if (webhookStatus) webhookStatus.textContent = 'Inactive';
+                    if (displayPhone) displayPhone.value = user.phone_number || 'No WhatsApp Number Connected';
+                }
+            } catch (e) {
+                console.error('Failed loading WhatsApp settings:', e);
+            }
+        })();
     } else if (tab === 'team') {
         container.innerHTML = `
             <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">

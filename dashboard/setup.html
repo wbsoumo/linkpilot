@@ -282,21 +282,21 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12 space-y-6">
 
         <!-- Modern Wizard Progress Banner -->
-        <div id="wizard-stepper-section" class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div id="wizard-stepper-section" class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2.5">
                     <span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-extrabold text-[11px] rounded-lg border border-blue-200/60 uppercase tracking-wider">
                         Interactive Setup
                     </span>
-                    <h1 class="text-sm font-bold text-slate-700 hidden sm:inline-block">Configure Your AI Lead Engine</h1>
+                    <h1 class="text-sm font-bold text-slate-800 hidden sm:inline-block">Configure Your AI Lead Engine</h1>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span id="setup-progress-text" class="text-xs font-black text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">20% Completed</span>
+                    <span id="setup-progress-text" class="text-xs font-black text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200/80">20% Completed</span>
                 </div>
             </div>
 
             <!-- Progress Bar -->
-            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200/40">
                 <div id="setup-progress-bar" class="bg-gradient-to-r from-blue-600 to-indigo-600 h-full w-1/5 transition-all duration-500 rounded-full"></div>
             </div>
 
@@ -308,23 +308,23 @@
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
                 <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(2)">
-                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transition-all duration-300">2</div>
-                    <span class="step-label text-[11px] font-bold text-slate-400 mt-1.5 text-center">SMTP & IMAP</span>
+                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">2</div>
+                    <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">SMTP & IMAP</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
                 <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(3)">
-                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transition-all duration-300">3</div>
-                    <span class="step-label text-[11px] font-bold text-slate-400 mt-1.5 text-center">WhatsApp</span>
+                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">3</div>
+                    <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">WhatsApp</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
                 <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(4)">
-                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transition-all duration-300">4</div>
-                    <span class="step-label text-[11px] font-bold text-slate-400 mt-1.5 text-center">AI & System</span>
+                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">4</div>
+                    <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">AI & System</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
                 <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(5)">
-                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transition-all duration-300">5</div>
-                    <span class="step-label text-[11px] font-bold text-slate-400 mt-1.5 text-center">Launch</span>
+                    <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">5</div>
+                    <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">Launch</span>
                 </div>
             </div>
         </div>
@@ -2073,9 +2073,9 @@
                             label.className = "step-label text-xs font-black text-blue-600 mt-1 tracking-tight";
                         } else {
                             // Future steps: high contrast gray
-                            circle.className = "step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-xs flex items-center justify-center transform hover:scale-105 transition-all duration-350";
+                            circle.className = "step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-extrabold text-xs flex items-center justify-center transform hover:scale-105 transition-all duration-350";
                             circle.innerHTML = `${sNum}`;
-                            label.className = "step-label text-xs font-bold text-slate-400 mt-1 tracking-tight";
+                            label.className = "step-label text-xs font-bold text-slate-600 mt-1 tracking-tight";
                         }
                     }
                 });

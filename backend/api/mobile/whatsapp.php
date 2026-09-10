@@ -60,19 +60,34 @@ try {
         } else {
             // List conversations
             $search = trim($_GET['search'] ?? '');
-            $query = "SELECT id, wa_id, name, avatar, last_message, last_message_time, unread_count, tag, reply_required 
-                      FROM whatsapp_contacts 
-                      WHERE user_id = :user_id";
-            $params = ['user_id' => $userId];
+            $sql = "SELECT c.id, 
+                           c.wa_id, 
+                           COALESCE(c.profile_name, c.wa_id) AS name, 
+                           NULL AS avatar, 
+                           COALESCE((SELECT body FROM whatsapp_messages WHERE wa_contact_id = c.id OR RIGHT(wa_contact_id, 10) = RIGHT(c.wa_id, 10) ORDER BY created_at DESC LIMIT 1), '') AS last_message, 
+                           COALESCE(c.last_message_at, NOW()) AS last_message_time, 
+                           c.unread_count, 
+                           c.tags AS tag, 
+                           0 AS reply_required 
+                    FROM whatsapp_contacts c 
+                    JOIN (
+                        SELECT RIGHT(wa_id, 10) as clean_id, MAX(id) as max_id
+                        FROM whatsapp_contacts
+                        WHERE user_id = :user_id1
+                        GROUP BY RIGHT(wa_id, 10)
+                    ) g ON c.id = g.max_id
+                    WHERE c.user_id = :user_id2";
+            $params = ['user_id1' => $userId, 'user_id2' => $userId];
 
             if ($search !== '') {
-                $query .= " AND (name LIKE :search OR wa_id LIKE :search OR last_message LIKE :search)";
-                $params['search'] = '%' . $search . '%';
+                $sql .= " AND (c.profile_name LIKE :search1 OR c.wa_id LIKE :search2)";
+                $params['search1'] = '%' . $search . '%';
+                $params['search2'] = '%' . $search . '%';
             }
 
-            $query .= " ORDER BY last_message_time DESC LIMIT 50";
+            $sql .= " ORDER BY c.last_message_at DESC, c.id DESC LIMIT 50";
 
-            $stmt = $db->prepare($query);
+            $stmt = $db->prepare($sql);
             $stmt->execute($params);
             $conversations = $stmt->fetchAll() ?: [];
 

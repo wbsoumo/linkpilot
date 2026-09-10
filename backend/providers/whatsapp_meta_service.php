@@ -272,6 +272,17 @@ class WhatsAppMetaService {
     }
     
     /**
+     * Register phone number with Meta WhatsApp Cloud API.
+     */
+    public static function registerPhoneNumber($phoneNumberId, $accessToken, $pin = '123456') {
+        $payload = [
+            "messaging_product" => "whatsapp",
+            "pin" => $pin
+        ];
+        return self::executeRequest("{$phoneNumberId}/register", "POST", $payload, $accessToken);
+    }
+    
+    /**
      * Download media from Meta to local storage.
      */
     public static function downloadMedia($userId, $mediaId, $overrideToken = null) {

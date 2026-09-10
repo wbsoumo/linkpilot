@@ -40,15 +40,21 @@ $stmtAppSecret = $db->prepare("SELECT setting_value FROM admin_settings WHERE se
 $stmtAppSecret->execute();
 $appSecret = $stmtAppSecret->fetchColumn() ?: '';
 
+// Retrieve Configured Redirect URI if set
+$inputRedirectUri = trim($input['redirect_uri'] ?? '');
+$stmtRed = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_redirect_uri' LIMIT 1");
+$stmtRed->execute();
+$configuredRedirectUri = $stmtRed->fetchColumn() ?: '';
+$redirectUri = !empty($inputRedirectUri) ? $inputRedirectUri : $configuredRedirectUri;
+
 // 1. If authorization code is passed, exchange code for User Access Token
 if (!empty($code)) {
     if (empty($appId) || empty($appSecret)) {
         sendJsonResponse('error', 'Meta App ID and App Secret must be configured in Admin Control Panel before using OAuth Code Flow.', [], 400);
     }
     try {
-        $tokenRes = WhatsAppMetaService::executeRequest(
-            "oauth/access_token?client_id={$appId}&client_secret={$appSecret}&code={$code}&redirect_uri="
-        );
+        $exchangeEndpoint = "oauth/access_token?client_id={$appId}&client_secret={$appSecret}&code={$code}" . (!empty($redirectUri) ? "&redirect_uri=" . urlencode($redirectUri) : "");
+        $tokenRes = WhatsAppMetaService::executeRequest($exchangeEndpoint);
         if (!empty($tokenRes['access_token'])) {
             $accessToken = $tokenRes['access_token'];
         } else {
@@ -174,6 +180,16 @@ if ($isMock) {
 
         if (empty($businessName)) {
             $businessName = $displayName;
+        }
+
+        // Automatic Phone Number Registration (Meta Cloud API Onboarding Requirement)
+        if (in_array(strtoupper($phoneStatus), ['NOT_REGISTERED', 'UNVERIFIED', 'PENDING'])) {
+            try {
+                WhatsAppMetaService::registerPhoneNumber($phoneId, $longLivedToken);
+                $phoneStatus = 'CONNECTED';
+            } catch (Throwable $regEx) {
+                WhatsAppMetaService::logDebug("oauth_callback: Phone registration note: " . $regEx->getMessage());
+            }
         }
 
         // Automatically Subscribe Webhook

@@ -96,11 +96,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _redirectToWebsiteLogin() async {
-    final currentOrigin = html.window.location.origin;
-    final redirectUri = Uri.encodeComponent('$currentOrigin/#/login');
-    final websiteLoginUrl = 'https://linkpilot.work/dashboard/login.html?source=mobile_app&redirect_uri=$redirectUri';
+    String websiteLoginUrl = 'https://linkpilot.work/dashboard/login.html';
+    if (kIsWeb) {
+      final currentOrigin = html.window.location.origin;
+      final redirectUri = Uri.encodeComponent('$currentOrigin/#/login');
+      websiteLoginUrl = '$currentOrigin/dashboard/login.html?source=mobile_app&redirect_uri=$redirectUri';
+    } else {
+      final redirectUri = Uri.encodeComponent('http://localhost:8080/#/login');
+      websiteLoginUrl = 'https://linkpilot.work/dashboard/login.html?source=mobile_app&redirect_uri=$redirectUri';
+    }
     
-    html.window.location.href = websiteLoginUrl;
+    if (kIsWeb) {
+      html.window.location.href = websiteLoginUrl;
+    } else {
+      final Uri url = Uri.parse(websiteLoginUrl);
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not launch Link Pilot website.')),
+          );
+        }
+      }
+    }
   }
 
   Future<void> _handleGoogleSignIn() async {

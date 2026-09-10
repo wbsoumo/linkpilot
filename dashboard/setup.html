@@ -2133,7 +2133,7 @@
             goToStep(5); // Go to step 5 (Complete)
         };
 
-        window.launchWorkspaceDashboard = function (button) {
+        window.launchWorkspaceDashboard = async function (button) {
             if (button.disabled) return;
             button.disabled = true;
             button.style.opacity = '0.85';
@@ -2147,9 +2147,15 @@
                 <span style="color: #ffffff !important;">Launching Dashboard...</span>
             `;
 
+            try {
+                await apiCall('auth/complete_setup.php', 'POST', { setup_completed: 1, setup_step: 5 });
+            } catch (e) {
+                console.warn('Failed completing setup status:', e);
+            }
+
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 2000);
+            }, 1200);
         };
 
         if (window.lucide) {
@@ -3735,13 +3741,42 @@
             }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            goToStep(1);
+        document.addEventListener('DOMContentLoaded', async () => {
             selectSmtpPreset('gmail');
             checkEmailSetupStatus();
             checkWhatsAppStatus();
 
             const urlParams = new URLSearchParams(window.location.search);
+            const stepParam = urlParams.get('step');
+            const forceParam = urlParams.get('force');
+
+            // Evaluate setup status via backend API
+            try {
+                const setupRes = await apiCall('auth/check_setup.php');
+                if (setupRes && setupRes.status === 'success' && setupRes.data) {
+                    const d = setupRes.data;
+                    // If setup is already complete and user didn't explicitly request force=1, auto-redirect to main dashboard
+                    if (d.setup_completed && forceParam !== 'true' && forceParam !== '1' && urlParams.get('google_connected') !== 'true') {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    if (stepParam) {
+                        goToStep(parseInt(stepParam));
+                    } else if (d.recommended_step && d.recommended_step > 1) {
+                        goToStep(d.recommended_step);
+                    } else {
+                        goToStep(1);
+                    }
+                } else {
+                    if (stepParam) goToStep(parseInt(stepParam));
+                    else goToStep(1);
+                }
+            } catch (err) {
+                console.warn('Setup evaluation error:', err);
+                if (stepParam) goToStep(parseInt(stepParam));
+                else goToStep(1);
+            }
+
             if (urlParams.get('google_connected') === 'true') {
                 showNotification('success', 'Google Workspace Account connected successfully via Secure OAuth!');
 

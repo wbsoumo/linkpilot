@@ -42,11 +42,11 @@ try {
             $stmtMsgs = $db->prepare("
                 SELECT id, wa_contact_id, COALESCE(direction, 'outbound') AS direction, COALESCE(direction, 'outbound') AS sender_type, COALESCE(body, '') AS body, created_at, status 
                 FROM whatsapp_messages 
-                WHERE user_id = ? AND (wa_contact_id = ? OR RIGHT(wa_contact_id, 10) = RIGHT((SELECT wa_id FROM whatsapp_contacts WHERE id = ?), 10))
+                WHERE user_id = ? AND wa_contact_id = ?
                 ORDER BY created_at ASC 
                 LIMIT 100
             ");
-            $stmtMsgs->execute([$userId, $waContactId, $waContactId]);
+            $stmtMsgs->execute([$userId, $waContactId]);
             $messages = $stmtMsgs->fetchAll() ?: [];
 
             // Clear unread count

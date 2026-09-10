@@ -23571,7 +23571,6 @@ function renderSettingsTabContent(tab, container) {
             </div>
         `;
 
-        // Fetch real dynamic WhatsApp account data from backend
         (async function loadDynamicWhatsAppSettings() {
             try {
                 const res = await apiCall('whatsapp/setup.php');
@@ -23581,6 +23580,7 @@ function renderSettingsTabContent(tab, container) {
                 const phoneId = document.getElementById('settings-wa-phone-id');
                 const webhookStatus = document.getElementById('settings-wa-webhook-status');
                 const displayPhone = document.getElementById('settings-wa-display-phone');
+                const actionsContainer = document.getElementById('settings-wa-actions');
 
                 if (res && res.status === 'success' && res.account && res.account.status === 'connected') {
                     const acc = res.account;
@@ -23590,21 +23590,39 @@ function renderSettingsTabContent(tab, container) {
                     if (phoneId) phoneId.textContent = acc.phone_number_id || 'Active Phone ID';
                     if (webhookStatus) webhookStatus.textContent = acc.webhook_status === 'active' ? 'Active Live Sync' : (acc.webhook_status || 'Active Live Sync');
                     if (displayPhone) displayPhone.value = acc.display_phone_number || user.phone_number || 'Connected';
-                } else if (res && res.account) {
-                    const acc = res.account;
-                    if (badge) badge.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200">STATUS: ${(acc.status || 'UNVERIFIED').toUpperCase()}</span>`;
-                    if (bizName) bizName.textContent = acc.business_name || 'Pending Configuration';
-                    if (wabaId) wabaId.textContent = acc.waba_id || 'Not Set';
-                    if (phoneId) phoneId.textContent = acc.phone_number_id || 'Not Set';
-                    if (webhookStatus) webhookStatus.textContent = acc.webhook_status || 'Pending Verification';
-                    if (displayPhone) displayPhone.value = acc.display_phone_number || user.phone_number || 'Not Linked';
+                    
+                    if (actionsContainer) {
+                        actionsContainer.innerHTML = `
+                            <button onclick="testWhatsAppWebhook(this)" class="flex-1 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold transition text-xs cursor-pointer">Test Webhook Sync</button>
+                            <button onclick="window.location.href='setup.html?step=3'" class="px-4 py-2.5 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold transition text-xs cursor-pointer">Re-configure Meta App</button>
+                            <button onclick="disconnectWhatsAppInstance(this)" class="px-4 py-2.5 border border-rose-200 hover:bg-rose-50 text-rose-600 rounded-xl font-bold transition text-xs cursor-pointer">Disconnect Account</button>
+                        `;
+                    }
                 } else {
-                    if (badge) badge.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 border border-slate-200">NOT CONNECTED</span>`;
-                    if (bizName) bizName.textContent = 'No Business Linked';
-                    if (wabaId) wabaId.textContent = 'None';
-                    if (phoneId) phoneId.textContent = 'None';
-                    if (webhookStatus) webhookStatus.textContent = 'Inactive';
-                    if (displayPhone) displayPhone.value = user.phone_number || 'No WhatsApp Number Connected';
+                    // Not connected state - show single clean Connect Option
+                    const card = document.getElementById('settings-wa-details-card');
+                    if (badge) badge.innerHTML = `<span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-50 text-amber-700 border border-amber-200">NOT CONNECTED</span>`;
+                    
+                    if (card) {
+                        card.innerHTML = `
+                            <div class="p-6 bg-slate-50/80 border border-slate-200/80 rounded-2xl text-center space-y-4">
+                                <div class="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto shadow-2xs">
+                                    <i data-lucide="message-circle" class="h-6 w-6"></i>
+                                </div>
+                                <div class="max-w-md mx-auto space-y-1">
+                                    <h3 class="text-sm font-black text-slate-900">Connect Meta WhatsApp Business</h3>
+                                    <p class="text-slate-500 text-xs font-medium">Link your WhatsApp Cloud API account to enable automated replies, lead capture, and CRM campaign messaging.</p>
+                                </div>
+                                <div class="pt-2">
+                                    <button onclick="window.location.href='setup.html?step=3'" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs rounded-xl transition shadow-md shadow-emerald-500/20 inline-flex items-center space-x-2 cursor-pointer" style="color:#ffffff !important; background-color:#059669 !important;">
+                                        <i data-lucide="link-2" class="h-4 w-4 text-white"></i>
+                                        <span style="color:#ffffff !important;">Connect WhatsApp Account</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        if (window.lucide) lucide.createIcons();
+                    }
                 }
             } catch (e) {
                 console.error('Failed loading WhatsApp settings:', e);

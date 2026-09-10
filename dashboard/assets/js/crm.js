@@ -795,135 +795,135 @@ async function renderDashboard(container) {
                 <!-- 12 Top Statistics Cards Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <!-- Received Emails -->
-                    <div onclick="window.location.hash = '#/inbox'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Emails Recd</span>
-                            <span class="p-1.5 bg-indigo-500/10 text-indigo-400 rounded-md"><i data-lucide="mail" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/inbox'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Emails Recd</span>
+                            <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="mail" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-emails-recd">0</span>
-                            <span class="text-[10px] text-emerald-400 block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +12% today</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-emails-recd">0</span>
+                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +12% today</span>
                         </div>
                     </div>
                     <!-- Emails Processed by AI -->
-                    <div onclick="window.location.hash = '#/inbox'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">AI Processed</span>
-                            <span class="p-1.5 bg-teal-500/10 text-teal-400 rounded-md"><i data-lucide="cpu" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/inbox'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">AI Processed</span>
+                            <span class="p-1.5 bg-teal-50 text-teal-600 rounded-lg"><i data-lucide="cpu" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-emails-ai">0</span>
-                            <span class="text-[10px] text-emerald-400 block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +8% today</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-emails-ai">0</span>
+                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +8% today</span>
                         </div>
                     </div>
                     <!-- Total Leads -->
-                    <div onclick="window.location.hash = '#/leads'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Total Leads</span>
-                            <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-md"><i data-lucide="users" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/leads'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Total Leads</span>
+                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="users" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-total-leads">0</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Pipeline Leads</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-total-leads">0</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Pipeline Leads</span>
                         </div>
                     </div>
                     <!-- Total Companies -->
-                    <div onclick="window.location.hash = '#/companies'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Companies</span>
-                            <span class="p-1.5 bg-blue-500/10 text-blue-400 rounded-md"><i data-lucide="building" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/companies'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Companies</span>
+                            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="building" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-total-companies">0</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Client Accounts</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-total-companies">0</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Client Accounts</span>
                         </div>
                     </div>
                     <!-- Active Clients -->
-                    <div onclick="window.location.hash = '#/contacts'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Active Clients</span>
-                            <span class="p-1.5 bg-green-500/10 text-green-400 rounded-md"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/contacts'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Active Clients</span>
+                            <span class="p-1.5 bg-green-50 text-green-600 rounded-lg"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-active-clients">0</span>
-                            <span class="text-[10px] text-emerald-400 block mt-0.5">Retained Accounts</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-active-clients">0</span>
+                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5">Retained Accounts</span>
                         </div>
                     </div>
                     <!-- Open Opportunities -->
-                    <div onclick="window.location.hash = '#/deals'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Open Deals</span>
-                            <span class="p-1.5 bg-amber-500/10 text-amber-400 rounded-md"><i data-lucide="zap" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/deals'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Open Deals</span>
+                            <span class="p-1.5 bg-amber-50 text-amber-600 rounded-lg"><i data-lucide="zap" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-open-deals">0</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Sales Opportunities</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-open-deals">0</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Sales Opportunities</span>
                         </div>
                     </div>
                     <!-- Follow-ups Due -->
-                    <div onclick="window.location.hash = '#/tasks'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Follow-ups</span>
-                            <span class="p-1.5 bg-purple-500/10 text-purple-400 rounded-md"><i data-lucide="bell" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/tasks'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Follow-ups</span>
+                            <span class="p-1.5 bg-purple-50 text-purple-600 rounded-lg"><i data-lucide="bell" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-followups-due">0</span>
-                            <span class="text-[10px] text-amber-400 block mt-0.5">Reminders Pending</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-followups-due">0</span>
+                            <span class="text-[10px] text-amber-600 font-extrabold block mt-0.5">Reminders Pending</span>
                         </div>
                     </div>
                     <!-- Tasks Due Today -->
-                    <div onclick="window.location.hash = '#/tasks'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Tasks Today</span>
-                            <span class="p-1.5 bg-pink-500/10 text-pink-400 rounded-md"><i data-lucide="check-square" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/tasks'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Tasks Today</span>
+                            <span class="p-1.5 bg-pink-50 text-pink-600 rounded-lg"><i data-lucide="check-square" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-tasks-today">0</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Daily checklist</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-tasks-today">0</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Daily checklist</span>
                         </div>
                     </div>
                     <!-- Meetings Scheduled -->
-                    <div onclick="window.location.hash = '#/meetings'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Meetings</span>
-                            <span class="p-1.5 bg-rose-500/10 text-rose-400 rounded-md"><i data-lucide="calendar" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/meetings'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Meetings</span>
+                            <span class="p-1.5 bg-rose-50 text-rose-600 rounded-lg"><i data-lucide="calendar" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-meetings">0</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Scheduled calls</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-meetings">0</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Scheduled calls</span>
                         </div>
                     </div>
                     <!-- Revenue Pipeline -->
-                    <div onclick="window.location.hash = '#/deals'" class="glass-panel p-4 bg-slate-900/40 card-hover col-span-2 lg:col-span-1 cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Pipeline Val</span>
-                            <span class="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-md"><i data-lucide="dollar-sign" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/deals'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover col-span-2 lg:col-span-1 cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Pipeline Val</span>
+                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="dollar-sign" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-xl font-extrabold text-white" id="stat-revenue-val">${window.getCurrencySymbol()}0</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Est. forecast</span>
+                            <span class="text-xl font-black text-slate-900" id="stat-revenue-val">${window.getCurrencySymbol()}0</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Est. forecast</span>
                         </div>
                     </div>
                     <!-- Conversion Rate -->
-                    <div onclick="window.location.hash = '#/reports'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">Conv. Rate</span>
-                            <span class="p-1.5 bg-sky-500/10 text-sky-400 rounded-md"><i data-lucide="trending-up" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/reports'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Conv. Rate</span>
+                            <span class="p-1.5 bg-sky-50 text-sky-600 rounded-lg"><i data-lucide="trending-up" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-conv-rate">24.5%</span>
-                            <span class="text-[10px] text-emerald-400 block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +2.1% this week</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-conv-rate">24.5%</span>
+                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +2.1% this week</span>
                         </div>
                     </div>
                     <!-- AI processing success rate -->
-                    <div onclick="window.location.hash = '#/ai-insights'" class="glass-panel p-4 bg-slate-900/40 card-hover cursor-pointer">
-                        <div class="flex justify-between items-center text-slate-400">
-                            <span class="text-[10px] font-bold uppercase tracking-wider">AI Accuracy</span>
-                            <span class="p-1.5 bg-violet-500/10 text-violet-400 rounded-md"><i data-lucide="check-circle" class="h-4 w-4"></i></span>
+                    <div onclick="window.location.hash = '#/ai-insights'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
+                        <div class="flex justify-between items-center text-slate-500">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">AI Accuracy</span>
+                            <span class="p-1.5 bg-violet-50 text-violet-600 rounded-lg"><i data-lucide="check-circle" class="h-4 w-4"></i></span>
                         </div>
                         <div class="mt-3">
-                            <span class="text-2xl font-extrabold text-white" id="stat-ai-accuracy">98.2%</span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">Success threshold</span>
+                            <span class="text-2xl font-black text-slate-900" id="stat-ai-accuracy">98.2%</span>
+                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Success threshold</span>
                         </div>
                     </div>
                 </div>
@@ -931,19 +931,19 @@ async function renderDashboard(container) {
                 <!-- Dashboard charts and timeline widgets -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <!-- Trends Chart -->
-                    <div class="glass-panel p-6 bg-slate-900/40 lg:col-span-2 space-y-4 text-left">
+                    <div class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-6 lg:col-span-2 space-y-4 text-left">
                         <div>
-                            <h3 class="text-lg font-bold text-white">Outreach & Leads Velocity</h3>
-                            <p class="text-xs text-slate-400">Comparing emails synchronized against qualified leads generated.</p>
+                            <h3 class="text-lg font-black text-slate-900">Outreach & Leads Velocity</h3>
+                            <p class="text-xs text-slate-500 font-medium">Comparing emails synchronized against qualified leads generated.</p>
                         </div>
                         <div class="relative h-72">
                             <canvas id="dashboardTrendChart"></canvas>
                         </div>
                     </div>
                     <!-- Today's Tasks Checklist -->
-                    <div class="glass-panel p-6 bg-white shadow-sm border border-slate-200 rounded-2xl space-y-4 flex flex-col h-full text-left">
+                    <div class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-6 space-y-4 flex flex-col h-full text-left">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                            <h3 class="text-lg font-bold text-slate-850 flex items-center space-x-2">
+                            <h3 class="text-lg font-black text-slate-900 flex items-center space-x-2">
                                 <i data-lucide="check-square" class="h-4.5 w-4.5 text-indigo-600"></i>
                                 <span>Today's Tasks</span>
                             </h3>
@@ -957,21 +957,21 @@ async function renderDashboard(container) {
 
                 <!-- Additional Charts & Timeline Row -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 text-left">
-                        <h4 class="text-sm font-bold text-white text-left">Lead Sources Distribution</h4>
+                    <div class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-6 space-y-4 text-left">
+                        <h4 class="text-sm font-black text-slate-900 text-left">Lead Sources Distribution</h4>
                         <div class="relative h-60 flex items-center justify-center">
                             <canvas id="leadSourcesChart"></canvas>
                         </div>
                     </div>
                     <!-- Recent Activities Timeline -->
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 flex flex-col h-full text-left">
-                        <h4 class="text-sm font-bold text-white text-left border-b border-slate-800 pb-2">Recent Activities</h4>
+                    <div class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-6 space-y-4 flex flex-col h-full text-left">
+                        <h4 class="text-sm font-black text-slate-900 text-left border-b border-slate-100 pb-2">Recent Activities</h4>
                         <div class="flex-grow overflow-y-auto pr-1 space-y-4 max-h-[200px] timeline-container" id="dash-timeline-feed">
                             <p class="text-xs text-slate-500 py-6 text-center">Loading feeds...</p>
                         </div>
                     </div>
-                    <div class="glass-panel p-6 bg-slate-900/40 space-y-4 text-left">
-                        <h4 class="text-sm font-bold text-white text-left">Sales Pipeline Funnel (${window.getCurrencySymbol()})</h4>
+                    <div class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-6 space-y-4 text-left">
+                        <h4 class="text-sm font-black text-slate-900 text-left">Sales Pipeline Funnel (${window.getCurrencySymbol()})</h4>
                         <div class="relative h-60 flex items-center justify-center">
                             <canvas id="pipelineFunnelChart"></canvas>
                         </div>
@@ -980,12 +980,14 @@ async function renderDashboard(container) {
             </div>
         `;
         
-        // Populate Metric counts from API calls
-        const leadsData = await apiCall('crm/leads.php');
-        const companiesData = await apiCall('crm/companies.php');
-        const dealsData = await apiCall('crm/deals.php?layout=kanban');
-        const tasksData = await apiCall('crm/tasks.php');
-        const meetingsData = await apiCall('crm/meetings.php');
+        // Safe metric counts fetching
+        const [leadsData, companiesData, dealsData, tasksData, meetingsData] = await Promise.all([
+            apiCall('crm/leads.php').catch(() => ({ total: 0, leads: [] })),
+            apiCall('crm/companies.php').catch(() => ({ total: 0, companies: [] })),
+            apiCall('crm/deals.php?layout=kanban').catch(() => ({ totals: {}, stages: {} })),
+            apiCall('crm/tasks.php').catch(() => ({ tasks: [] })),
+            apiCall('crm/meetings.php').catch(() => ({ meetings: [] }))
+        ]);
         
         if (currentView !== 'dashboard') return;
 
@@ -995,42 +997,66 @@ async function renderDashboard(container) {
                 animateNumber(el, 0, endVal);
             }
         };
-        const safeSetHTML = (id, html) => {
-            const el = document.getElementById(id);
-            if (el) el.innerHTML = html;
-        };
 
-        countValue('stat-emails-recd', parseInt(stats.statistics.emails_received) || 0);
-        countValue('stat-emails-ai', parseInt(stats.statistics.emails_processed) || 0);
-        countValue('stat-total-leads', parseInt(leadsData.total) || 0);
-        countValue('stat-total-companies', parseInt(companiesData.total) || 0);
-        
-        // Calculate Active Clients (companies with status = 'Active')
-        const activeCount = companiesData.companies.filter(c => c.status === 'Active' || c.status === 'Active Client').length;
-        countValue('stat-active-clients', activeCount);
-        
-        // Deals expected revenue summation
+        // Extract statistics object safely
+        const statistics = (stats && stats.data && stats.data.statistics) || (stats && stats.statistics) || {};
+        const emailsReceivedCount = parseInt(statistics.emails_received) || 0;
+        const emailsProcessedCount = parseInt(statistics.emails_processed) || 0;
+
+        // Unpack leads safely
+        const leadsObj = (leadsData && leadsData.data) || leadsData || {};
+        const leadsList = Array.isArray(leadsObj.leads) ? leadsObj.leads : [];
+        const totalLeads = parseInt(leadsObj.total) || leadsList.length || 0;
+
+        // Unpack companies safely
+        const companiesObj = (companiesData && companiesData.data) || companiesData || {};
+        const companiesList = Array.isArray(companiesObj.companies) ? companiesObj.companies : [];
+        const totalCompanies = parseInt(companiesObj.total) || companiesList.length || 0;
+        const activeCount = companiesList.filter(c => c && (c.status === 'Active' || c.status === 'Active Client')).length;
+
+        // Unpack deals safely
+        const dealsObj = (dealsData && dealsData.data) || dealsData || {};
         let totalRev = 0;
         let dealsCount = 0;
-        if (dealsData && dealsData.totals) {
-            Object.keys(dealsData.totals).forEach(st => {
-                totalRev += dealsData.totals[st];
-                dealsCount += dealsData.stages[st].length;
+        if (dealsObj && dealsObj.totals) {
+            Object.keys(dealsObj.totals).forEach(st => {
+                totalRev += (parseFloat(dealsObj.totals[st]) || 0);
+                if (dealsObj.stages && Array.isArray(dealsObj.stages[st])) {
+                    dealsCount += dealsObj.stages[st].length;
+                }
             });
         }
+
+        // Unpack tasks safely
+        const tasksObj = (tasksData && tasksData.data) || tasksData || {};
+        const tasksList = Array.isArray(tasksObj.tasks) ? tasksObj.tasks : [];
+        const todayStr = new Date().toISOString().split('T')[0];
+        const pendingTodayTasks = tasksList.filter(t => t && t.status !== 'completed' && t.due_date && t.due_date <= todayStr);
+        const followupsCount = tasksList.filter(t => t && t.status === 'pending').length;
+
+        // Unpack meetings safely
+        const meetingsObj = (meetingsData && meetingsData.data) || meetingsData || {};
+        const meetingsList = Array.isArray(meetingsObj.meetings) ? meetingsObj.meetings : [];
+
+        // Update UI counts
+        countValue('stat-emails-recd', emailsReceivedCount);
+        countValue('stat-emails-ai', emailsProcessedCount);
+        countValue('stat-total-leads', totalLeads);
+        countValue('stat-total-companies', totalCompanies);
+        countValue('stat-active-clients', activeCount);
         countValue('stat-open-deals', dealsCount);
         countValue('stat-revenue-val', totalRev);
         
         // Calculate dynamic conversion rate
-        const totalLeads = parseInt(leadsData.total) || 0;
         const convRateVal = totalLeads > 0 ? (dealsCount / totalLeads) * 100 : 0;
         countValue('stat-conv-rate', convRateVal);
 
         // Calculate dynamic AI Accuracy from logs
         let aiSuccess = 0;
         let aiTotal = 0;
-        if (data && data.ai_processing_accuracy && data.ai_processing_accuracy.length > 0) {
-            data.ai_processing_accuracy.forEach(log => {
+        const accuracyLogs = (data && data.ai_processing_accuracy) || (data && data.data && data.data.ai_processing_accuracy) || [];
+        if (Array.isArray(accuracyLogs) && accuracyLogs.length > 0) {
+            accuracyLogs.forEach(log => {
                 const count = parseInt(log.count) || 0;
                 aiTotal += count;
                 if (log.status === 'success' || log.status === 'processed') {
@@ -1041,14 +1067,9 @@ async function renderDashboard(container) {
         const aiAccuracyVal = aiTotal > 0 ? (aiSuccess / aiTotal) * 100 : 98.2;
         countValue('stat-ai-accuracy', aiAccuracyVal);
         
-        // Tasks Due Today & Follow-ups
-        const todayStr = new Date().toISOString().split('T')[0];
-        const pendingTodayTasks = tasksData.tasks.filter(t => {
-            return t.status !== 'completed' && t.due_date && t.due_date <= todayStr;
-        });
         countValue('stat-tasks-today', pendingTodayTasks.length);
-        countValue('stat-followups-due', tasksData.tasks.filter(t => t.status === 'pending').length);
-        countValue('stat-meetings', meetingsData.meetings ? meetingsData.meetings.length : 0);
+        countValue('stat-followups-due', followupsCount);
+        countValue('stat-meetings', meetingsList.length);
         
         const tasksContainer = document.getElementById('dash-tasks-today-list');
         if (tasksContainer) {

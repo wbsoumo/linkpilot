@@ -412,148 +412,198 @@
     </div>
 
     <!-- Right: Marketing Illustration Area (50% width on desktop, hidden on mobile) -->
-    <div
-        class="hidden lg:flex lg:w-1/2 bg-[#005bf7] flex-col items-center justify-center p-12 text-white relative overflow-hidden">
-        <!-- Background spheres/glow elements -->
-        <div class="absolute w-[650px] h-[650px] bg-blue-500 rounded-full blur-[140px] opacity-25 -top-40 -right-40">
+    <div class="hidden lg:flex lg:w-1/2 relative bg-[#040c26] flex-col items-center justify-between p-12 text-white overflow-hidden select-none">
+        
+        <!-- Subtle Grid Pattern Overlay -->
+        <div class="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none"></div>
+
+        <!-- Ambient Glow Orbs -->
+        <div class="absolute w-[600px] h-[600px] bg-[#005bf7] rounded-full blur-[150px] opacity-30 -top-32 -right-20 pointer-events-none animate-pulse"></div>
+        <div class="absolute w-[450px] h-[450px] bg-indigo-600 rounded-full blur-[130px] opacity-25 -bottom-20 -left-20 pointer-events-none"></div>
+        <div class="absolute w-[300px] h-[300px] bg-cyan-400 rounded-full blur-[110px] opacity-15 top-1/3 left-1/4 pointer-events-none"></div>
+
+        <!-- Top Micro Pill: Enterprise Badge -->
+        <div class="relative z-10 w-full flex justify-between items-center text-xs font-semibold text-white/70 tracking-wide">
+            <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-white shadow-sm">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                </span>
+                <span class="text-[12px] font-medium tracking-tight">AI Lead Intelligence v3.2</span>
+            </div>
+            <div class="hidden xl:flex items-center space-x-1.5 text-xs text-blue-200/80">
+                <span>99.9% Automation Uptime</span>
+            </div>
         </div>
-        <div
-            class="absolute w-[500px] h-[500px] bg-indigo-750 rounded-full blur-[120px] opacity-35 -bottom-20 -left-20">
-        </div>
 
-        <!-- Central content wrapper -->
-        <div class="relative z-10 flex flex-col items-center max-w-[500px] w-full text-center space-y-12">
+        <!-- Central Showcase Container -->
+        <div class="relative z-10 flex flex-col items-center max-w-[520px] w-full my-auto py-6">
+            
+            <!-- Sleek Interactive SaaS Mockup Window + Connected Nodes -->
+            <div class="relative w-full flex justify-center items-center py-4">
+                
+                <!-- Floating Node 1: LinkedIn -->
+                <div class="absolute -left-3 top-6 z-20 transition-all duration-300 hover:scale-105 hidden sm:block">
+                    <div class="flex items-center space-x-2 px-3 py-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] border border-white/40">
+                        <div class="w-8 h-8 rounded-xl bg-[#0A66C2] flex items-center justify-center text-white shadow-sm">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.25V10.9H6.46M7.86 6.78a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Z"/></svg>
+                        </div>
+                        <div class="pr-1 text-left">
+                            <div class="text-[11px] font-bold text-slate-800 leading-tight">LinkedIn Prospecting</div>
+                            <div class="text-[9.5px] font-semibold text-emerald-600 flex items-center">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 inline-block"></span> 42 Leads Synced
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- SVG Illustration Container -->
-            <div class="w-full flex justify-center">
-                <svg class="w-full max-w-[460px] h-auto drop-shadow-2xl" viewBox="0 0 600 450" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <!-- Definitions -->
-                    <defs>
-                        <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-                            <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000000" flood-opacity="0.08" />
-                        </filter>
-                    </defs>
+                <!-- Floating Node 2: WhatsApp AI -->
+                <div class="absolute -right-3 top-16 z-20 transition-all duration-300 hover:scale-105 hidden sm:block">
+                    <div class="flex items-center space-x-2 px-3 py-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.2)] border border-white/40">
+                        <div class="w-8 h-8 rounded-xl bg-[#25D366] flex items-center justify-center text-white shadow-sm">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.81 9.81 0 0 0 12.04 2zm5.8 14.16c-.24.68-1.2 1.25-1.9 1.3-.49.03-1.13.17-3.66-.88-2.68-1.11-4.39-3.85-4.52-4.03-.13-.18-1.08-1.44-1.08-2.75 0-1.31.69-1.95.93-2.21.24-.26.53-.33.71-.33.18 0 .35.01.5.01.16.01.38-.06.59.44.22.52.74 1.8.8 1.93.07.13.11.28.02.45-.09.18-.14.28-.27.44-.13.16-.28.35-.4.47-.13.13-.27.27-.12.53.15.26.67 1.1 1.44 1.79 1 .89 1.84 1.17 2.1 1.3.26.13.41.11.56-.07.15-.18.65-.76.82-1.02.18-.26.35-.22.59-.13.24.09 1.54.73 1.8 86.26.13.44.13.65.07.89-.06z"/></svg>
+                        </div>
+                        <div class="pr-1 text-left">
+                            <div class="text-[11px] font-bold text-slate-800 leading-tight">WhatsApp Auto-Reply</div>
+                            <div class="text-[9.5px] font-semibold text-blue-600 flex items-center">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 inline-block"></span> Instant AI Response
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                    <!-- Orbit rings -->
-                    <circle cx="220" cy="225" r="160" stroke="rgba(255, 255, 255, 0.08)" stroke-width="2"
-                        stroke-dasharray="6 6" />
-                    <circle cx="220" cy="225" r="110" stroke="rgba(255, 255, 255, 0.04)" stroke-width="1.5" />
+                <!-- Floating Node 3: OpenRouter / AI Intelligence -->
+                <div class="absolute -left-2 bottom-10 z-20 transition-all duration-300 hover:scale-105 hidden sm:block">
+                    <div class="flex items-center space-x-2 px-3 py-2 bg-slate-900/90 backdrop-blur-md rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.3)] border border-white/20">
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white shadow-sm">
+                            <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div class="pr-1 text-left">
+                            <div class="text-[11px] font-bold text-white leading-tight">Smart Personalization</div>
+                            <div class="text-[9.5px] font-semibold text-purple-300">OpenRouter AI Connected</div>
+                        </div>
+                    </div>
+                </div>
 
-                    <!-- Static connector lines -->
-                    <path d="M 145 120 C 190 120, 190 225, 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3"
-                        fill="none" />
-                    <path d="M 115 225 L 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none" />
-                    <path d="M 145 330 C 190 330, 190 225, 210 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3"
-                        fill="none" />
-                    <path d="M 210 225 L 230 225" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3" fill="none" />
-                    <path d="M 230 225 C 250 225, 250 175, 280 175" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3"
-                        fill="none" />
-                    <path d="M 230 225 C 250 225, 250 245, 280 245" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3"
-                        fill="none" />
-                    <path d="M 230 225 C 250 225, 250 315, 280 315" stroke="rgba(255, 255, 255, 0.15)" stroke-width="3"
-                        fill="none" />
+                <!-- Central SAAS Glass Window -->
+                <div class="w-full max-w-[440px] bg-gradient-to-b from-white/15 to-white/5 backdrop-blur-xl border border-white/25 rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] p-4 relative overflow-hidden transition-transform duration-500 hover:scale-[1.01]">
+                    
+                    <!-- Inner Top Header -->
+                    <div class="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <div class="flex space-x-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-400/80 inline-block"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-400/80 inline-block"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400/80 inline-block"></span>
+                            </div>
+                            <div class="ml-2 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/10 text-[10px] font-mono text-blue-200/90">
+                                linkpilot.ai/live-campaign
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            Live Stream
+                        </span>
+                    </div>
 
-                    <!-- Glowing animated dashes -->
-                    <path d="M 145 120 C 190 120, 190 225, 210 225 L 230 225 C 250 225, 250 175, 280 175"
-                        stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none"
-                        stroke-dasharray="15 90" stroke-dashoffset="0">
-                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2.5s" repeatCount="indefinite" />
-                    </path>
-                    <path d="M 115 225 L 230 225 C 250 225, 250 245, 280 245" stroke="rgba(255,255,255,0.75)"
-                        stroke-width="3" stroke-linecap="round" fill="none" stroke-dasharray="15 90"
-                        stroke-dashoffset="0">
-                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2s" repeatCount="indefinite" />
-                    </path>
-                    <path d="M 145 330 C 190 330, 190 225, 210 225 L 230 225 C 250 225, 250 315, 280 315"
-                        stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round" fill="none"
-                        stroke-dasharray="15 90" stroke-dashoffset="0">
-                        <animate attributeName="stroke-dashoffset" values="105;0" dur="2.2s" repeatCount="indefinite" />
-                    </path>
+                    <!-- Mock Prospect Feed -->
+                    <div class="space-y-2.5">
+                        
+                        <!-- Prospect Card 1 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <div class="relative">
+                                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 flex items-center justify-center font-bold text-slate-900 text-xs shadow-inner">
+                                        SV
+                                    </div>
+                                    <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#0A66C2] flex items-center justify-center text-[7px] text-white">in</div>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-xs font-bold text-white flex items-center space-x-1.5">
+                                        <span>Sarah Vance</span>
+                                        <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-blue-500/30 text-blue-200">VP Growth</span>
+                                    </div>
+                                    <div class="text-[10.5px] text-blue-100/70 font-medium">Acme Corp • Connected via Campaign</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
+                                    98% Match
+                                </span>
+                            </div>
+                        </div>
 
-                    <!-- LinkedIn Node -->
-                    <g class="float-slack">
-                        <circle cx="130" cy="120" r="24" fill="white" filter="url(#shadow)" />
-                        <image href="https://img.icons8.com/color/48/000000/linkedin.png" x="117" y="107" width="26" height="26"/>
-                    </g>
+                        <!-- Prospect Card 2 -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 hover:bg-white/15 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <div class="relative">
+                                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center font-bold text-white text-xs shadow-inner">
+                                        AR
+                                    </div>
+                                    <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-[#25D366] flex items-center justify-center text-[7px] text-white">
+                                        💬
+                                    </div>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-xs font-bold text-white flex items-center space-x-1.5">
+                                        <span>Alex Rivera</span>
+                                        <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-emerald-500/30 text-emerald-200">Founder</span>
+                                    </div>
+                                    <div class="text-[10.5px] text-blue-100/70 font-medium">Auto-Followup Scheduled</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-400/20 text-blue-200 border border-blue-400/30">
+                                    Replied ⚡
+                                </span>
+                            </div>
+                        </div>
 
-                    <!-- Gmail Node -->
-                    <g class="float-google">
-                        <circle cx="130" cy="330" r="24" fill="white" filter="url(#shadow)" />
-                        <image href="https://img.icons8.com/color/48/000000/gmail-new.png" x="117" y="317" width="26" height="26"/>
-                    </g>
+                        <!-- Prospect Card 3: Metrics Sparkline -->
+                        <div class="p-2.5 rounded-xl bg-slate-900/40 backdrop-blur-md border border-white/10 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-300">
+                                    <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-[11px] font-bold text-white">Daily Outreach Metric</div>
+                                    <div class="text-[9.5px] text-blue-200/70">3,420 Outreaches sent today</div>
+                                </div>
+                            </div>
+                            <div class="text-right font-mono text-xs font-bold text-emerald-400">
+                                +34.8% ↗
+                            </div>
+                        </div>
 
-                    <!-- WhatsApp Node -->
-                    <g class="float-brand">
-                        <circle cx="90" cy="225" r="26" fill="white" filter="url(#shadow)" />
-                        <image href="https://img.icons8.com/color/48/000000/whatsapp.png" x="76" y="211" width="28" height="28"/>
-                    </g>
+                    </div>
 
-                    <!-- Dashboard Window Mockup -->
-                    <g filter="url(#shadow)">
-                        <rect x="280" y="90" width="260" height="270" rx="16" fill="white" />
-                        <!-- Controls -->
-                        <circle cx="305" cy="112" r="4" fill="#FF5F56" />
-                        <circle cx="317" cy="112" r="4" fill="#FFBD2E" />
-                        <circle cx="329" cy="112" r="4" fill="#27C93F" />
+                </div>
 
-                        <!-- Header Search bars -->
-                        <rect x="350" y="109" width="70" height="6" rx="3" fill="#F1F5F9" />
-                        <rect x="430" y="109" width="35" height="6" rx="3" fill="#F1F5F9" />
-                        <line x1="280" y1="126" x2="540" y2="126" stroke="#F1F5F9" stroke-width="1.5" />
-
-                        <!-- Row 1 -->
-                        <g transform="translate(301, 146)">
-                            <circle cx="14" cy="14" r="14" fill="#FFE3D1" />
-                            <path
-                                d="M 6,12 C 6,5 22,5 22,12 C 22,14 20,15 19,13 C 17,11 15,10 14,10 C 13,10 11,11 9,13 C 8,15 6,14 6,12 Z"
-                                fill="#8B5A2B" />
-                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#005bf7" />
-                        </g>
-                        <rect x="345" y="152" width="120" height="8" rx="4" fill="#E2E8F0" />
-                        <rect x="345" y="166" width="70" height="6" rx="3" fill="#F1F5F9" />
-
-                        <!-- Row 2 -->
-                        <g transform="translate(301, 211)">
-                            <circle cx="14" cy="14" r="14" fill="#FFD2B2" />
-                            <path
-                                d="M 7,10 C 7,3 21,3 21,10 C 21,12 20,11 18,10 C 16,9 15,9 14,9 C 13,9 12,9 10,10 C 8,11 7,12 7,10 Z"
-                                fill="#2C3E50" />
-                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#E67E22" />
-                        </g>
-                        <rect x="345" y="217" width="100" height="8" rx="4" fill="#E2E8F0" />
-                        <rect x="345" y="231" width="55" height="6" rx="3" fill="#F1F5F9" />
-
-                        <!-- Row 3 -->
-                        <g transform="translate(301, 276)">
-                            <circle cx="14" cy="14" r="14" fill="#FFF0E0" />
-                            <path d="M 6,12 C 6,5 22,5 22,12 C 22,16 6,16 6,12 Z" fill="#F1C40F" />
-                            <path d="M 4,28 C 4,22 24,22 24,28 Z" fill="#2ECC71" />
-                        </g>
-                        <rect x="345" y="282" width="110" height="8" rx="4" fill="#E2E8F0" />
-                        <rect x="345" y="296" width="80" height="6" rx="3" fill="#F1F5F9" />
-                    </g>
-                </svg>
             </div>
 
             <!-- Slide Text Content -->
-            <div class="space-y-3 px-4 min-h-[90px]">
-                <h3 id="slide-title"
-                    class="text-2xl font-bold tracking-tight text-white transition-opacity duration-300 ease-in-out"
-                    style="color: #ffffff !important;">Connect with every application.</h3>
-                <p id="slide-subtitle"
-                    class="text-sm font-medium max-w-sm mx-auto transition-opacity duration-300 ease-in-out"
-                    style="color: rgba(255, 255, 255, 0.7) !important;">Everything you need in an easily customizable
-                    dashboard.</p>
+            <div class="mt-8 space-y-3 px-4 min-h-[95px]">
+                <h3 id="slide-title" class="text-3xl font-extrabold tracking-tight text-white transition-opacity duration-300 ease-in-out drop-shadow-sm leading-snug" style="color: #ffffff !important;">
+                    Connect with every application.
+                </h3>
+                <p id="slide-subtitle" class="text-sm font-medium text-blue-100/80 max-w-md mx-auto transition-opacity duration-300 ease-in-out leading-relaxed" style="color: rgba(224, 231, 255, 0.85) !important;">
+                    Everything you need in an easily customizable dashboard to automate multi-channel lead discovery.
+                </p>
             </div>
 
             <!-- Slider Pagination indicators -->
-            <div id="slide-dots" class="flex items-center justify-center space-x-2">
-                <span class="w-6 h-2 bg-white rounded-full transition-all duration-300"></span>
-                <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
-                <span class="w-2 h-2 bg-white/45 rounded-full transition-all duration-300"></span>
+            <div id="slide-dots" class="flex items-center justify-center space-x-2 mt-4">
+                <button type="button" onclick="setSlide(0)" class="w-7 h-2 bg-white rounded-full transition-all duration-300 shadow-sm focus:outline-none" aria-label="Slide 1"></button>
+                <button type="button" onclick="setSlide(1)" class="w-2 h-2 bg-white/40 hover:bg-white/70 rounded-full transition-all duration-300 focus:outline-none" aria-label="Slide 2"></button>
+                <button type="button" onclick="setSlide(2)" class="w-2 h-2 bg-white/40 hover:bg-white/70 rounded-full transition-all duration-300 focus:outline-none" aria-label="Slide 3"></button>
             </div>
+
         </div>
+
+        <!-- Bottom Footer Pill -->
+        <div class="relative z-10 w-full flex justify-center items-center text-[11px] text-blue-200/60 font-medium">
+            <span>Trusted by 10,000+ growth & sales teams worldwide</span>
+        </div>
+
     </div>
 
     <!-- Central JS Handler -->
@@ -563,54 +613,61 @@
         const slides = [
             {
                 title: "Connect with every application.",
-                subtitle: "Everything you need in an easily customizable dashboard."
+                subtitle: "Everything you need in an easily customizable dashboard to automate multi-channel lead discovery."
             },
             {
-                title: "Automate LinkedIn outreach.",
-                subtitle: "Send personalized messages and follow-ups automatically."
+                title: "Automate LinkedIn & WhatsApp outreach.",
+                subtitle: "Send hyper-personalized messages, smart follow-ups, and AI responses hands-free."
             },
             {
-                title: "Track campaign performance.",
-                subtitle: "Real-time analytics and inbox intelligence at your fingertips."
+                title: "Track campaign performance live.",
+                subtitle: "Real-time analytics, response intelligence, and inbox automation at your fingertips."
             }
         ];
 
         let currentSlide = 0;
-        const slideTitleEl = document.getElementById('slide-title');
-        const slideSubtitleEl = document.getElementById('slide-subtitle');
-        const slideDotsEl = document.getElementById('slide-dots').children;
+        let slideInterval = null;
 
-        function rotateSlides() {
+        function updateSlideUI() {
+            const slideTitleEl = document.getElementById('slide-title');
+            const slideSubtitleEl = document.getElementById('slide-subtitle');
+            const slideDotsEl = document.getElementById('slide-dots');
             if (!slideTitleEl || !slideSubtitleEl || !slideDotsEl) return;
 
-            // Fade out
             slideTitleEl.style.opacity = '0';
             slideSubtitleEl.style.opacity = '0';
 
             setTimeout(() => {
-                currentSlide = (currentSlide + 1) % slides.length;
-
-                // Update content
                 slideTitleEl.textContent = slides[currentSlide].title;
                 slideSubtitleEl.textContent = slides[currentSlide].subtitle;
 
-                // Fade in
                 slideTitleEl.style.opacity = '1';
                 slideSubtitleEl.style.opacity = '1';
 
-                // Update dots active state
-                for (let i = 0; i < slideDotsEl.length; i++) {
+                const dots = slideDotsEl.children;
+                for (let i = 0; i < dots.length; i++) {
                     if (i === currentSlide) {
-                        slideDotsEl[i].className = 'w-6 h-2 bg-white rounded-full transition-all duration-300';
+                        dots[i].className = 'w-7 h-2 bg-white rounded-full transition-all duration-300 shadow-sm focus:outline-none';
                     } else {
-                        slideDotsEl[i].className = 'w-2 h-2 bg-white/45 rounded-full transition-all duration-300';
+                        dots[i].className = 'w-2 h-2 bg-white/40 hover:bg-white/70 rounded-full transition-all duration-300 focus:outline-none';
                     }
                 }
-            }, 300);
+            }, 250);
         }
 
-        // Rotate slide every 4 seconds
-        setInterval(rotateSlides, 4000);
+        function rotateSlides() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlideUI();
+        }
+
+        function setSlide(index) {
+            currentSlide = index;
+            updateSlideUI();
+            clearInterval(slideInterval);
+            slideInterval = setInterval(rotateSlides, 5000);
+        }
+
+        slideInterval = setInterval(rotateSlides, 5000);
 
         // Progressive Login Flow & Google Auth
         document.addEventListener("DOMContentLoaded", () => {

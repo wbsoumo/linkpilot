@@ -20,10 +20,18 @@ $userId = $user['id'];
 $db = Database::getConnection();
 
 try {
-    // Retrieve global Meta App ID from admin_settings
+    // Retrieve global Meta App ID, Config ID & Embedded Signup Status from admin_settings
     $stmtAppId = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_meta_app_id' LIMIT 1");
     $stmtAppId->execute();
     $metaAppId = $stmtAppId->fetchColumn() ?: '';
+    
+    $stmtConfigId = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_meta_config_id' LIMIT 1");
+    $stmtConfigId->execute();
+    $metaConfigId = $stmtConfigId->fetchColumn() ?: '';
+
+    $stmtEnable = $db->prepare("SELECT setting_value FROM admin_settings WHERE setting_key = 'whatsapp_enable_embedded_signup' LIMIT 1");
+    $stmtEnable->execute();
+    $enabled = $stmtEnable->fetchColumn() ?: '1';
     
     // Generate secure CSRF token for this signup session
     if (session_status() === PHP_SESSION_NONE) {
@@ -34,6 +42,8 @@ try {
     
     sendJsonResponse('success', 'Meta App config retrieved successfully.', [
         'app_id' => $metaAppId,
+        'config_id' => $metaConfigId,
+        'enabled' => ($enabled === '1' || $enabled === 1 || $enabled === 'true'),
         'scopes' => 'whatsapp_business_management,whatsapp_business_messaging,public_profile',
         'state' => $csrfToken
     ]);

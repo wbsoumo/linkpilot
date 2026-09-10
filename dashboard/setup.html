@@ -1155,7 +1155,41 @@
                     </div>
 
                     <!-- Connection Selection State -->
-                    <div id="wa-connect-selection-state" class="space-y-4">
+                    <div id="wa-connect-selection-state" class="space-y-5">
+
+                        <!-- Option A: Official Meta WhatsApp Embedded Signup Card -->
+                        <div class="bg-gradient-to-br from-emerald-900/5 via-slate-900/5 to-blue-900/5 border border-emerald-500/20 rounded-3xl p-6 sm:p-8 shadow-premium text-left space-y-5 animate-fade-in relative overflow-hidden">
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-emerald-500/10 pb-4">
+                                <div class="flex items-center space-x-3.5">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="h-6 w-6 object-contain filter brightness-0 invert" alt="Meta WhatsApp">
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center space-x-2">
+                                            <h3 class="text-sm font-black text-slate-900">Connect with Meta (Embedded Signup)</h3>
+                                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-250 rounded-md text-[9px] font-black uppercase tracking-wider">Recommended</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 font-semibold mt-0.5">Fast 1-click official Meta popup. Automatically links your WABA ID, Phone ID & Webhooks.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                                <button type="button" id="wa-embedded-connect-btn" onclick="launchMetaEmbeddedSignup()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-2xl transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center space-x-2.5 cursor-pointer border-0" style="color: #ffffff !important;">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" class="h-4.5 w-4.5 object-contain" alt="Meta">
+                                    <span style="color: #ffffff !important;" class="text-xs font-black">Connect WhatsApp with Meta</span>
+                                    <i data-lucide="external-link" class="h-4 w-4 text-white"></i>
+                                </button>
+                                <span class="text-[11px] text-slate-400 font-medium text-center sm:text-left">No manual copy-pasting of Meta API keys required.</span>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="relative flex py-2 items-center">
+                            <div class="flex-grow border-t border-slate-200"></div>
+                            <span class="flex-shrink mx-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Or Connect Manually Using Credentials</span>
+                            <div class="flex-grow border-t border-slate-200"></div>
+                        </div>
 
                         <!-- Setup Form -->
                         <div
@@ -3492,7 +3526,7 @@
                 btn.innerHTML = `
                     <div class="flex items-center space-x-1.5">
                         <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>Initializing Meta...</span>
+                        <span class="text-white font-bold">Initializing Meta...</span>
                     </div>
                 `;
             }
@@ -3500,13 +3534,14 @@
             try {
                 const config = await apiCall('whatsapp/embedded_signup.php');
                 const appId = config.app_id;
+                const configId = config.config_id;
                 const state = config.state;
-                const scopes = config.scopes;
+                const scopes = config.scopes || 'whatsapp_business_management,whatsapp_business_messaging,public_profile';
 
                 if (!appId) {
                     const useDemo = confirm("Demo Mode: No Meta App ID is configured in Admin Settings. Would you like to connect with a sandbox demo account?");
                     if (useDemo) {
-                        await handleOauthCallback("EAAGeminiTest", state);
+                        await handleOauthCallback({ access_token: "EAAGeminiTest", state: state });
                     } else {
                         showNotification('warning', 'Meta App ID configuration is required in Admin Control Panel.');
                     }
@@ -3524,16 +3559,45 @@
                     version: 'v20.0'
                 });
 
+                // Attach message event listener for Meta Embedded Signup response
+                const messageHandler = function(event) {
+                    if (event.origin.includes('facebook.com') || event.origin.includes('meta.com')) {
+                        try {
+                            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+                            if (data && (data.type === 'whatsapp_embedded_signup' || data.event === 'whatsapp_embedded_signup')) {
+                                const code = data.code || (data.data && data.data.code);
+                                const wabaId = data.waba_id || (data.data && data.data.waba_id);
+                                const phoneId = data.phone_number_id || (data.data && data.data.phone_number_id);
+                                if (code || wabaId) {
+                                    window.removeEventListener('message', messageHandler);
+                                    handleOauthCallback({ code: code, waba_id: wabaId, phone_number_id: phoneId, state: state });
+                                }
+                            }
+                        } catch(e) {}
+                    }
+                };
+                window.addEventListener('message', messageHandler);
+
+                const loginExtras = { feature: 'whatsapp_embedded_signup' };
+                if (configId) {
+                    loginExtras.setup = { config_id: configId };
+                }
+
                 FB.login(function (response) {
                     if (response.authResponse) {
+                        const code = response.authResponse.code;
                         const userToken = response.authResponse.accessToken;
-                        handleOauthCallback(userToken, state);
+                        handleOauthCallback({
+                            code: code,
+                            access_token: userToken,
+                            state: state
+                        });
                     } else {
-                        showNotification('error', 'Popup closed. Permission denied or login cancelled.');
+                        showNotification('info', 'Meta Embedded Signup popup closed.');
                     }
                 }, {
                     scope: scopes,
-                    extras: { feature: 'whatsapp_embedded_signup' }
+                    extras: loginExtras
                 });
 
             } catch (err) {
@@ -3561,13 +3625,11 @@
             });
         }
 
-        async function handleOauthCallback(token, state) {
+        async function handleOauthCallback(payload) {
             try {
-                const res = await apiCall('whatsapp/oauth_callback.php', 'POST', {
-                    access_token: token,
-                    state: state
-                });
-                showNotification('success', 'Connected Successfully via Meta Embedded Signup!');
+                const params = (typeof payload === 'string') ? { access_token: payload } : payload;
+                const res = await apiCall('whatsapp/oauth_callback.php', 'POST', params);
+                showNotification('success', res.message || 'Connected Successfully via Meta Embedded Signup!');
                 await checkWhatsAppStatus();
                 if (window.MetaAssistantManager) MetaAssistantManager.renderStep(9);
             } catch (err) {

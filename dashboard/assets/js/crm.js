@@ -23630,58 +23630,40 @@ function renderSettingsTabContent(tab, container) {
         })();
     } else if (tab === 'team') {
         container.innerHTML = `
-            <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm animate-fade-in">
-                <div class="pb-2 border-b border-slate-100 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-sm font-extrabold text-slate-800">Team & Access</h2>
-                        <p class="text-slate-400 text-[10px]">Invite and manage team members within your organization.</p>
+            <div class="glass-panel p-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white rounded-3xl space-y-6 shadow-xl border border-indigo-700/50 animate-fade-in relative overflow-hidden text-left">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center justify-between border-b border-indigo-800/80 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-12 w-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 flex items-center justify-center shadow-inner">
+                            <i data-lucide="users" class="h-6 w-6 text-indigo-300"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-black text-white tracking-tight">Team & Multi-User Access</h2>
+                            <p class="text-indigo-200/80 text-xs font-medium mt-0.5">Collaborate with team members, manage sub-accounts, and assign role-based permissions.</p>
+                        </div>
                     </div>
-                    <button onclick="openInviteTeamModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm flex items-center space-x-1" style="color: #ffffff !important;">
-                        <i data-lucide="user-plus" class="h-3.5 w-3.5"></i>
-                        <span>Invite Member</span>
-                    </button>
+                    <span class="px-3.5 py-1.5 rounded-full text-[10px] font-black bg-blue-500/30 text-blue-200 border border-blue-400/40 uppercase tracking-widest flex items-center space-x-1.5 shadow-sm">
+                        <span class="h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
+                        <span>COMING SOON</span>
+                    </span>
                 </div>
 
-                <div class="overflow-x-auto pt-2">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="border-b border-slate-150 text-slate-450 text-[10px] uppercase font-bold tracking-wider">
-                                <th class="pb-2">User</th>
-                                <th class="pb-2">Access Role</th>
-                                <th class="pb-2">Status</th>
-                                <th class="pb-2 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100" id="settings-team-tbody">
-                            <tr>
-                                <td class="py-3">
-                                    <p class="font-extrabold text-slate-800">Soumojit Saha</p>
-                                    <p class="text-slate-400 text-[10px]">wbsoumo@gmail.com</p>
-                                </td>
-                                <td class="py-3 font-semibold text-slate-700">Super Admin</td>
-                                <td class="py-3">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100">Active</span>
-                                </td>
-                                <td class="py-3 text-right text-slate-400 font-bold">-</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3">
-                                    <p class="font-extrabold text-slate-800">Prakash Sharma</p>
-                                    <p class="text-slate-400 text-[10px]">prakash@example.com</p>
-                                </td>
-                                <td class="py-3 font-semibold text-slate-700">Sales Development Rep</td>
-                                <td class="py-3">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-600 border border-emerald-100">Active</span>
-                                </td>
-                                <td class="py-3 text-right">
-                                    <button onclick="removeMockTeamMember(this, 'Prakash Sharma')" class="text-red-500 hover:text-red-700 font-bold transition">Remove</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="p-6 bg-indigo-950/50 border border-indigo-800/60 rounded-2xl space-y-4 text-center">
+                    <div class="max-w-md mx-auto space-y-2">
+                        <h3 class="text-base font-black text-white">Multi-User Collaboration Suite</h3>
+                        <p class="text-indigo-200/70 text-xs leading-relaxed">We are finalizing multi-agent inbox assignment, custom RBAC permissions, and team analytics. Stay tuned!</p>
+                    </div>
+                    <div class="pt-2 flex justify-center">
+                        <button disabled class="px-6 py-2.5 bg-blue-600/50 text-indigo-200 border border-blue-500/30 font-bold text-xs rounded-xl cursor-not-allowed flex items-center space-x-2">
+                            <i data-lucide="sparkles" class="h-4 w-4"></i>
+                            <span>Team Workspaces Arriving Soon</span>
+                        </button>
+                    </div>
             </div>
         `;
+        if (window.lucide) lucide.createIcons();
     } else if (tab === 'notifications') {
         const checkLeads = parseInt(profile.notification_leads !== null ? profile.notification_leads : 1) === 1 ? 'checked' : '';
         const checkTasks = parseInt(profile.notification_tasks !== null ? profile.notification_tasks : 1) === 1 ? 'checked' : '';

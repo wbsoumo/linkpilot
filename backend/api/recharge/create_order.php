@@ -39,10 +39,10 @@ try {
     $rawSecretKey = trim($paySettings['secret_key'] ?? '');
 
     $decKeyId = decryptData($rawKeyId);
-    $keyId = trim(($decKeyId !== false && !empty($decKeyId)) ? $decKeyId : $rawKeyId);
+    $keyId = trim(($decKeyId !== false && !empty(trim($decKeyId))) ? $decKeyId : $rawKeyId);
 
     $decSecretKey = decryptData($rawSecretKey);
-    $secretKey = trim(($decSecretKey !== false && !empty($decSecretKey)) ? $decSecretKey : $rawSecretKey);
+    $secretKey = trim(($decSecretKey !== false && !empty(trim($decSecretKey))) ? $decSecretKey : $rawSecretKey);
 
     $currency = $paySettings['currency'] ?: 'INR';
 
@@ -69,9 +69,9 @@ try {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_USERPWD, $keyId . ':' . $secretKey);
+    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        $authHeader
+        'Content-Type: application/json'
     ]);
     curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot/1.0');
     

@@ -14,7 +14,7 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 
 // Theme provider (ThemeMode)
 class ThemeNotifier extends StateNotifier<ThemeMode> {
-  ThemeNotifier() : super(ThemeMode.dark);
+  ThemeNotifier() : super(ThemeMode.light);
 
   void toggleTheme() {
     state = state == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
@@ -67,23 +67,35 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final SecureStorageService _storage;
 
   AuthNotifier(this._client, this._storage) : super(AuthState()) {
-    _tryRecoverSession();
+    tryRecoverSession();
   }
 
-  Future<void> _tryRecoverSession() async {
+  Future<void> tryRecoverSession() async {
     state = state.copyWith(isLoading: true);
-    final token = await _storage.getToken();
-    final userJson = await _storage.getUserData();
-    if (token != null && userJson != null) {
-      try {
-        final userData = jsonDecode(userJson) as Map<String, dynamic>;
-        state = AuthState(isAuthenticated: true, token: token, user: userData);
-      } catch (e) {
-        await logout();
+    try {
+      final token = await _storage.getToken();
+      final userJson = await _storage.getUserData();
+      if (token != null && token.isNotEmpty) {
+        try {
+          final response = await _client.verifySession();
+          if (response.data['status'] == 'success') {
+            final user = response.data['data']['user'];
+            await _storage.saveUserData(jsonEncode(user));
+            state = AuthState(isAuthenticated: true, token: token, user: user);
+            return;
+          }
+        } catch (e) {
+          if (userJson != null) {
+            try {
+              final userData = jsonDecode(userJson) as Map<String, dynamic>;
+              state = AuthState(isAuthenticated: true, token: token, user: userData);
+              return;
+            } catch (_) {}
+          }
+        }
       }
-    } else {
-      state = AuthState();
-    }
+    } catch (_) {}
+    state = AuthState(isAuthenticated: false);
   }
 
   Future<bool> login(String email, String password) async {
@@ -99,11 +111,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = AuthState(isAuthenticated: true, token: token, user: user);
         return true;
       } else {
-        state = AuthState(error: response.data['message'] ?? 'Login failed');
+        state = state.copyWith(isLoading: false, error: response.data['message'] ?? 'Login failed');
         return false;
       }
     } catch (e) {
-      state = AuthState(error: 'Connection error during login');
+      state = state.copyWith(isLoading: false, error: 'Network error during login');
       return false;
     }
   }
@@ -114,46 +126,39 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _client.loginWithGoogleToken('login', idToken, email: email);
       if (response.data['status'] == 'success') {
         final data = response.data['data'];
-        if (data['action'] == 'login') {
-          final token = data['token'];
-          final user = data['user'];
+        final token = data['token'];
+        final user = data['user'];
+        if (token != null) {
           await _storage.saveToken(token);
           await _storage.saveUserData(jsonEncode(user));
           state = AuthState(isAuthenticated: true, token: token, user: user);
           return true;
-        } else {
-          state = AuthState(error: 'Google Account not registered yet on LinkPilot.');
-          return false;
         }
-      } else {
-        state = AuthState(error: response.data['message'] ?? 'Google Login failed');
-        return false;
       }
+      state = state.copyWith(isLoading: false, error: 'Google Account not registered on LinkPilot website yet.');
+      return false;
     } catch (e) {
-      state = AuthState(error: 'Connection error during Google Sign-In');
+      state = state.copyWith(isLoading: false, error: 'Google Sign-In connection error');
       return false;
     }
   }
 
-  Future<String?> fetchGoogleClientId() async {
-    try {
-      final response = await _client.getGoogleConfig();
-      if (response.data['status'] == 'success') {
-        return response.data['data']['client_id'] as String?;
-      }
-    } catch (e) {}
-    return null;
+  Future<void> setSession(String token, String? userJson) async {
+    await _storage.saveToken(token);
+    Map<String, dynamic>? userData;
+    if (userJson != null && userJson.isNotEmpty) {
+      try {
+        await _storage.saveUserData(userJson);
+        userData = jsonDecode(userJson) as Map<String, dynamic>;
+      } catch (_) {}
+    }
+    state = AuthState(isAuthenticated: true, token: token, user: userData);
   }
 
   Future<void> logout() async {
     await _storage.clearAll();
+    await _client.clearToken();
     state = AuthState();
-  }
-
-  Future<void> mockAuthenticate(Map<String, dynamic> user, String token) async {
-    await _storage.saveToken(token);
-    await _storage.saveUserData(jsonEncode(user));
-    state = AuthState(isAuthenticated: true, token: token, user: user);
   }
 }
 
@@ -163,43 +168,58 @@ final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(client, storage);
 });
 
-final dashboardDataProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+// Mobile Dashboard Provider
+final mobileDashboardProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.getDashboardData();
+  final response = await client.getMobileDashboard();
   if (response.data['status'] == 'success') {
     return response.data['data'] as Map<String, dynamic>;
   }
-  throw Exception(response.data['message'] ?? 'Failed to load dashboard data');
+  throw Exception(response.data['message'] ?? 'Failed to load mobile dashboard data');
 });
 
-final emailsListProvider = FutureProvider.family<List<dynamic>, String>((ref, folder) async {
+// Mobile Tasks Provider
+final mobileTasksProvider = FutureProvider.family.autoDispose<List<dynamic>, String>((ref, filter) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.getEmails(folder: folder);
+  final response = await client.getTasks(filter: filter);
   if (response.data['status'] == 'success') {
-    // If received_emails is empty, return empty list
-    final data = response.data['data'];
-    if (data is Map && data.containsKey('emails')) {
-      return data['emails'] as List<dynamic>;
-    }
-    return [];
+    return response.data['data']['tasks'] as List<dynamic>;
+  }
+  throw Exception(response.data['message'] ?? 'Failed to load tasks');
+});
+
+// Mobile Email List Provider
+final mobileEmailsProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, String>((ref, search) async {
+  final client = ref.watch(apiClientProvider);
+  final response = await client.getEmails(search: search);
+  if (response.data['status'] == 'success') {
+    return response.data['data'] as Map<String, dynamic>;
   }
   throw Exception(response.data['message'] ?? 'Failed to load emails');
 });
 
-final whatsappThreadsProvider = FutureProvider<List<dynamic>>((ref) async {
+// Mobile WhatsApp Conversations Provider
+final mobileWhatsAppProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, String>((ref, search) async {
   final client = ref.watch(apiClientProvider);
-  final response = await client.getWhatsAppThreads();
+  final response = await client.getWhatsAppConversations(search: search);
   if (response.data['status'] == 'success') {
-    final data = response.data['data'];
-    if (data is Map && data.containsKey('threads')) {
-      return data['threads'] as List<dynamic>;
-    }
-    return [];
+    return response.data['data'] as Map<String, dynamic>;
   }
-  throw Exception(response.data['message'] ?? 'Failed to load threads');
+  throw Exception(response.data['message'] ?? 'Failed to load WhatsApp conversations');
 });
 
-final crmDealsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+// Mobile Settings Provider
+final mobileSettingsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final client = ref.watch(apiClientProvider);
+  final response = await client.getSettings();
+  if (response.data['status'] == 'success') {
+    return response.data['data'] as Map<String, dynamic>;
+  }
+  throw Exception(response.data['message'] ?? 'Failed to load settings');
+});
+
+// Legacy / Secondary Providers for extra CRM screens
+final crmDealsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
   final response = await client.getCRMDeals(layout: 'kanban');
   if (response.data['status'] == 'success') {
@@ -208,7 +228,7 @@ final crmDealsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   throw Exception(response.data['message'] ?? 'Failed to load deals');
 });
 
-final crmContactsProvider = FutureProvider<List<dynamic>>((ref) async {
+final crmContactsProvider = FutureProvider.autoDispose<List<dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);
   final response = await client.getCRMContacts();
   if (response.data['status'] == 'success') {
@@ -219,74 +239,4 @@ final crmContactsProvider = FutureProvider<List<dynamic>>((ref) async {
     return [];
   }
   throw Exception(response.data['message'] ?? 'Failed to load contacts');
-});
-
-final crmMeetingsProvider = FutureProvider<List<dynamic>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final response = await client.getCRMMeetings();
-  if (response.data['status'] == 'success') {
-    final data = response.data['data'];
-    if (data is Map && data.containsKey('meetings')) {
-      return data['meetings'] as List<dynamic>;
-    }
-    return [];
-  }
-  throw Exception(response.data['message'] ?? 'Failed to load meetings');
-});
-
-final crmTasksProvider = FutureProvider<List<dynamic>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final response = await client.getCRMTasks();
-  if (response.data['status'] == 'success') {
-    final data = response.data['data'];
-    if (data is Map && data.containsKey('tasks')) {
-      return data['tasks'] as List<dynamic>;
-    }
-    return [];
-  }
-  throw Exception(response.data['message'] ?? 'Failed to load tasks');
-});
-
-class WhatsAppMessagesNotifier extends StateNotifier<AsyncValue<List<dynamic>>> {
-  final ApiClient _client;
-  final int _waContactId;
-
-  WhatsAppMessagesNotifier(this._client, this._waContactId) : super(const AsyncValue.loading()) {
-    fetchMessages();
-  }
-
-  Future<void> fetchMessages() async {
-    try {
-      final response = await _client.getWhatsAppMessages(_waContactId);
-      if (response.data['status'] == 'success') {
-        final messages = response.data['data']['messages'] as List<dynamic>;
-        state = AsyncValue.data(messages);
-      } else {
-        state = AsyncValue.error(response.data['message'] ?? 'Failed to load messages', StackTrace.current);
-      }
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
-
-  Future<bool> sendMessage(String body) async {
-    try {
-      final response = await _client.sendWhatsAppMessage(
-        waContactId: _waContactId,
-        body: body,
-      );
-      if (response.data['status'] == 'success') {
-        await fetchMessages();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-}
-
-final whatsappMessagesProvider = StateNotifierProvider.family<WhatsAppMessagesNotifier, AsyncValue<List<dynamic>>, int>((ref, waContactId) {
-  final client = ref.watch(apiClientProvider);
-  return WhatsAppMessagesNotifier(client, waContactId);
 });

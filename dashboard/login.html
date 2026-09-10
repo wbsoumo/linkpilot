@@ -141,6 +141,19 @@
             <!-- Central Form Containers -->
             <div class="flex-grow flex flex-col justify-center">
 
+                <!-- Mobile App Auth Banner -->
+                <div id="mobile-auth-card" class="hidden mb-6 p-4 bg-blue-50 border border-blue-200 rounded-2xl flex items-center shadow-sm">
+                    <div class="p-2.5 bg-[#005bf7] rounded-xl text-white mr-3.5 shrink-0">
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-900 text-sm">Authenticating Link Pilot App</div>
+                        <div class="text-xs text-slate-500 font-medium">Log in below to authorize mobile app access</div>
+                    </div>
+                </div>
+
                 <!-- 1. LOGIN FORM -->
                 <form class="space-y-6 auth-view-transition" id="login-form">
                     <div class="space-y-2">
@@ -673,6 +686,13 @@
         document.addEventListener("DOMContentLoaded", () => {
             initGoogleSignIn();
             
+            const params = new URLSearchParams(window.location.search);
+            const source = params.get('source');
+            if (source === 'mobile_app' || source === 'mobile') {
+                const card = document.getElementById('mobile-auth-card');
+                if (card) card.classList.remove('hidden');
+            }
+            
             // Add press enter key inside email field to trigger Continue button
             document.getElementById('email').addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
@@ -855,7 +875,15 @@
                 // Redirect based on setup stage, role, or redirect parameter
                 setTimeout(async () => {
                     const params = new URLSearchParams(window.location.search);
+                    const source = params.get('source');
                     const redirectUrl = params.get('redirect');
+                    const redirectUri = params.get('redirect_uri') || '';
+
+                    if (source === 'mobile_app' || source === 'mobile') {
+                        window.location.href = 'authorize.html?source=mobile_app&redirect_uri=' + encodeURIComponent(redirectUri);
+                        return;
+                    }
+
                     if (redirectUrl) {
                         window.location.href = decodeURIComponent(redirectUrl);
                     } else if (data.user && data.user.role === 'admin') {

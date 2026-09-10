@@ -1,204 +1,331 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/theme.dart';
-import '../../core/widgets/ai_floating_button.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/providers/providers.dart';
+import '../../core/theme/theme.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  Future<void> _openWebsiteHandoff(BuildContext context, String path) async {
+    final Uri url = Uri.parse('https://linkpilot.work$path');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open Link Pilot website.')),
+        );
+      }
+    }
+  }
+
+  void _confirmLogout(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out of Link Pilot Mobile?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(authStateProvider.notifier).logout();
+              if (context.mounted) {
+                context.go('/welcome');
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.redPriority),
+            child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-    final themeMode = ref.watch(themeStateProvider);
-    final user = authState.user;
-
+    final settingsAsync = ref.watch(mobileSettingsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
-    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
 
     return Scaffold(
+      backgroundColor: isDark ? AppTheme.obsidianBlack : AppTheme.bgSlate,
       appBar: AppBar(
-        title: Text(
-          'Settings & Hub',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: textPrimary),
-        ),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        iconTheme: IconThemeData(color: textPrimary),
+        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 24)),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: AppTheme.bgGradient(context),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          children: [
-            // Profile Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: AppTheme.glassBoxAdaptive(context),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: AppTheme.primaryPurple,
-                    radius: 30,
-                    child: Text(
-                      user?['name']?[0] ?? 'U',
-                      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+      body: settingsAsync.when(
+        data: (data) => _buildSettingsContent(context, ref, data, isDark),
+        loading: () => _buildMockSettingsContent(context, ref, isDark),
+        error: (_, __) => _buildMockSettingsContent(context, ref, isDark),
+      ),
+    );
+  }
+
+  Widget _buildMockSettingsContent(BuildContext context, WidgetRef ref, bool isDark) {
+    return _buildSettingsContent(context, ref, {
+      'user': {
+        'name': 'Alex Thompson',
+        'email': 'alex@company.com',
+      },
+      'integrations': {
+        'gmail': {'connected': true},
+        'whatsapp': {'connected': true},
+      }
+    }, isDark);
+  }
+
+  Widget _buildSettingsContent(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> data,
+    bool isDark,
+  ) {
+    final user = data['user'] as Map<String, dynamic>? ?? {};
+    final userName = user['name'] ?? 'Alex Thompson';
+    final userEmail = user['email'] ?? 'alex@company.com';
+
+    final integrations = data['integrations'] as Map<String, dynamic>? ?? {};
+    final gmailConnected = integrations['gmail']?['connected'] as bool? ?? true;
+    final whatsappConnected = integrations['whatsapp']?['connected'] as bool? ?? true;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      child: Column(
+        children: [
+          // Profile Header Card (Mockup 12)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.slateCard : AppTheme.cardWhite,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: isDark ? AppTheme.slateBorder : AppTheme.borderSlate),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: AppTheme.brandBlue.withValues(alpha: 0.15),
+                  child: Text(
+                    userName[0].toUpperCase(),
+                    style: const TextStyle(
+                      color: AppTheme.brandBlue,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?['name'] ?? 'LinkPilot User',
-                          style: TextStyle(color: textPrimary, fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user?['email'] ?? 'user@linkpilot.work',
-                          style: TextStyle(color: textSecondary, fontSize: 13),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        userEmail,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondaryLight,
                         ),
-                        const SizedBox(height: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryPurple.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            user?['role']?.toUpperCase() ?? 'USER',
-                            style: const TextStyle(color: AppTheme.secondaryPurple, fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppTheme.textSecondaryLight),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Menu Options List (Mockup 12)
+          _buildSettingsMenuItem(
+            context,
+            icon: Icons.person_outline_rounded,
+            title: 'Account',
+            onTap: () {},
+          ),
+          _buildSettingsMenuItem(
+            context,
+            icon: Icons.notifications_none_rounded,
+            title: 'Notifications',
+            onTap: () {},
+          ),
+
+          // Connected Services Section
+          _buildConnectedServicesTile(
+            context,
+            gmailConnected: gmailConnected,
+            whatsappConnected: whatsappConnected,
+            onTap: () => _openWebsiteHandoff(context, '/dashboard/setup.html'),
+          ),
+
+          _buildSettingsMenuItem(
+            context,
+            icon: Icons.security_rounded,
+            title: 'Security',
+            onTap: () {},
+          ),
+          _buildSettingsMenuItem(
+            context,
+            icon: Icons.help_outline_rounded,
+            title: 'Help & Support',
+            onTap: () {},
+          ),
+          _buildSettingsMenuItem(
+            context,
+            icon: Icons.open_in_new_rounded,
+            title: 'Open Link Pilot Website',
+            onTap: () => _openWebsiteHandoff(context, '/dashboard/index.html'),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Logout Button (Mockup 12)
+          InkWell(
+            onTap: () => _confirmLogout(context, ref),
+            borderRadius: BorderRadius.circular(14),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.slateCard : AppTheme.cardWhite,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isDark ? AppTheme.slateBorder : AppTheme.borderSlate),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.logout_rounded, color: AppTheme.redPriority, size: 20),
+                  SizedBox(width: 14),
+                  Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.redPriority,
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+          ),
 
-            // Connection Statuses
-            Text(
-              'INTEGRATION STATUS',
-              style: GoogleFonts.outfit(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-            ),
-            const SizedBox(height: 8),
-            _buildSettingTile(
-              context,
-              icon: Icons.mark_as_unread,
-              title: 'Gmail / SMTP Settings',
-              trailing: const Text('Connected', style: TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold)),
-              onTap: () {},
-            ),
-            _buildSettingTile(
-              context,
-              icon: Icons.phone_android,
-              title: 'WhatsApp Business Cloud API',
-              trailing: const Text('Connected', style: TextStyle(color: Colors.greenAccent, fontSize: 13, fontWeight: FontWeight.bold)),
-              onTap: () {},
-            ),
-            const SizedBox(height: 24),
-
-            // Campaigns Launcher
-            Text(
-              'CAMPAIGN CREATOR',
-              style: GoogleFonts.outfit(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-            ),
-            const SizedBox(height: 8),
-            _buildSettingTile(
-              context,
-              icon: Icons.rocket_launch,
-              title: 'Launch Campaigns & Automation Builder',
-              subtitle: 'Redirects to LinkPilot Web in Desktop Mode',
-              trailing: Icon(Icons.arrow_forward_ios, color: textSecondary, size: 16),
-              onTap: () {
-                context.push('/campaigns');
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // Preference Settings
-            Text(
-              'PREFERENCES',
-              style: GoogleFonts.outfit(color: textSecondary, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.5),
-            ),
-            const SizedBox(height: 8),
-            _buildSettingTile(
-              context,
-              icon: themeMode == ThemeMode.dark ? Icons.dark_mode : Icons.light_mode,
-              title: 'Dark Theme Mode',
-              trailing: Switch(
-                value: themeMode == ThemeMode.dark,
-                onChanged: (value) {
-                  ref.read(themeStateProvider.notifier).toggleTheme();
-                },
-                activeColor: AppTheme.primaryPurple,
-              ),
-              onTap: () {},
-            ),
-            _buildSettingTile(
-              context,
-              icon: Icons.fingerprint,
-              title: 'Biometric Secure Lock',
-              trailing: Switch(
-                value: true,
-                onChanged: (value) {},
-                activeColor: AppTheme.primaryPurple,
-              ),
-              onTap: () {},
-            ),
-            const SizedBox(height: 24),
-
-            // Logout Button
-            ElevatedButton.icon(
-              onPressed: () async {
-                await ref.read(authStateProvider.notifier).logout();
-                if (context.mounted) context.go('/onboarding');
-              },
-              icon: const Icon(Icons.logout, color: Colors.white),
-              label: const Text('Sign Out Everywhere', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.priorityOrange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
+          const SizedBox(height: 28),
+        ],
       ),
-      floatingActionButton: const AiFloatingActionButton(),
     );
   }
 
-  Widget _buildSettingTile(
+  Widget _buildSettingsMenuItem(
     BuildContext context, {
     required IconData icon,
     required String title,
-    String? subtitle,
-    required Widget trailing,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? Colors.white : AppTheme.textPrimaryLight;
-    final textSecondary = isDark ? AppTheme.textSecondaryDark : AppTheme.textSecondaryLight;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: AppTheme.glassBoxAdaptive(context),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.slateCard : AppTheme.cardWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppTheme.slateBorder : AppTheme.borderSlate),
+      ),
       child: ListTile(
-        leading: Icon(icon, color: AppTheme.secondaryPurple),
-        title: Text(title, style: TextStyle(color: textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
-        subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: textSecondary, fontSize: 11)) : null,
-        trailing: trailing,
         onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        leading: Icon(icon, color: AppTheme.primaryNavy, size: 20),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+          ),
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppTheme.textSecondaryLight),
+      ),
+    );
+  }
+
+  Widget _buildConnectedServicesTile(
+    BuildContext context, {
+    required bool gmailConnected,
+    required bool whatsappConnected,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.slateCard : AppTheme.cardWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? AppTheme.slateBorder : AppTheme.borderSlate),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.grid_view_rounded, color: AppTheme.primaryNavy, size: 20),
+              const SizedBox(width: 14),
+              Text(
+                'Connected Services',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppTheme.textPrimaryDark : AppTheme.textPrimaryLight,
+                ),
+              ),
+              const Spacer(),
+              const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppTheme.textSecondaryLight),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Gmail sub-row (Mockup 12)
+          Padding(
+            padding: const EdgeInsets.only(left: 34),
+            child: Row(
+              children: [
+                const Icon(Icons.mail_rounded, color: AppTheme.redPriority, size: 18),
+                const SizedBox(width: 10),
+                const Text('Gmail', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                const Text('Connected', style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryLight)),
+                const SizedBox(width: 6),
+                Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppTheme.greenWhatsApp, shape: BoxShape.circle)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // WhatsApp sub-row (Mockup 12)
+          Padding(
+            padding: const EdgeInsets.only(left: 34),
+            child: Row(
+              children: [
+                const Icon(Icons.chat_bubble_rounded, color: AppTheme.greenWhatsApp, size: 18),
+                const SizedBox(width: 10),
+                const Text('WhatsApp', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                const Text('Connected', style: TextStyle(fontSize: 12, color: AppTheme.textSecondaryLight)),
+                const SizedBox(width: 6),
+                Container(width: 7, height: 7, decoration: const BoxDecoration(color: AppTheme.greenWhatsApp, shape: BoxShape.circle)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -401,7 +401,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                         // Password Header with Forgot Password
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.between,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Password',

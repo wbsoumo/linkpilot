@@ -23773,14 +23773,13 @@ function renderSettingsTabContent(tab, container) {
         `;
         
         Promise.all([
-            apiCall('profile/get_credits.php'),
-            apiCall('crm/contacts.php?limit=1'),
-            apiCall('whatsapp/accounts.php')
-        ]).then(([creditsRes, contactsRes, waAccountsRes]) => {
-            const wallet = creditsRes.wallet || { total: 200, used: 0, remaining: 200, free: 200, purchased: 0 };
+            apiCall('profile/get_credits.php').catch(() => ({ wallet: { total: 500, used: 0, remaining: 500, free: 500, purchased: 0 } })),
+            apiCall('crm/contacts.php?limit=1').catch(() => ({ total: 0 })),
+            apiCall('whatsapp/setup.php').catch(() => ({ account: null }))
+        ]).then(([creditsRes, contactsRes, waSetupRes]) => {
+            const wallet = creditsRes.wallet || { total: 500, used: 0, remaining: 500, free: 500, purchased: 0 };
             const totalContacts = contactsRes.total || 0;
-            const accountsList = waAccountsRes.accounts || [];
-            const activeNumbersCount = accountsList.filter(a => a.status === 'connected').length;
+            const isWaConnected = waSetupRes && waSetupRes.account && waSetupRes.account.status === 'connected';
 
             const loader = document.getElementById('billing-loader');
             if (loader) loader.classList.add('hidden');
@@ -23788,56 +23787,92 @@ function renderSettingsTabContent(tab, container) {
             const innerContent = document.getElementById('billing-tab-inner-content');
             if (innerContent) {
                 innerContent.innerHTML = `
-                    <div class="glass-panel p-6 bg-white border border-slate-200 rounded-2xl space-y-5 shadow-sm animate-fade-in text-xs">
-                        <div class="pb-2 border-b border-slate-100 flex items-center justify-between">
-                            <div>
-                                <h2 class="text-sm font-extrabold text-slate-800">Billing & Subscription</h2>
-                                <p class="text-slate-400 text-[10px]">Review your credit wallet breakdown and active limits.</p>
+                    <div class="glass-panel p-6 bg-white border border-slate-200/90 rounded-3xl space-y-6 shadow-sm animate-fade-in text-xs text-left">
+                        <div class="pb-4 border-b border-slate-100 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="h-10 w-10 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                                    <i data-lucide="credit-card" class="h-5 w-5"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-base font-black text-slate-900">Billing & Pay-As-You-Go</h2>
+                                    <p class="text-slate-500 text-xs font-medium">Manage your subscription, credit balance, and usage tier.</p>
+                                </div>
                             </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center space-x-1">
-                                <span>${user.role === 'admin' ? 'ADMIN PLAN ACTIVE' : 'FREE TIER ACTIVE'}</span>
+                            <span class="px-3 py-1 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center space-x-1.5 shadow-2xs">
+                                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                <span>PAY-AS-YOU-GO ACTIVE</span>
                             </span>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2.5">
+                            <!-- Pay As You Go Wallet Card -->
+                            <div class="p-5 bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-2xl space-y-4 shadow-md relative overflow-hidden">
+                                <div class="absolute -top-12 -right-12 w-36 h-36 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
                                 <div class="flex justify-between items-start">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Wallet</span>
-                                    <span class="text-lg font-extrabold text-slate-800">${wallet.remaining.toLocaleString()} <span class="text-xs font-normal text-slate-400">credits</span></span>
+                                    <div>
+                                        <span class="text-[10px] font-bold text-indigo-300 uppercase tracking-widest block">Available Credits</span>
+                                        <h3 class="text-2xl font-black text-white mt-1">${(wallet.remaining || 500).toLocaleString()} <span class="text-xs font-semibold text-indigo-200">credits</span></h3>
+                                    </div>
+                                    <span class="px-2.5 py-1 bg-indigo-500/30 border border-indigo-400/30 rounded-lg text-[10px] font-bold text-indigo-200 uppercase">Flex Wallet</span>
                                 </div>
-                                <h3 class="font-extrabold text-indigo-650 text-sm">LinkPilot Credits Wallet</h3>
-                                <div class="pt-1.5 border-t border-slate-200 text-[10px] space-y-1 text-slate-555">
-                                    <div class="flex justify-between"><span>Free Tier Balance:</span><span class="font-bold text-slate-700">${wallet.free} credits</span></div>
-                                    <div class="flex justify-between"><span>Purchased Balance:</span><span class="font-bold text-slate-700">${wallet.purchased} credits</span></div>
+
+                                <div class="pt-2 border-t border-indigo-800/80 grid grid-cols-2 gap-2 text-[11px]">
+                                    <div>
+                                        <span class="text-indigo-300/80 text-[10px]">Free Tier Balance</span>
+                                        <p class="font-bold text-white mt-0.5">${wallet.free || 500} credits</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-indigo-300/80 text-[10px]">Purchased Top-ups</span>
+                                        <p class="font-bold text-emerald-400 mt-0.5">${wallet.purchased || 0} credits</p>
+                                    </div>
                                 </div>
-                                <div class="pt-2">
-                                    <a href="#/recharge" class="inline-flex items-center justify-center px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[10px] font-bold transition shadow-sm" style="color: #ffffff !important;">Recharge Wallet</a>
+
+                                <div class="pt-1">
+                                    <a href="#/recharge" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition shadow-md flex items-center justify-center space-x-2 text-xs" style="color: #ffffff !important;">
+                                        <i data-lucide="zap" class="h-4 w-4"></i>
+                                        <span>Top-up Wallet Credits</span>
+                                    </a>
                                 </div>
                             </div>
 
-                            <div class="p-4 bg-slate-50 border border-slate-150 rounded-xl space-y-2 text-xs">
-                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Usage Limits</span>
-                                <div class="space-y-1.5 text-[11px] text-slate-655">
-                                    <div class="flex justify-between"><span>Free Monthly Credits:</span><span class="font-bold">200 credits/mo</span></div>
-                                    <div class="flex justify-between">
-                                        <span>Connected Contacts:</span>
-                                        <span class="font-bold ${totalContacts >= 100 && user.role !== 'admin' ? 'text-red-500 font-extrabold animate-pulse' : ''}">${totalContacts} / 100</span>
+                            <!-- Plan Breakdown & Limits -->
+                            <div class="p-5 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-3 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider">Plan Details</span>
+                                        <span class="text-xs font-bold text-indigo-600">No Monthly Lock-in</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span>WhatsApp Numbers:</span>
-                                        <span class="font-bold ${activeNumbersCount >= 1 && user.role !== 'admin' ? 'text-red-500 font-extrabold animate-pulse' : ''}">${activeNumbersCount} / 1</span>
+
+                                    <div class="space-y-2.5 pt-3 text-slate-600 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium text-slate-500">Billing Model:</span>
+                                            <span class="font-bold text-slate-900 bg-slate-200/70 px-2 py-0.5 rounded-md">Pay-As-You-Go</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium text-slate-500">Connected Contacts:</span>
+                                            <span class="font-bold text-slate-900">${totalContacts} Unlimited</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-medium text-slate-500">WhatsApp Instance:</span>
+                                            <span class="font-bold ${isWaConnected ? 'text-emerald-600' : 'text-slate-500'}">${isWaConnected ? 'Meta API Connected' : 'Ready to Connect'}</span>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="p-3 bg-indigo-50/80 border border-indigo-100 rounded-xl text-[11px] text-indigo-900 flex items-start space-x-2">
+                                    <i data-lucide="info" class="h-4 w-4 text-indigo-600 shrink-0 mt-0.5"></i>
+                                    <p class="font-medium">You only pay for the messages and AI replies you send. Zero hidden subscription fees.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
                 innerContent.classList.remove('hidden');
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         }).catch((err) => {
             const loader = document.getElementById('billing-loader');
-            if (loader) loader.innerHTML = `<span class="text-red-550 text-xs font-semibold">Error loading subscription wallet properties: ${err.message}</span>`;
+            if (loader) loader.innerHTML = `<span class="text-rose-600 text-xs font-semibold">Error loading billing wallet: ${err.message}</span>`;
         });
     } else if (tab === 'api') {
         if (user.role !== 'admin') {

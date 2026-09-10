@@ -23630,37 +23630,35 @@ function renderSettingsTabContent(tab, container) {
         })();
     } else if (tab === 'team') {
         container.innerHTML = `
-            <div class="glass-panel p-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 text-white rounded-3xl space-y-6 shadow-xl border border-indigo-700/50 animate-fade-in relative overflow-hidden text-left">
-                <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div class="flex items-center justify-between border-b border-indigo-800/80 pb-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="h-12 w-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 flex items-center justify-center shadow-inner">
-                            <i data-lucide="users" class="h-6 w-6 text-indigo-300"></i>
+            <div class="glass-panel p-6 bg-white border border-slate-200/90 rounded-3xl space-y-6 shadow-sm animate-fade-in text-left">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="h-11 w-11 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-2xs">
+                            <i data-lucide="users" class="h-5 w-5"></i>
                         </div>
                         <div>
-                            <h2 class="text-lg font-black text-white tracking-tight">Team & Multi-User Access</h2>
-                            <p class="text-indigo-200/80 text-xs font-medium mt-0.5">Collaborate with team members, manage sub-accounts, and assign role-based permissions.</p>
+                            <h2 class="text-base font-black text-slate-900 tracking-tight">Team & Multi-User Access</h2>
+                            <p class="text-slate-500 text-xs font-medium mt-0.5">Collaborate with team members, manage sub-accounts, and assign role-based permissions.</p>
                         </div>
                     </div>
-                    <span class="px-3.5 py-1.5 rounded-full text-[10px] font-black bg-blue-500/30 text-blue-200 border border-blue-400/40 uppercase tracking-widest flex items-center space-x-1.5 shadow-sm">
-                        <span class="h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider flex items-center space-x-1.5 shrink-0">
+                        <span class="h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
                         <span>COMING SOON</span>
                     </span>
                 </div>
 
-                <div class="p-6 bg-indigo-950/50 border border-indigo-800/60 rounded-2xl space-y-4 text-center">
-                    <div class="max-w-md mx-auto space-y-2">
-                        <h3 class="text-base font-black text-white">Multi-User Collaboration Suite</h3>
-                        <p class="text-indigo-200/70 text-xs leading-relaxed">We are finalizing multi-agent inbox assignment, custom RBAC permissions, and team analytics. Stay tuned!</p>
+                <div class="p-8 bg-slate-50/80 border border-slate-200/80 rounded-2xl space-y-4 text-center">
+                    <div class="max-w-md mx-auto space-y-1.5">
+                        <h3 class="text-sm font-black text-slate-900">Multi-User Collaboration Suite</h3>
+                        <p class="text-slate-500 text-xs font-medium leading-relaxed">We are finalizing multi-agent inbox assignment, custom RBAC permissions, and team performance analytics.</p>
                     </div>
                     <div class="pt-2 flex justify-center">
-                        <button disabled class="px-6 py-2.5 bg-blue-600/50 text-indigo-200 border border-blue-500/30 font-bold text-xs rounded-xl cursor-not-allowed flex items-center space-x-2">
-                            <i data-lucide="sparkles" class="h-4 w-4"></i>
+                        <span class="px-5 py-2 bg-white border border-slate-200 text-slate-700 font-bold text-xs rounded-xl shadow-2xs inline-flex items-center space-x-2">
+                            <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
                             <span>Team Workspaces Arriving Soon</span>
-                        </button>
+                        </span>
                     </div>
+                </div>
             </div>
         `;
         if (window.lucide) lucide.createIcons();

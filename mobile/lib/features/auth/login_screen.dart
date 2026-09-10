@@ -96,15 +96,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _redirectToWebsiteLogin() async {
-    String websiteLoginUrl = 'https://linkpilot.work/dashboard/login.html';
+    String currentOrigin = 'http://localhost:8080';
     if (kIsWeb) {
-      final currentOrigin = html.window.location.origin;
-      final redirectUri = Uri.encodeComponent('$currentOrigin/#/login');
-      websiteLoginUrl = '$currentOrigin/dashboard/login.html?source=mobile_app&redirect_uri=$redirectUri';
-    } else {
-      final redirectUri = Uri.encodeComponent('http://localhost:8080/#/login');
-      websiteLoginUrl = 'https://linkpilot.work/dashboard/login.html?source=mobile_app&redirect_uri=$redirectUri';
+      currentOrigin = html.window.location.origin;
     }
+    final redirectUri = Uri.encodeComponent('$currentOrigin/#/login');
+    final websiteLoginUrl = 'https://linkpilot.work/dashboard/login.html?source=mobile_app&redirect_uri=$redirectUri';
     
     if (kIsWeb) {
       html.window.location.href = websiteLoginUrl;

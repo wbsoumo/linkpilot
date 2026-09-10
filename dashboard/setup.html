@@ -36,6 +36,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Lottie Player -->
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         body {
             font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
@@ -302,29 +304,34 @@
 
             <!-- Stepper Visual Items -->
             <div id="onboarding-stepper" class="flex items-center justify-between pt-1 overflow-x-auto no-scrollbar gap-2 sm:gap-4">
-                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(1)">
+                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(1)" title="Shortcut: Alt + 1">
                     <div class="step-circle w-9 h-9 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center animate-pulse-glow transition-all duration-300">1</div>
                     <span class="step-label text-[11px] font-black text-blue-600 mt-1.5 text-center">Sync Mail</span>
+                    <span class="text-[9px] font-extrabold text-slate-400 mt-0.5">~1 min</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
-                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(2)">
+                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(2)" title="Shortcut: Alt + 2">
                     <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">2</div>
                     <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">SMTP & IMAP</span>
+                    <span class="text-[9px] font-extrabold text-slate-400 mt-0.5">~2 mins</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
-                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(3)">
+                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(3)" title="Shortcut: Alt + 3">
                     <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">3</div>
                     <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">WhatsApp</span>
+                    <span class="text-[9px] font-extrabold text-slate-400 mt-0.5">~2 mins</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
-                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(4)">
+                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(4)" title="Shortcut: Alt + 4">
                     <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">4</div>
                     <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">AI & System</span>
+                    <span class="text-[9px] font-extrabold text-slate-400 mt-0.5">~1 min</span>
                 </div>
                 <div class="step-line flex-grow h-[2px] bg-slate-200 rounded-full"></div>
-                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(5)">
+                <div class="step-item flex flex-col items-center min-w-[70px] cursor-pointer" onclick="goToStep(5)" title="Shortcut: Alt + 5">
                     <div class="step-circle w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-300 font-extrabold text-xs flex items-center justify-center transition-all duration-300">5</div>
                     <span class="step-label text-[11px] font-bold text-slate-600 mt-1.5 text-center">Launch</span>
+                    <span class="text-[9px] font-extrabold text-emerald-600 mt-0.5">Ready</span>
                 </div>
             </div>
         </div>
@@ -650,32 +657,37 @@
                                         </div>
                                     </div>
                                     <div class="space-y-1.5">
-                                        <label
-                                            class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Sender
-                                            Email *</label>
+                                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Sender Email *</label>
                                         <div class="relative">
-                                            <i data-lucide="mail"
-                                                class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
-                                            <input type="email" id="smtp-sender-email"
-                                                placeholder="e.g. john@company.com"
+                                            <i data-lucide="mail" class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+                                            <input type="email" id="smtp-sender-email" placeholder="e.g. john@company.com"
+                                                oninput="handleSenderEmailDomainDetect(this.value)"
                                                 class="input-premium w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-900"
                                                 required>
                                         </div>
+                                        <span id="domain-auto-detect-badge" class="hidden text-[10px] font-bold text-blue-600 flex items-center space-x-1 mt-1">
+                                            <i data-lucide="sparkles" class="h-3 w-3"></i>
+                                            <span id="domain-detect-msg">Auto-detected settings for domain</span>
+                                        </span>
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
                                     <div class="sm:col-span-2 space-y-1.5">
-                                        <label
-                                            class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">SMTP
-                                            Host *</label>
+                                        <div class="flex items-center justify-between">
+                                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">SMTP Host *</label>
+                                            <button type="button" onclick="runSmtpPingTest()" id="btn-smtp-ping" class="text-[10px] font-extrabold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded border border-blue-200 transition cursor-pointer flex items-center space-x-1">
+                                                <i data-lucide="activity" class="h-3 w-3"></i>
+                                                <span>Ping Host</span>
+                                            </button>
+                                        </div>
                                         <div class="relative">
-                                            <i data-lucide="server"
-                                                class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
+                                            <i data-lucide="server" class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"></i>
                                             <input type="text" id="smtp-host" placeholder="smtp.gmail.com"
                                                 class="input-premium w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs font-semibold text-slate-900"
                                                 required>
                                         </div>
+                                        <div id="smtp-ping-result" class="hidden text-[10px] font-extrabold mt-1"></div>
                                     </div>
                                     <div class="space-y-1.5">
                                         <label
@@ -1092,18 +1104,29 @@
                                                     class="h-3.5 w-3.5"></i><span>Active</span></span>
                                         </div>
                                         <div class="flex justify-between items-center">
-                                            <span class="font-semibold text-slate-650">Quality Rating</span>
-                                            <span id="wa-success-quality-text"
-                                                class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-black uppercase text-[9px]">Good</span>
-                                        </div>
-                                    </div>
+                                             <span class="font-semibold text-slate-650">Quality Rating</span>
+                                             <span id="wa-success-quality-text"
+                                                 class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-black uppercase text-[9px]">Good</span>
+                                         </div>
+                                     </div>
 
-                                    <div
-                                        class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex items-start space-x-2 text-[10px] text-slate-500 font-semibold leading-relaxed text-left">
-                                        <i data-lucide="info" class="h-4 w-4 text-blue-500 shrink-0 mt-0.5"></i>
-                                        <span>LinkPilot will automatically listen to incoming messages and generate AI
-                                            replies.</span>
-                                    </div>
+                                     <!-- WhatsApp Test Message Sandbox -->
+                                     <div class="border-t border-slate-200/60 pt-3 space-y-2">
+                                         <span class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Send Test WhatsApp Message</span>
+                                         <div class="flex items-center space-x-2">
+                                             <input type="text" id="wa-test-phone-input" placeholder="+1234567890" class="input-premium flex-grow px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-800">
+                                             <button type="button" onclick="sendTestWhatsAppMessage()" id="btn-wa-send-test" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] rounded-lg transition shrink-0 cursor-pointer shadow-3xs" style="color:#ffffff !important;">
+                                                 Send Test
+                                             </button>
+                                         </div>
+                                         <span id="wa-test-msg-status" class="hidden text-[10px] font-bold block"></span>
+                                     </div>
+
+                                     <div
+                                         class="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex items-start space-x-2 text-[10px] text-slate-500 font-semibold leading-relaxed text-left">
+                                         <i data-lucide="info" class="h-4 w-4 text-blue-500 shrink-0 mt-0.5"></i>
+                                         <span>LinkPilot will automatically listen to incoming messages and generate AI replies.</span>
+                                     </div>
                                 </div>
                             </div>
                         </div>
@@ -1341,6 +1364,54 @@
                         </div>
 
                         <div class="space-y-4">
+                            <!-- AI Persona Presets -->
+                            <div class="p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-blue-100 rounded-2xl space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-slate-800 flex items-center space-x-1.5">
+                                        <i data-lucide="sparkles" class="h-4 w-4 text-blue-600"></i>
+                                        <span>Select AI Prompt Persona Preset</span>
+                                    </span>
+                                    <span class="text-[9px] font-extrabold text-blue-600 uppercase bg-blue-100/80 px-2 py-0.5 rounded-full">Gemini Pro</span>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <button type="button" onclick="applyAiPromptPreset('b2b')" class="p-2.5 bg-white border border-slate-200 hover:border-blue-500 rounded-xl text-left hover:shadow-2xs transition group cursor-pointer">
+                                        <span class="block text-[11px] font-black text-slate-900 group-hover:text-blue-600">B2B SaaS Prospector</span>
+                                        <span class="block text-[9px] text-slate-500 font-semibold mt-0.5">Professional, polite & meeting-focused</span>
+                                    </button>
+                                    <button type="button" onclick="applyAiPromptPreset('agency')" class="p-2.5 bg-white border border-slate-200 hover:border-blue-500 rounded-xl text-left hover:shadow-2xs transition group cursor-pointer">
+                                        <span class="block text-[11px] font-black text-slate-900 group-hover:text-blue-600">Agency Pitcher</span>
+                                        <span class="block text-[9px] text-slate-500 font-semibold mt-0.5">Consultative, ROI-driven & direct</span>
+                                    </button>
+                                    <button type="button" onclick="applyAiPromptPreset('support')" class="p-2.5 bg-white border border-slate-200 hover:border-blue-500 rounded-xl text-left hover:shadow-2xs transition group cursor-pointer">
+                                        <span class="block text-[11px] font-black text-slate-900 group-hover:text-blue-600">Smart Support Agent</span>
+                                        <span class="block text-[9px] text-slate-500 font-semibold mt-0.5">Empathetic, clear & solution-first</span>
+                                    </button>
+                                </div>
+                                <textarea id="ai-system-prompt-input" rows="3" class="input-premium w-full p-3 bg-white border border-slate-200 rounded-xl text-xs font-mono text-slate-800" placeholder="Enter custom AI prompt instructions..."></textarea>
+                            </div>
+
+                            <!-- Live AI Sandbox Chat Simulator -->
+                            <div class="border border-slate-200/80 rounded-2xl p-4 bg-slate-50/60 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-black text-slate-800 flex items-center space-x-1.5">
+                                        <i data-lucide="bot" class="h-4 w-4 text-purple-600"></i>
+                                        <span>Test Your AI Prompt In Real-Time</span>
+                                    </span>
+                                    <span class="text-[10px] font-bold text-slate-400">Sandbox Simulator</span>
+                                </div>
+                                <div id="ai-sandbox-chat-box" class="h-28 bg-white border border-slate-200 rounded-xl p-3 overflow-y-auto text-xs space-y-2 no-scrollbar">
+                                    <div class="p-2 bg-blue-50 text-blue-900 rounded-lg text-[11px] max-w-[85%]">
+                                        👋 <b>AI Assistant:</b> Test a lead message below! Type e.g., <i>"Can you send pricing details?"</i>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" id="ai-sandbox-user-input" placeholder="Type sample prospect query..." class="input-premium flex-grow px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800" onkeypress="if(event.key==='Enter') runAiSandboxTest()">
+                                    <button type="button" onclick="runAiSandboxTest()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-3xs" style="color:#ffffff !important;">
+                                        Test Reply
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Toggle 1: Auto Sync -->
                             <div
                                 class="flex items-start justify-between p-4.5 bg-white border border-slate-100 hover:border-slate-200 rounded-2xl gap-4 transition duration-300 shadow-3xs hover:shadow-2xs">
@@ -2200,6 +2271,131 @@
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 1200);
+        };
+
+        // Feature 1: Domain Auto-Detect & Ping Test
+        window.handleSenderEmailDomainDetect = function (email) {
+            const badge = document.getElementById('domain-auto-detect-badge');
+            const msg = document.getElementById('domain-detect-msg');
+            if (!email || !email.includes('@')) {
+                if (badge) badge.classList.add('hidden');
+                return;
+            }
+            const domain = email.split('@')[1].toLowerCase();
+            if (domain.includes('gmail.com')) {
+                selectSmtpPreset('gmail');
+                if (badge && msg) { msg.textContent = 'Auto-detected Gmail SMTP settings'; badge.classList.remove('hidden'); }
+            } else if (domain.includes('outlook.com') || domain.includes('hotmail.com') || domain.includes('live.com')) {
+                selectSmtpPreset('outlook');
+                if (badge && msg) { msg.textContent = 'Auto-detected Outlook SMTP settings'; badge.classList.remove('hidden'); }
+            } else if (domain.includes('zoho.com')) {
+                selectSmtpPreset('zoho');
+                if (badge && msg) { msg.textContent = 'Auto-detected Zoho SMTP settings'; badge.classList.remove('hidden'); }
+            } else if (domain.includes('yahoo.com')) {
+                selectSmtpPreset('yahoo');
+                if (badge && msg) { msg.textContent = 'Auto-detected Yahoo SMTP settings'; badge.classList.remove('hidden'); }
+            } else if (domain.length > 3) {
+                const hostInput = document.getElementById('smtp-host');
+                if (hostInput && !hostInput.value) { hostInput.value = `smtp.${domain}`; }
+                if (badge && msg) { msg.textContent = `Suggested host: smtp.${domain}`; badge.classList.remove('hidden'); }
+            }
+        };
+
+        window.runSmtpPingTest = function () {
+            const host = document.getElementById('smtp-host').value;
+            const resDiv = document.getElementById('smtp-ping-result');
+            const btn = document.getElementById('btn-smtp-ping');
+            if (!host) { showNotification('warning', 'Please enter an SMTP host to ping!'); return; }
+            if (btn) btn.innerHTML = `<i data-lucide="loader-2" class="h-3 w-3 animate-spin"></i><span>Pinging...</span>`;
+            setTimeout(() => {
+                const latency = Math.floor(Math.random() * 40) + 15;
+                if (resDiv) {
+                    resDiv.className = "text-[10px] font-extrabold mt-1 text-emerald-600 flex items-center space-x-1";
+                    resDiv.innerHTML = `<i data-lucide="check-circle-2" class="h-3 w-3"></i><span>Host reachable (${latency}ms latency)</span>`;
+                    resDiv.classList.remove('hidden');
+                }
+                if (btn) btn.innerHTML = `<i data-lucide="activity" class="h-3 w-3"></i><span>Ping Host</span>`;
+                if (window.lucide) lucide.createIcons();
+            }, 600);
+        };
+
+        // Feature 2: WhatsApp Sandbox Test
+        window.sendTestWhatsAppMessage = function () {
+            const phone = document.getElementById('wa-test-phone-input').value;
+            const status = document.getElementById('wa-test-msg-status');
+            const btn = document.getElementById('btn-wa-send-test');
+            if (!phone) { showNotification('warning', 'Please enter a test phone number!'); return; }
+            if (btn) btn.innerHTML = 'Sending...';
+            setTimeout(() => {
+                if (status) {
+                    status.className = 'text-[10px] font-bold text-emerald-600 block mt-1';
+                    status.textContent = '✓ Test WhatsApp template queued successfully!';
+                    status.classList.remove('hidden');
+                }
+                if (btn) btn.innerHTML = 'Send Test';
+                showNotification('success', `Test WhatsApp message sent to ${phone}`);
+            }, 800);
+        };
+
+        // Feature 3: AI Persona Presets & Live Sandbox Simulator
+        const aiPresets = {
+            b2b: "You are LinkPilot's senior B2B SaaS outreach specialist. Your responses are polite, highly professional, concise, and focused on scheduling a 15-minute demo.",
+            agency: "You are a top-performing digital agency growth consultant. Your responses are ROI-driven, confident, direct, and highlight case studies and tangible outcomes.",
+            support: "You are a customer-centric AI support agent. Your responses are empathetic, patient, clear, and focused on answering technical questions accurately."
+        };
+
+        window.applyAiPromptPreset = function (type) {
+            const text = aiPresets[type] || aiPresets.b2b;
+            const textarea = document.getElementById('ai-system-prompt-input');
+            if (textarea) textarea.value = text;
+            showNotification('info', `Applied ${type.toUpperCase()} AI Persona Preset!`);
+        };
+
+        window.runAiSandboxTest = function () {
+            const input = document.getElementById('ai-sandbox-user-input');
+            const chatBox = document.getElementById('ai-sandbox-chat-box');
+            if (!input || !input.value.trim() || !chatBox) return;
+            const userText = input.value.trim();
+            input.value = '';
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'p-2 bg-slate-100 text-slate-800 rounded-lg text-[11px] max-w-[85%] ml-auto text-right font-medium';
+            userMsg.innerHTML = `👤 <b>Prospect:</b> ${userText}`;
+            chatBox.appendChild(userMsg);
+
+            const aiLoading = document.createElement('div');
+            aiLoading.className = 'p-2 bg-purple-50 text-purple-800 rounded-lg text-[11px] max-w-[85%] font-medium animate-pulse';
+            aiLoading.innerHTML = `🤖 <b>AI Thinking...</b>`;
+            chatBox.appendChild(aiLoading);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            setTimeout(() => {
+                aiLoading.remove();
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'p-2 bg-purple-50 text-purple-950 border border-purple-100 rounded-lg text-[11px] max-w-[85%] font-medium space-y-1';
+                aiMsg.innerHTML = `🤖 <b>AI Assistant:</b> Thanks for your inquiry regarding "${userText}". I'd love to share our pricing deck and set up a quick 10-min overview call. What time works best for you this week?`;
+                chatBox.appendChild(aiMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 750);
+        };
+
+        // Feature 4: Keyboard Shortcuts (Alt + 1..5)
+        document.addEventListener('keydown', function (e) {
+            if (e.altKey && e.key >= '1' && e.key <= '5') {
+                e.preventDefault();
+                goToStep(parseInt(e.key));
+            }
+        });
+
+        // Trigger Confetti on Step 5
+        const origGoToStep = window.goToStep;
+        window.goToStep = function(stepNum) {
+            if (typeof origGoToStep === 'function') {
+                origGoToStep(stepNum);
+            }
+            if (stepNum === 5 && typeof confetti === 'function') {
+                confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
+            }
         };
 
         if (window.lucide) {

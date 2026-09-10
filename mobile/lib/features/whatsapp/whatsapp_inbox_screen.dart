@@ -202,9 +202,19 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                 data: (data) {
                   final conversations = (data['conversations'] as List<dynamic>?) ?? [];
                   
-                  if (conversations.isEmpty) {
-                    return _buildMockConversationList(context);
+                  if (conversations.isEmpty && _searchQuery.isNotEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No conversations found matching search',
+                        style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                      ),
+                    );
                   }
+
+                  // Use real conversations if returned by backend API, otherwise use rich mockup list
+                  final displayList = conversations.isNotEmpty 
+                      ? conversations 
+                      : _getMockChatsList();
 
                   return RefreshIndicator(
                     onRefresh: () async {
@@ -212,17 +222,26 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
                     },
                     child: ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                      itemCount: conversations.length,
+                      itemCount: displayList.length,
                       separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF1F5F9)),
                       itemBuilder: (context, index) {
-                        final item = conversations[index] as Map<String, dynamic>;
+                        final item = displayList[index] as Map<String, dynamic>;
                         return _buildMockChatTile(context, item, index);
                       },
                     ),
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF005BF7))),
-                error: (_, __) => _buildMockConversationList(context),
+                error: (err, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'Connection error: $err',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -314,8 +333,8 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
     );
   }
 
-  Widget _buildMockConversationList(BuildContext context) {
-    final mockChats = [
+  List<Map<String, dynamic>> _getMockChatsList() {
+    return [
       {
         'id': 1,
         'name': 'Rahul Mehta',
@@ -385,6 +404,10 @@ class _WhatsAppInboxScreenState extends ConsumerState<WhatsAppInboxScreen> {
         'unread_count': 0,
       },
     ];
+  }
+
+  Widget _buildMockConversationList(BuildContext context) {
+    final mockChats = _getMockChatsList();
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),

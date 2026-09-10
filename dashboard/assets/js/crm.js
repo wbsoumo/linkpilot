@@ -583,6 +583,10 @@ async function navigateTo(view, params = {}) {
             case 'settings':
                 await renderSettings(contentArea, params);
                 break;
+            case 'tickets':
+            case 'support':
+                await renderSupportTicketsSystem(contentArea);
+                break;
             case 'install-extensions':
                 await renderInstallExtensions(contentArea);
                 break;

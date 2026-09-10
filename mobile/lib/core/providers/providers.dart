@@ -208,6 +208,16 @@ final mobileWhatsAppProvider = FutureProvider.family.autoDispose<Map<String, dyn
   throw Exception(response.data['message'] ?? 'Failed to load WhatsApp conversations');
 });
 
+// Mobile WhatsApp Chat Messages Provider
+final mobileWhatsAppMessagesProvider = FutureProvider.family.autoDispose<Map<String, dynamic>, int>((ref, waContactId) async {
+  final client = ref.watch(apiClientProvider);
+  final response = await client.getWhatsAppMessages(waContactId);
+  if (response.data['status'] == 'success') {
+    return response.data['data'] as Map<String, dynamic>;
+  }
+  throw Exception(response.data['message'] ?? 'Failed to load chat messages');
+});
+
 // Mobile Settings Provider
 final mobileSettingsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final client = ref.watch(apiClientProvider);

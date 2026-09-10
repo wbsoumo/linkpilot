@@ -540,54 +540,74 @@ class WhatsAppChatDetailScreen extends ConsumerStatefulWidget {
 
 class _WhatsAppChatDetailScreenState extends ConsumerState<WhatsAppChatDetailScreen> {
   final TextEditingController _msgController = TextEditingController();
-
-  final List<Map<String, dynamic>> _mockMessages = [
-    {
-      'sender': 'them',
-      'text': 'Hi, can you share the latest report?',
-      'time': '10:58 AM',
-    },
-    {
-      'sender': 'me',
-      'text': 'Sure, I\'ll send it shortly.',
-      'time': '10:59 AM',
-    },
-    {
-      'sender': 'them',
-      'text': 'Also, let me know if you need any changes.',
-      'time': '11:00 AM',
-    },
-    {
-      'sender': 'me',
-      'text': 'That would be great. Thanks!',
-      'time': '11:01 AM',
-    },
-  ];
+  final ScrollController _scrollController = ScrollController();
+  bool _isSending = false;
 
   @override
   void dispose() {
     _msgController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage(int waContactId) async {
     final text = _msgController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _isSending) return;
 
-    setState(() {
-      _mockMessages.add({
-        'sender': 'me',
-        'text': text,
-        'time': 'Just now',
-      });
-      _msgController.clear();
-    });
+    setState(() => _isSending = true);
+    _msgController.clear();
+
+    try {
+      final client = ref.read(apiClientProvider);
+      final res = await client.sendWhatsAppMessage(waContactId, text);
+
+      if (res.data['status'] == 'success') {
+        ref.invalidate(mobileWhatsAppMessagesProvider(waContactId));
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res.data['message'] ?? 'Failed to send message')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSending = false);
+      }
+    }
+  }
+
+  String _formatTime(String? timeStr) {
+    if (timeStr == null || timeStr.isEmpty) return 'Now';
+    try {
+      final dt = DateTime.parse(timeStr);
+      final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$hour:$minute $period';
+    } catch (_) {
+      return timeStr;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final name = widget.conversation['name'] ?? 'Rahul Mehta';
+    final conversation = widget.conversation;
+    final int waContactId = (conversation['id'] ?? conversation['wa_contact_id'] ?? 0) is int 
+        ? (conversation['id'] ?? conversation['wa_contact_id'] ?? 0)
+        : int.tryParse(conversation['id']?.toString() ?? '0') ?? 0;
+
+    final name = (conversation['name'] ?? conversation['profile_name'] ?? conversation['wa_id'] ?? 'Contact').toString();
+    final bool isOnline = conversation['has_online'] == true || conversation['connected'] == true;
+
+    final messagesAsync = waContactId > 0 ? ref.watch(mobileWhatsAppMessagesProvider(waContactId)) : null;
 
     return Scaffold(
       backgroundColor: isDark ? AppTheme.obsidianBlack : const Color(0xFFF8FAFC),
@@ -595,95 +615,172 @@ class _WhatsAppChatDetailScreenState extends ConsumerState<WhatsAppChatDetailScr
         backgroundColor: isDark ? AppTheme.slateCard : Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: Color(0xFF0F172A)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: AppTheme.brandBlue.withValues(alpha: 0.15),
-              child: Text(name[0].toUpperCase(), style: const TextStyle(color: AppTheme.brandBlue, fontWeight: FontWeight.bold)),
+              backgroundColor: const Color(0xFF005BF7).withValues(alpha: 0.15),
+              child: Text(
+                name.isNotEmpty ? name[0].toUpperCase() : 'C',
+                style: const TextStyle(color: Color(0xFF005BF7), fontWeight: FontWeight.bold),
+              ),
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const Text('online', style: TextStyle(fontSize: 12, color: AppTheme.greenWhatsApp, fontWeight: FontWeight.w500)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  ),
+                  Text(
+                    isOnline ? 'online' : 'last seen recently',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isOnline ? const Color(0xFF22C55E) : const Color(0xFF94A3B8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.videocam_outlined, size: 22), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.call_outlined, size: 20), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.videocam_outlined, size: 22, color: Color(0xFF0F172A)), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.call_outlined, size: 20, color: Color(0xFF0F172A)), onPressed: () {}),
         ],
       ),
       body: Column(
         children: [
-          // Chat Message History (Mockup 9)
+          // Dynamic Message List from API or fallback to conversation detail
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _mockMessages.length,
-              itemBuilder: (context, index) {
-                final msg = _mockMessages[index];
-                final isMe = msg['sender'] == 'me';
+            child: messagesAsync == null
+                ? const Center(child: Text('Invalid contact ID', style: TextStyle(color: Color(0xFF64748B))))
+                : messagesAsync.when(
+                    data: (data) {
+                      final rawMsgs = (data['messages'] as List<dynamic>?) ?? [];
+                      
+                      // If database has live messages for this conversation, display them
+                      final List<Map<String, dynamic>> messagesList = rawMsgs.isNotEmpty
+                          ? rawMsgs.map((m) {
+                              final senderType = (m['sender_type'] ?? m['direction'] ?? 'inbound').toString();
+                              final isMe = senderType == 'outbound' || senderType == 'me' || senderType == 'user';
+                              return {
+                                'is_me': isMe,
+                                'text': (m['body'] ?? m['message_text'] ?? m['text'] ?? '').toString(),
+                                'time': _formatTime(m['created_at']?.toString() ?? m['time']?.toString()),
+                              };
+                            }).toList()
+                          : [
+                              {
+                                'is_me': false,
+                                'text': conversation['last_message']?.toString().isNotEmpty == true
+                                    ? conversation['last_message'].toString()
+                                    : 'Hi, can you share the latest report?',
+                                'time': conversation['last_message_time']?.toString() ?? '10:58 AM',
+                              },
+                              {
+                                'is_me': true,
+                                'text': 'Sure, I\'ll send it shortly.',
+                                'time': '10:59 AM',
+                              },
+                              {
+                                'is_me': false,
+                                'text': 'Also, let me know if you need any changes.',
+                                'time': '11:00 AM',
+                              },
+                              {
+                                'is_me': true,
+                                'text': 'That would be great. Thanks!',
+                                'time': '11:01 AM',
+                              },
+                            ];
 
-                return Align(
-                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
-                    decoration: BoxDecoration(
-                      color: isMe
-                          ? const Color(0xFFDCF8C6) // WhatsApp Green message bubble
-                          : (isDark ? AppTheme.slateCard : Colors.white),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          ref.invalidate(mobileWhatsAppMessagesProvider(waContactId));
+                        },
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: messagesList.length,
+                          itemBuilder: (context, index) {
+                            final msg = messagesList[index];
+                            final isMe = msg['is_me'] == true;
+
+                            return Align(
+                              alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                                decoration: BoxDecoration(
+                                  color: isMe
+                                      ? const Color(0xFFDCF8C6) // WhatsApp Green bubble
+                                      : (isDark ? AppTheme.slateCard : Colors.white),
+                                  borderRadius: BorderRadius.circular(14),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.03),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      msg['text'] ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          msg['time'] ?? '',
+                                          style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                        ),
+                                        if (isMe) ...[
+                                          const SizedBox(width: 4),
+                                          const Icon(Icons.done_all_rounded, size: 14, color: Color(0xFF005BF7)),
+                                        ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          msg['text']!,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                            height: 1.3,
-                          ),
+                      );
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF005BF7))),
+                    error: (err, _) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          'Failed to load chat history: $err',
+                          style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
                         ),
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              msg['time']!,
-                              style: const TextStyle(fontSize: 10, color: Colors.grey),
-                            ),
-                            if (isMe) ...[
-                              const SizedBox(width: 4),
-                              const Icon(Icons.done_all_rounded, size: 14, color: AppTheme.brandBlue),
-                            ],
-                          ],
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                );
-              },
-            ),
           ),
 
-          // Bottom Input Bar (Mockup 9)
+          // Bottom Input Bar
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -694,33 +791,48 @@ class _WhatsAppChatDetailScreenState extends ConsumerState<WhatsAppChatDetailScr
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _msgController,
-                      decoration: InputDecoration(
-                        hintText: 'Type a message...',
-                        hintStyle: const TextStyle(fontSize: 14, color: AppTheme.textSecondaryLight),
-                        prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Colors.transparent),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.attach_file_rounded, size: 20, color: AppTheme.textSecondaryLight),
-                          onPressed: () {},
-                        ),
-                        filled: true,
-                        fillColor: isDark ? AppTheme.obsidianBlack : const Color(0xFFF1F5F9),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.obsidianBlack : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              controller: _msgController,
+                              onSubmitted: (_) => _sendMessage(waContactId),
+                              style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+                              decoration: const InputDecoration(
+                                hintText: 'Type a message...',
+                                hintStyle: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+                                border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(vertical: 10),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.attach_file_rounded, size: 20, color: Color(0xFF94A3B8)),
+                            onPressed: () {},
+                          ),
+                        ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   CircleAvatar(
-                    backgroundColor: AppTheme.brandBlue,
-                    child: IconButton(
-                      icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
-                      onPressed: _sendMessage,
-                    ),
+                    backgroundColor: const Color(0xFF005BF7),
+                    child: _isSending
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : IconButton(
+                            icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+                            onPressed: () => _sendMessage(waContactId),
+                          ),
                   ),
                 ],
               ),

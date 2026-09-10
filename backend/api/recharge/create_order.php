@@ -35,19 +35,19 @@ try {
         sendJsonResponse('error', 'Razorpay payments are currently disabled. Please contact support.', [], 503);
     }
 
-    $rawKeyId = $paySettings['key_id'];
-    $rawSecretKey = $paySettings['secret_key'];
+    $rawKeyId = trim($paySettings['key_id'] ?? '');
+    $rawSecretKey = trim($paySettings['secret_key'] ?? '');
 
     $decKeyId = decryptData($rawKeyId);
-    $keyId = ($decKeyId !== false && !empty($decKeyId)) ? $decKeyId : $rawKeyId;
+    $keyId = trim(($decKeyId !== false && !empty($decKeyId)) ? $decKeyId : $rawKeyId);
 
     $decSecretKey = decryptData($rawSecretKey);
-    $secretKey = ($decSecretKey !== false && !empty($decSecretKey)) ? $decSecretKey : $rawSecretKey;
+    $secretKey = trim(($decSecretKey !== false && !empty($decSecretKey)) ? $decSecretKey : $rawSecretKey);
 
     $currency = $paySettings['currency'] ?: 'INR';
 
-    if (empty($keyId) || empty($secretKey)) {
-        sendJsonResponse('error', 'Razorpay API credentials (Key ID / Key Secret) are missing or invalid in Admin Settings.', [], 500);
+    if (empty($keyId) || empty($secretKey) || strpos($keyId, '••••') !== false || strpos($secretKey, '••••') !== false) {
+        sendJsonResponse('error', 'Razorpay API credentials (Key ID / Key Secret) are missing, invalid, or set to placeholder dots in Admin Settings.', [], 500);
     }
 
     // 2. Calculate credits to allocate: ₹100 yields 500 credits

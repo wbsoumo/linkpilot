@@ -29674,3 +29674,381 @@ window.executeBulkInboxAction = async function(action) {
         showNotification('error', err.message || 'Failed executing bulk inbox action.');
     }
 };
+
+// ==========================================
+// CLIENT SUPPORT TICKET SYSTEM
+// ==========================================
+async function renderSupportTicketsSystem(container) {
+    container.innerHTML = `
+        <div class="space-y-8 animate-fade-in text-slate-800 font-sans text-xs">
+            <!-- Top Header -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
+                <div class="flex items-start space-x-3.5">
+                    <div class="h-12 w-12 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shadow-2xs shrink-0">
+                        <i data-lucide="life-buoy" class="h-6 w-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight">Help & Support Desk</h1>
+                        <p class="text-slate-500 text-xs font-semibold mt-0.5">Submit support tickets, track issues, and upload screenshots for instant technical assistance.</p>
+                    </div>
+                </div>
+                <button onclick="openCreateTicketModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-2 shadow-md shadow-indigo-500/20 cursor-pointer" style="color:#ffffff !important;">
+                    <i data-lucide="plus-circle" class="h-4 w-4 text-white"></i>
+                    <span style="color:#ffffff !important;">Submit New Ticket</span>
+                </button>
+            </div>
+
+            <!-- Tickets List Container -->
+            <div class="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-sm space-y-6 text-left">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <h3 class="text-sm font-black text-slate-900 flex items-center space-x-2">
+                        <i data-lucide="ticket" class="h-4.5 w-4.5 text-indigo-600"></i>
+                        <span>My Active & Past Support Tickets</span>
+                    </h3>
+                    <button onclick="loadUserTicketsList()" class="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center space-x-1 border-0 bg-transparent cursor-pointer">
+                        <i data-lucide="refresh-cw" class="h-3.5 w-3.5"></i>
+                        <span>Refresh List</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 border-b border-slate-200/80 text-slate-400 uppercase text-[10px] font-black tracking-wider">
+                            <tr>
+                                <th class="py-3.5 px-4">Ticket ID</th>
+                                <th class="py-3.5 px-4">Subject</th>
+                                <th class="py-3.5 px-4">Category</th>
+                                <th class="py-3.5 px-4">Priority</th>
+                                <th class="py-3.5 px-4">Status</th>
+                                <th class="py-3.5 px-4">Last Updated</th>
+                                <th class="py-3.5 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-tickets-tbody" class="divide-y divide-slate-100">
+                            <tr><td colspan="7" class="text-center py-8 text-slate-400 font-semibold">Loading tickets...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (window.lucide) lucide.createIcons();
+    await loadUserTicketsList();
+}
+
+async function loadUserTicketsList() {
+    const tbody = document.getElementById('user-tickets-tbody');
+    if (!tbody) return;
+
+    try {
+        const res = await apiCall('tickets/list.php');
+        const tickets = res.tickets || [];
+
+        if (tickets.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center py-10 text-slate-400">
+                        <div class="max-w-xs mx-auto space-y-2">
+                            <i data-lucide="inbox" class="h-8 w-8 text-slate-300 mx-auto"></i>
+                            <p class="font-bold text-slate-700">No support tickets yet</p>
+                            <p class="text-[11px] text-slate-400">Need help? Click "Submit New Ticket" above to reach our support team.</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        tbody.innerHTML = tickets.map(t => {
+            const statusBadge = t.status === 'open' 
+                ? '<span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full font-black text-[10px] uppercase">Open</span>'
+                : (t.status === 'in_progress' 
+                    ? '<span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-black text-[10px] uppercase">In Progress</span>'
+                    : '<span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-black text-[10px] uppercase">Closed</span>');
+
+            const priorityBadge = t.priority === 'urgent'
+                ? '<span class="text-rose-600 font-black">Urgent</span>'
+                : (t.priority === 'high' ? '<span class="text-amber-600 font-bold">High</span>' : '<span class="text-slate-500 font-medium">Medium</span>');
+
+            return `
+                <tr class="hover:bg-slate-50/60 transition border-b border-slate-100">
+                    <td class="py-3.5 px-4 font-mono font-black text-indigo-600">${t.ticket_number}</td>
+                    <td class="py-3.5 px-4 font-bold text-slate-900 max-w-[220px] truncate" title="${t.subject}">${t.subject}</td>
+                    <td class="py-3.5 px-4 font-semibold text-slate-600 uppercase text-[10px]">${t.category || 'General'}</td>
+                    <td class="py-3.5 px-4 text-xs">${priorityBadge}</td>
+                    <td class="py-3.5 px-4">${statusBadge}</td>
+                    <td class="py-3.5 px-4 font-mono text-[11px] text-slate-400">${new Date(t.updated_at).toLocaleString()}</td>
+                    <td class="py-3.5 px-4 text-right">
+                        <button onclick="openUserTicketModal(${t.id})" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 font-bold text-xs rounded-xl transition cursor-pointer">
+                            View Thread (${t.message_count || 1})
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        if (window.lucide) lucide.createIcons();
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500 font-bold">Failed loading tickets: ${err.message}</td></tr>`;
+    }
+}
+
+let currentUserTicketFileUrl = null;
+
+window.openCreateTicketModal = function() {
+    const existing = document.getElementById('create-ticket-modal');
+    if (existing) existing.remove();
+    currentUserTicketFileUrl = null;
+
+    const modalHTML = `
+        <div id="create-ticket-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
+            <div class="bg-white rounded-3xl w-full max-w-lg shadow-2xl border border-slate-200 overflow-hidden text-slate-800 animate-slide-up text-left">
+                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <div class="flex items-center space-x-2.5">
+                        <div class="p-2 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100">
+                            <i data-lucide="plus-circle" class="h-5 w-5"></i>
+                        </div>
+                        <h3 class="text-base font-black text-slate-900">Submit Support Ticket</h3>
+                    </div>
+                    <button onclick="document.getElementById('create-ticket-modal').remove()" class="h-8 w-8 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer">
+                        <i data-lucide="x" class="h-4 w-4"></i>
+                    </button>
+                </div>
+
+                <form onsubmit="event.preventDefault(); submitCreateTicket();" class="p-6 space-y-4 text-xs">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Subject Line *</label>
+                        <input type="text" id="tck-new-subject" placeholder="Brief description of the issue" class="input-premium w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Category</label>
+                            <select id="tck-new-category" class="input-premium w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900">
+                                <option value="general">General Help</option>
+                                <option value="email_sync">Email Sync & SMTP</option>
+                                <option value="whatsapp">WhatsApp Cloud API</option>
+                                <option value="billing">Billing & Recharge</option>
+                                <option value="bug">Bug Report</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Priority</label>
+                            <select id="tck-new-priority" class="input-premium w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900">
+                                <option value="medium">Medium Priority</option>
+                                <option value="high">High Priority</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Detailed Description *</label>
+                        <textarea id="tck-new-message" rows="4" placeholder="Explain what happened, expected behavior, or steps to reproduce..." class="input-premium w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900" required></textarea>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Attach Screenshot / Document (Optional)</label>
+                        <div class="flex items-center space-x-3">
+                            <input type="file" id="tck-new-file" class="hidden" accept="image/*,.pdf" onchange="handleUserTicketFileSelected(this)">
+                            <button type="button" onclick="document.getElementById('tck-new-file').click()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 transition flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="upload-cloud" class="h-4 w-4 text-indigo-600"></i>
+                                <span>Choose Image/PDF</span>
+                            </button>
+                            <span id="tck-new-file-name" class="text-xs font-bold text-slate-500 truncate max-w-[200px]"></span>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-3">
+                        <button type="button" onclick="document.getElementById('create-ticket-modal').remove()" class="px-4 py-2.5 border border-slate-200 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-600 transition cursor-pointer">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shadow-md shadow-indigo-500/20 cursor-pointer" style="color:#ffffff !important;">
+                            Create Support Ticket
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    if (window.lucide) lucide.createIcons();
+};
+
+window.handleUserTicketFileSelected = async function(input) {
+    if (!input.files || !input.files[0]) return;
+    const file = input.files[0];
+    const formData = new FormData();
+    formData.append('attachment', file);
+
+    try {
+        const res = await apiCall('tickets/upload.php', 'POST', formData, true);
+        currentUserTicketFileUrl = res.file_url;
+        const nameSpan = document.getElementById('tck-new-file-name') || document.getElementById('tck-thread-file-name');
+        if (nameSpan) nameSpan.textContent = `✓ ${res.file_name}`;
+        showNotification('success', 'File attached successfully!');
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.submitCreateTicket = async function() {
+    const subject = document.getElementById('tck-new-subject').value.trim();
+    const category = document.getElementById('tck-new-category').value;
+    const priority = document.getElementById('tck-new-priority').value;
+    const message = document.getElementById('tck-new-message').value.trim();
+
+    if (!subject || !message) {
+        showNotification('warning', 'Subject and message are required.');
+        return;
+    }
+
+    const attachments = currentUserTicketFileUrl ? [currentUserTicketFileUrl] : [];
+
+    try {
+        const res = await apiCall('tickets/create.php', 'POST', {
+            subject: subject,
+            category: category,
+            priority: priority,
+            message: message,
+            attachments: attachments
+        });
+
+        showNotification('success', res.message);
+        document.getElementById('create-ticket-modal').remove();
+        loadUserTicketsList();
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.openUserTicketModal = async function(ticketId) {
+    const existing = document.getElementById('user-ticket-chat-modal');
+    if (existing) existing.remove();
+    currentUserTicketFileUrl = null;
+
+    try {
+        const res = await apiCall(`tickets/list.php?id=${ticketId}`);
+        const t = res.ticket;
+        const msgs = res.messages || [];
+
+        const modalHTML = `
+            <div id="user-ticket-chat-modal" class="fixed inset-0 z-[160] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-fade-in p-4">
+                <div class="bg-white rounded-3xl w-full max-w-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[85vh] text-slate-800 animate-slide-up text-left">
+                    <!-- Header -->
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl">
+                                <i data-lucide="ticket" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-mono font-black text-indigo-600 text-sm">${t.ticket_number}</span>
+                                    <span class="text-xs font-bold text-slate-400">• ${t.category.toUpperCase()}</span>
+                                </div>
+                                <h3 class="text-base font-black text-slate-900 leading-tight">${t.subject}</h3>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full font-black text-xs border border-indigo-100 uppercase">${t.status}</span>
+                            <button onclick="document.getElementById('user-ticket-chat-modal').remove()" class="h-8 w-8 rounded-full hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Messages Thread -->
+                    <div class="flex-grow overflow-y-auto p-6 space-y-4 text-xs bg-slate-50/40" id="user-ticket-messages-container">
+                        ${msgs.map(m => {
+                            const isMe = (m.sender_type === 'user');
+                            let atts = [];
+                            try { atts = JSON.parse(m.attachments_json || '[]'); } catch(e){}
+
+                            return `
+                                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1">
+                                    <div class="flex items-center space-x-2 px-1">
+                                        <span class="font-extrabold text-[11px] ${isMe ? 'text-slate-800' : 'text-indigo-600'}">${isMe ? 'You' : '🛡️ Staff Support'}</span>
+                                        <span class="text-[10px] text-slate-400 font-mono">${new Date(m.created_at).toLocaleString()}</span>
+                                    </div>
+                                    <div class="p-4 rounded-2xl max-w-[85%] leading-relaxed ${isMe ? 'bg-indigo-600 text-white shadow-md' : 'bg-white border border-slate-200/90 text-slate-800 shadow-2xs'}">
+                                        <div class="whitespace-pre-wrap font-medium">${m.message}</div>
+                                        ${atts.length > 0 ? `
+                                            <div class="mt-3 pt-2.5 border-t ${isMe ? 'border-indigo-500' : 'border-slate-100'} space-y-1.5">
+                                                <span class="block text-[10px] font-black uppercase opacity-80">Attachments:</span>
+                                                <div class="flex flex-wrap gap-2">
+                                                    ${atts.map(fileUrl => {
+                                                        const isImg = fileUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                                                        if (isImg) {
+                                                            return `<a href="${fileUrl}" target="_blank" class="block rounded-lg overflow-hidden border border-white/20 hover:opacity-90 transition"><img src="${fileUrl}" class="h-24 w-36 object-cover" /></a>`;
+                                                        }
+                                                        return `<a href="${fileUrl}" target="_blank" class="px-2.5 py-1 bg-white/20 rounded border border-white/30 text-[10px] font-bold text-white flex items-center space-x-1"><i data-lucide="file-text" class="h-3 w-3"></i><span>View File</span></a>`;
+                                                    }).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <!-- User Reply Area -->
+                    <div class="p-4 border-t border-slate-100 bg-white space-y-3 shrink-0">
+                        <div id="user-ticket-upload-preview" class="hidden flex items-center space-x-2 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                            <i data-lucide="image" class="h-4 w-4 text-indigo-600"></i>
+                            <span id="tck-thread-file-name" class="font-bold text-slate-700 truncate"></span>
+                            <button type="button" onclick="currentUserTicketFileUrl=null; document.getElementById('user-ticket-upload-preview').classList.add('hidden');" class="text-rose-500 hover:text-rose-700 font-black ml-auto">×</button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="file" id="user-ticket-reply-file" class="hidden" accept="image/*,.pdf" onchange="handleUserTicketFileSelected(this)">
+                            <button type="button" onclick="document.getElementById('user-ticket-reply-file').click()" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition border border-slate-200 shrink-0 cursor-pointer" title="Attach Image">
+                                <i data-lucide="paperclip" class="h-4.5 w-4.5"></i>
+                            </button>
+                            <input type="text" id="user-ticket-reply-msg" placeholder="Type reply to support team..." class="input-premium flex-grow px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold" onkeypress="if(event.key==='Enter') submitUserTicketReply(${ticketId})">
+                            <button type="button" onclick="submitUserTicketReply(${ticketId})" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition shrink-0 shadow-md shadow-indigo-500/20 cursor-pointer" style="color:#ffffff !important;">
+                                Send Reply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        if (window.lucide) lucide.createIcons();
+        const container = document.getElementById('user-ticket-messages-container');
+        if (container) container.scrollTop = container.scrollHeight;
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};
+
+window.submitUserTicketReply = async function(ticketId) {
+    const input = document.getElementById('user-ticket-reply-msg');
+    const msg = input ? input.value.trim() : '';
+
+    if (!msg) {
+        showNotification('warning', 'Please enter a reply message.');
+        return;
+    }
+
+    const attachments = currentUserTicketFileUrl ? [currentUserTicketFileUrl] : [];
+
+    try {
+        const res = await apiCall('tickets/reply.php', 'POST', {
+            ticket_id: ticketId,
+            message: msg,
+            attachments: attachments
+        });
+
+        showNotification('success', 'Reply posted!');
+        currentUserTicketFileUrl = null;
+        openUserTicketModal(ticketId);
+        loadUserTicketsList();
+    } catch (err) {
+        showNotification('error', err.message);
+    }
+};

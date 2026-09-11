@@ -2604,11 +2604,15 @@
                         imap_port: imapPort,
                         imap_username: imapUsername,
                         imap_password: imapPassword,
-                        imap_encryption: imapEncryption
+                        imap_encryption: imapEncryption,
+                        smtp_host: smtpHost
                     });
 
                     if (imapRes.status !== 'success') {
-                        throw new Error('IMAP Verification Failed: ' + (imapRes.message || 'Connection failed') + '\n\nTip: If your IMAP settings or host differ from SMTP, please uncheck "Use SMTP credentials & host presets" to adjust them manually.');
+                        throw new Error(imapRes.message || 'IMAP Connection failed');
+                    }
+                    if (imapRes.data && imapRes.data.resolved_host) {
+                        imapHost = imapRes.data.resolved_host;
                     }
                 }
 

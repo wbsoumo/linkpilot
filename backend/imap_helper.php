@@ -23,64 +23,129 @@ class IMAPHelper {
     }
 
     /**
-     * Test IMAP connection configurations
+     * Test IMAP connection configurations with smart host autodiscovery & actionable error guidance
      */
-    public static function testConnection($host, $port, $username, $password, $encryption) {
-        // Fast 1.5-second raw TCP socket pre-check (without SSL handshake overhead)
-        $t0 = microtime(true);
-        $fp = @fsockopen($host, (int)$port, $errno, $errstr, 1.5);
+    public static function testConnection($host, $port, $username, $password, $encryption, $smtpHostFallback = '') {
+        $candidateHosts = array_unique(array_filter([
+            $host,
+            $smtpHostFallback,
+            (strpos($host, 'imap.') === 0) ? str_replace('imap.', 'smtp.', $host) : '',
+            (strpos($host, 'imap.') === 0) ? str_replace('imap.', 'mail.', $host) : '',
+            (strpos($smtpHostFallback, 'smtp.') === 0) ? str_replace('smtp.', 'mail.', $smtpHostFallback) : ''
+        ]));
 
-        if (!$fp) {
-            // Direct socket to host blocked by firewall -> call AWS Proxy Worker immediately
-            $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
-                'imap_host' => $host,
-                'imap_port' => (int)$port,
-                'imap_username' => $username,
-                'imap_password' => $password,
-                'imap_encryption' => $encryption
-            ]);
-            if ($proxyRes !== null) {
-                return $proxyRes;
+        $lastError = '';
+
+        foreach ($candidateHosts as $tryHost) {
+            // Fast 1.5-second raw TCP socket pre-check (without SSL handshake overhead)
+            $fp = @fsockopen($tryHost, (int)$port, $errno, $errstr, 1.5);
+
+            if (!$fp) {
+                // Direct socket to host blocked by firewall -> call AWS Proxy Worker immediately
+                $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
+                    'imap_host' => $tryHost,
+                    'imap_port' => (int)$port,
+                    'imap_username' => $username,
+                    'imap_password' => $password,
+                    'imap_encryption' => $encryption
+                ]);
+                if ($proxyRes !== null && !empty($proxyRes['status'])) {
+                    if ($tryHost !== $host) {
+                        $proxyRes['message'] .= " (Auto-resolved IMAP Host: {$tryHost})";
+                        $proxyRes['resolved_host'] = $tryHost;
+                    }
+                    return $proxyRes;
+                }
+                if ($proxyRes !== null && !empty($proxyRes['message'])) {
+                    $lastError = $proxyRes['message'];
+                }
+            } else {
+                fclose($fp);
+
+                if (function_exists('imap_open')) {
+                    $connectionString = self::getConnectionString($tryHost, $port, $encryption) . "INBOX";
+                    @imap_timeout(IMAP_OPENTIMEOUT, 3);
+                    $mbox = @imap_open($connectionString, $username, $password, OP_HALFOPEN, 1, [
+                        'DISABLE_AUTHENTICATOR' => 'GSSAPI'
+                    ]);
+
+                    if ($mbox) {
+                        @imap_close($mbox);
+                        $msg = "IMAP Connection Test Successful.";
+                        if ($tryHost !== $host) {
+                            $msg .= " (Auto-resolved host: {$tryHost})";
+                        }
+                        return [
+                            "status" => true,
+                            "message" => $msg,
+                            "resolved_host" => $tryHost
+                        ];
+                    }
+                }
+
+                // Fallback to AWS Proxy Worker if local imap_open failed
+                $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
+                    'imap_host' => $tryHost,
+                    'imap_port' => (int)$port,
+                    'imap_username' => $username,
+                    'imap_password' => $password,
+                    'imap_encryption' => $encryption
+                ]);
+
+                if ($proxyRes !== null && !empty($proxyRes['status'])) {
+                    if ($tryHost !== $host) {
+                        $proxyRes['message'] .= " (Auto-resolved IMAP Host: {$tryHost})";
+                        $proxyRes['resolved_host'] = $tryHost;
+                    }
+                    return $proxyRes;
+                }
+                if ($proxyRes !== null && !empty($proxyRes['message'])) {
+                    $lastError = $proxyRes['message'];
+                }
             }
-        } else {
-            fclose($fp);
         }
 
-        if (function_exists('imap_open')) {
-            $connectionString = self::getConnectionString($host, $port, $encryption) . "INBOX";
-            @imap_timeout(IMAP_OPENTIMEOUT, 3);
-            $mbox = @imap_open($connectionString, $username, $password, OP_HALFOPEN, 1, [
-                'DISABLE_AUTHENTICATOR' => 'GSSAPI'
-            ]);
+        $rawErrors = function_exists('imap_errors') ? imap_errors() : null;
+        $rawErrorStr = $rawErrors ? implode(", ", $rawErrors) : ($lastError ?: "Unable to connect to IMAP server.");
 
-            if ($mbox) {
-                @imap_close($mbox);
-                return [
-                    "status" => true,
-                    "message" => "IMAP Connection Test Successful."
-                ];
-            }
-        }
+        // Translate technical raw errors into clean, actionable, point-by-point instructions
+        $userFriendlyMessage = self::formatActionableImapError($rawErrorStr, $host, $smtpHostFallback);
 
-        // Fallback to AWS Proxy Worker if imap_open failed
-        $proxyRes = SMTPHelper::callAwsProxyWorker('test_imap', [
-            'imap_host' => $host,
-            'imap_port' => (int)$port,
-            'imap_username' => $username,
-            'imap_password' => $password,
-            'imap_encryption' => $encryption
-        ]);
-
-        if ($proxyRes !== null) {
-            return $proxyRes;
-        }
-
-        $errors = function_exists('imap_errors') ? imap_errors() : null;
-        $errorMsg = $errors ? implode(", ", $errors) : ($errstr ?: "Unable to connect to IMAP server.");
         return [
             "status" => false,
-            "message" => "IMAP Connection Failed: " . $errorMsg
+            "message" => $userFriendlyMessage
         ];
+    }
+
+    /**
+     * Format raw technical IMAP errors into clear actionable guidance
+     */
+    private static function formatActionableImapError($rawError, $host, $smtpHost) {
+        if (stripos($rawError, 'getaddrinfo failed') !== false || stripos($rawError, 'Name or service not known') !== false) {
+            return "Domain Resolution Error: The server '{$host}' could not be found.\n\n" .
+                   "WHAT TO DO:\n" .
+                   "1. Uncheck 'Use SMTP credentials & host presets'.\n" .
+                   "2. Change your IMAP Host to '" . ($smtpHost ?: "smtp.yourdomain.com or server IP") . "'.\n" .
+                   "3. Check that your domain DNS has an A or CNAME record for '{$host}'.";
+        }
+
+        if (stripos($rawError, 'AUTHENTICATIONFAILED') !== false || stripos($rawError, 'Invalid credentials') !== false || stripos($rawError, 'Password incorrect') !== false || stripos($rawError, 'LOGINDATANOTACCEPTABLE') !== false) {
+            return "Authentication Error: Incorrect username or password for '{$host}'.\n\n" .
+                   "WHAT TO DO:\n" .
+                   "1. Verify your full email address is entered as the username.\n" .
+                   "2. If using Gmail / Zoho / Outlook, use an App-Specific Password instead of your regular account password.\n" .
+                   "3. Check for typos in your password.";
+        }
+
+        if (stripos($rawError, 'Connection timed out') !== false || stripos($rawError, 'refused') !== false || stripos($rawError, 'Could not connect') !== false) {
+            return "Connection Timed Out: Unable to reach '{$host}' on IMAP port.\n\n" .
+                   "WHAT TO DO:\n" .
+                   "1. If using Port 993, verify Encryption is set to SSL.\n" .
+                   "2. If using Port 143, verify Encryption is set to TLS or STARTTLS.\n" .
+                   "3. Ensure your server firewall allows incoming connections on port 993/143.";
+        }
+
+        return "IMAP Verification Issue: {$rawError}\n\nWHAT TO DO: Uncheck 'Use SMTP credentials & host presets' and manually verify host, port (993 for SSL), and credentials.";
     }
 
     /**

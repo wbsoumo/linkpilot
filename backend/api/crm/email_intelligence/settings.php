@@ -74,9 +74,12 @@ try {
                 sendJsonResponse('error', 'IMAP Host, Username, and Password are required.', [], 400);
             }
 
-            $test = IMAPHelper::testConnection($host, $port, $username, $password, $encryption);
+            $smtpHostFallback = trim($input['smtp_host'] ?? '');
+            $test = IMAPHelper::testConnection($host, $port, $username, $password, $encryption, $smtpHostFallback);
             if ($test['status']) {
-                sendJsonResponse('success', $test['message']);
+                sendJsonResponse('success', $test['message'], [
+                    'resolved_host' => $test['resolved_host'] ?? $host
+                ]);
             } else {
                 sendJsonResponse('error', $test['message']);
             }

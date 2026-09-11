@@ -888,7 +888,7 @@ async function renderDashboard(container) {
         container.innerHTML = `
             <div class="space-y-6 animate-fade-in relative min-h-[85vh] flex flex-col" id="dashboard-main-wrapper">
                 <!-- Banner header -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 shrink-0">
+                <div id="dash-banner-header" class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 shrink-0">
                     <div>
                         <h1 class="text-3xl font-black text-slate-900 tracking-tight">AI CRM Control Hub</h1>
                         <p class="text-slate-600 text-sm mt-1 font-medium">Real-time statistics, email intelligence queues, and lead activity pipeline.</p>
@@ -1446,11 +1446,13 @@ async function renderDashboard(container) {
             const heroTitleEl = document.getElementById('dash-claude-greeting-title');
             const statsContainer = document.getElementById('dash-stats-view-container');
             const chatView = document.getElementById('dash-inpage-chat-view');
+            const bannerHeader = document.getElementById('dash-banner-header');
 
             if (input) input.value = '';
 
             if (heroEl && statsContainer && chatView) {
-                // Animate title out
+                // Animate title and banner header out
+                if (bannerHeader) bannerHeader.classList.add('hidden');
                 if (heroTitleEl) {
                     heroTitleEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
                     heroTitleEl.style.opacity = '0';
@@ -1498,8 +1500,12 @@ async function renderDashboard(container) {
             const heroTitleEl = document.getElementById('dash-claude-greeting-title');
             const statsContainer = document.getElementById('dash-stats-view-container');
             const chatView = document.getElementById('dash-inpage-chat-view');
+            const bannerHeader = document.getElementById('dash-banner-header');
 
             if (heroEl && statsContainer && chatView) {
+                // Restore banner header
+                if (bannerHeader) bannerHeader.classList.remove('hidden');
+
                 // Restore hero to top position
                 heroEl.classList.remove('fixed', 'bottom-4', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
                 heroEl.classList.add('my-4', 'shrink-0');

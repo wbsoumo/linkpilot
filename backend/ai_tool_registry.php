@@ -5,12 +5,49 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/crm_sync_helper.php';
 require_once __DIR__ . '/communication_provider_helper.php';
 require_once __DIR__ . '/workflow_runner.php';
+require_once __DIR__ . '/lead_scoring_engine.php';
 
 class AIToolRegistry {
     private static $tools = [];
 
     public static function init() {
         if (!empty(self::$tools)) return;
+
+        // READ Tools
+        self::registerTool([
+            'id' => 'get_lead_score',
+            'name' => 'Get Lead Score & Signals',
+            'description' => 'Calculate and retrieve explainable AI lead score, intent level, signals breakdown, and recommended next action.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return LeadScoringEngine::calculateLeadScore($userId, (int)($params['lead_id'] ?? 0), $db, !empty($params['recalculate']));
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'get_hot_leads',
+            'name' => 'Get Hot Leads',
+            'description' => 'Retrieve top priority leads ranked by AI score, buying intent, and deal size.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return LeadScoringEngine::getHotLeads($userId, $db);
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'get_lead_score_history',
+            'name' => 'Get Score History',
+            'description' => 'Fetch historical score changes and reasons for a lead.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                $stmt = $db->prepare("SELECT * FROM crm_lead_score_history WHERE user_id = ? AND lead_id = ? ORDER BY created_at DESC LIMIT 20");
+                $stmt->execute([(int)$userId, (int)($params['lead_id'] ?? 0)]);
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        ]);
 
         // READ Tools
         self::registerTool([

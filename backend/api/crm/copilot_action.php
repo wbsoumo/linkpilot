@@ -148,6 +148,16 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         $db->prepare("INSERT INTO ai_action_logs (user_id, prompt, intent, channel, action_status) VALUES (?, ?, ?, ?, 'parsed')")
            ->execute([$userId, $prompt, $aiData['action_type'], strtolower($aiData['action_type'])]);
 
+        // Handle GET_HOT_LEADS intent
+        if ($aiData['action_type'] === 'GET_HOT_LEADS') {
+            $hotLeads = AIToolRegistry::executeTool('get_hot_leads', $userId, [], $db);
+            sendJsonResponse('success', 'Hot leads retrieved successfully.', [
+                'is_hot_leads_result' => true,
+                'hot_leads' => $hotLeads,
+                'parsed' => $aiData
+            ]);
+        }
+
         // Handle ANALYZE_PIPELINE intent
         if ($aiData['action_type'] === 'ANALYZE_PIPELINE') {
             $analytics = AIToolRegistry::executeTool('get_pipeline_summary', $userId, [], $db);

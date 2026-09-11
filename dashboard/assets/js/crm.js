@@ -4272,6 +4272,12 @@ async function renderLeads(container) {
         
         let leadRows = leads.length > 0 ? leads.map(l => {
             const date = new Date(l.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            const scoreVal = l.lead_score || 50;
+            let scoreBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/10 text-blue-400 border border-blue-500/20">${scoreVal}/100</span>`;
+            if (scoreVal >= 80) {
+                scoreBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-500/10 text-amber-400 border border-amber-500/20">🔥 ${scoreVal}/100</span>`;
+            }
+
             return `
                 <tr class="hover:bg-slate-900/40">
                     <td class="py-3 px-4 font-bold text-white">${l.name}</td>
@@ -4281,7 +4287,7 @@ async function renderLeads(container) {
                     <td class="py-3 px-4">
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-teal-500/10 text-teal-400 border border-teal-500/20">${l.stage}</span>
                     </td>
-                    <td class="py-3 px-4 text-slate-400">${l.priority}</td>
+                    <td class="py-3 px-4">${scoreBadge}</td>
                     <td class="py-3 px-4 text-slate-500">${date}</td>
                     <td class="py-3 px-4 text-right">
                         <button onclick="editCrmLead(${l.id})" class="text-xs px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-md hover:border-teal-400 hover:text-teal-400 transition">View Details</button>
@@ -4294,8 +4300,11 @@ async function renderLeads(container) {
             <div class="space-y-6 animate-fade-in pt-4">
                 <div class="flex justify-between items-center border-b border-slate-850 pb-4">
                     <div>
-                        <h1 class="text-2xl font-extrabold text-white">Lead Vault</h1>
-                        <p class="text-slate-400 text-xs mt-1">All inbound client leads captured automatically from Email sync and Scraping.</p>
+                        <h1 class="text-2xl font-extrabold text-white flex items-center">
+                            <span>Lead Vault</span>
+                            <span class="ml-2 text-xs px-2.5 py-0.5 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-full font-bold">AI Scoring Active</span>
+                        </h1>
+                        <p class="text-slate-400 text-xs mt-1">All inbound client leads with explainable AI Lead Scoring and intent analysis.</p>
                     </div>
                     <button onclick="createNewLeadModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5">
                         <i data-lucide="plus" class="h-3.5 w-3.5"></i>
@@ -4314,7 +4323,7 @@ async function renderLeads(container) {
                                     <th class="py-3 px-4">Email</th>
                                     <th class="py-3 px-4">Budget</th>
                                     <th class="py-3 px-4">Stage</th>
-                                    <th class="py-3 px-4">Priority</th>
+                                    <th class="py-3 px-4">AI Score</th>
                                     <th class="py-3 px-4">Created Date</th>
                                     <th class="py-3 px-4 text-right">Actions</th>
                                 </tr>

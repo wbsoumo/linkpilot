@@ -52,7 +52,7 @@
                         <!-- Action Suggestions Pills -->
                         <div class="flex flex-wrap gap-1.5 text-[10px]">
                             <span class="text-slate-400 font-bold self-center mr-1">Quick Prompts:</span>
-                            <button onclick="setCopilotPrompt('Add Rahul Sharma from ABC Ltd, rahul@abc.com as CEO.')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">👤 Add Rahul Contact</button>
+                            <button onclick="setCopilotPrompt('Find my hottest leads')" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg border border-amber-200 transition font-bold">🔥 Hot Leads</button>
                             <button onclick="setCopilotPrompt('Find all contacts from ABC Ltd')" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">🔍 Find ABC Contacts</button>
                             <button onclick="setCopilotPrompt('What is happening with my sales pipeline?')" class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 hover:text-purple-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">📊 Pipeline Analytics</button>
                             <button onclick="setCopilotPrompt('Whenever a new lead comes in, assign to Amit and send welcome email')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">⚡ Lead Automation</button>
@@ -278,6 +278,40 @@
                         </div>
                     </div>`;
                     searchList.innerHTML = analyticsHTML;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
+                if (data.data.is_hot_leads_result || data.is_hot_leads_result) {
+                    const hotLeads = data.data.hot_leads || data.hot_leads || [];
+                    const searchList = document.getElementById('copilot-search-results-list');
+                    searchCard.classList.remove('hidden');
+
+                    let leadsHTML = `<div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-3 text-xs">
+                        <div class="font-extrabold text-amber-900 flex items-center justify-between">
+                            <span class="flex items-center"><i data-lucide="flame" class="h-4 w-4 mr-1.5 text-amber-600 animate-pulse"></i> 🔥 Top Prioritized Hot Leads:</span>
+                            <span class="text-[10px] text-amber-700 font-mono">${hotLeads.length} leads evaluated</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${hotLeads.length > 0 ? hotLeads.map((l, i) => `
+                                <div class="bg-white p-3 rounded-lg border border-amber-200/80 shadow-sm space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-extrabold text-slate-800 text-xs">#${i+1} ${l.name}</span>
+                                            <span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-extrabold rounded-md text-[10px]">Score: ${l.score || 50}/100</span>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-slate-500">${l.company || 'Direct Lead'}</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 italic font-medium">${l.summary_text || 'Active intent lead'}</p>
+                                    <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px]">
+                                        <span class="text-blue-700 font-bold">💡 Recommended: ${l.recommended_action || 'Follow up'}</span>
+                                        <button onclick="setCopilotPrompt('Send email to ${l.name}')" class="text-blue-600 hover:underline font-bold">Draft Email →</button>
+                                    </div>
+                                </div>
+                            `).join('') : '<span class="text-slate-500">No hot leads found yet.</span>'}
+                        </div>
+                    </div>`;
+                    searchList.innerHTML = leadsHTML;
                     if (window.lucide) lucide.createIcons();
                     return;
                 }

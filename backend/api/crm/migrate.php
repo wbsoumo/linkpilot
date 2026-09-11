@@ -797,6 +797,59 @@ try {
             }
         }
         $messages[] = "Columns on 'crm_contacts' verified/updated.";
+
+        // AI Lead Scores Cache Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_lead_scores` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `lead_id` INT NOT NULL,
+            `score` INT DEFAULT 50,
+            `priority_label` ENUM('low', 'medium', 'high', 'very_high') DEFAULT 'medium',
+            `intent_level` ENUM('low', 'medium', 'high') DEFAULT 'medium',
+            `risk_level` ENUM('low', 'medium', 'high') DEFAULT 'low',
+            `conversion_likelihood` VARCHAR(50) DEFAULT 'medium',
+            `summary_text` TEXT DEFAULT NULL,
+            `recommended_action` VARCHAR(255) DEFAULT NULL,
+            `scoring_version` INT DEFAULT 1,
+            `calculated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_lead_scores_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_lead_scores_lead` FOREIGN KEY (`lead_id`) REFERENCES `crm_leads` (`id`) ON DELETE CASCADE,
+            UNIQUE KEY `uniq_user_lead_score` (`user_id`, `lead_id`),
+            INDEX `idx_ls_score_prio` (`user_id`, `score`, `priority_label`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'crm_lead_scores' checked/created.";
+
+        // AI Lead Score Signals Breakdown Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_lead_score_signals` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `lead_id` INT NOT NULL,
+            `category` VARCHAR(50) NOT NULL, -- engagement, intent, recency, deal, relationship
+            `signal_name` VARCHAR(150) NOT NULL,
+            `score_impact` INT NOT NULL,
+            `evidence_text` TEXT NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_ls_sig_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_ls_sig_lead` FOREIGN KEY (`lead_id`) REFERENCES `crm_leads` (`id`) ON DELETE CASCADE,
+            INDEX `idx_ls_sig_lookup` (`user_id`, `lead_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'crm_lead_score_signals' checked/created.";
+
+        // AI Lead Score History Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_lead_score_history` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `lead_id` INT NOT NULL,
+            `previous_score` INT NOT NULL,
+            `new_score` INT NOT NULL,
+            `reason` TEXT NOT NULL,
+            `scoring_version` INT DEFAULT 1,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_ls_hist_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_ls_hist_lead` FOREIGN KEY (`lead_id`) REFERENCES `crm_leads` (`id`) ON DELETE CASCADE,
+            INDEX `idx_ls_hist_lookup` (`user_id`, `lead_id`, `created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'crm_lead_score_history' checked/created.";
     } catch (Exception $e) {
         $messages[] = "Booking/tracking tables migration error: " . $e->getMessage();
     }

@@ -411,6 +411,56 @@ try {
         sendJsonResponse('success', 'Contact created successfully', ['contact_id' => $contactId]);
     }
     
+    elseif ($method === 'POST' && $action === 'check_duplicates') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $email = $input['email'] ?? null;
+        $phone = $input['phone'] ?? null;
+        $name = $input['name'] ?? null;
+        $companyName = $input['company'] ?? null;
+
+        $dups = CRMSyncHelper::findDuplicates($userId, $email, $phone, $name, $companyName, $db);
+        sendJsonResponse('success', 'Duplicate check complete.', ['duplicates' => $dups]);
+    }
+
+    elseif ($method === 'POST' && $action === 'merge') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $primaryId = (int)($input['primary_id'] ?? 0);
+        $secondaryId = (int)($input['secondary_id'] ?? 0);
+
+        if (!$primaryId || !$secondaryId) {
+            sendJsonResponse('error', 'Both primary_id and secondary_id are required for merging.', [], 400);
+        }
+
+        $merged = CRMSyncHelper::mergeContacts($userId, $primaryId, $secondaryId, $db);
+        sendJsonResponse('success', 'Contacts merged successfully.', ['primary_id' => $primaryId]);
+    }
+
+    elseif ($method === 'POST' && $action === 'add_note') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $contactId = (int)($input['contact_id'] ?? 0);
+        $noteText = trim($input['note_text'] ?? '');
+
+        if (!$contactId || empty($noteText)) {
+            sendJsonResponse('error', 'contact_id and note_text are required.', [], 400);
+        }
+
+        $noteId = CRMSyncHelper::addContactNote($userId, $contactId, $noteText, $user['name'] ?? 'User', $db);
+        sendJsonResponse('success', 'Note added successfully.', ['note_id' => $noteId]);
+    }
+
+    elseif ($method === 'POST' && $action === 'add_tag') {
+        $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+        $contactId = (int)($input['contact_id'] ?? 0);
+        $tagName = trim($input['tag_name'] ?? '');
+
+        if (!$contactId || empty($tagName)) {
+            sendJsonResponse('error', 'contact_id and tag_name are required.', [], 400);
+        }
+
+        CRMSyncHelper::addContactTag($userId, $contactId, $tagName, $db);
+        sendJsonResponse('success', 'Tag added successfully.', ['tag_name' => $tagName]);
+    }
+
     elseif ($method === 'PUT' || $method === 'UPDATE') {
         // Update contact
         $input = json_decode(file_get_contents('php://input'), true);

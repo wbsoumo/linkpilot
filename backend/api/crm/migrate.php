@@ -678,6 +678,51 @@ try {
             INDEX `idx_ai_act_user` (`user_id`, `created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
         $messages[] = "Table 'ai_action_logs' checked/created.";
+
+        // 14. Dedicated Contact Notes Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_contact_notes` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `contact_id` INT NOT NULL,
+            `note_text` LONGTEXT NOT NULL,
+            `author_name` VARCHAR(255) DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_cnt_notes_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_cnt_notes_contact` FOREIGN KEY (`contact_id`) REFERENCES `crm_contacts` (`id`) ON DELETE CASCADE,
+            INDEX `idx_cnt_notes_lookup` (`user_id`, `contact_id`, `created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'crm_contact_notes' checked/created.";
+
+        // 15. Contact Tags Management Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_contact_tags` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `tag_name` VARCHAR(100) NOT NULL,
+            `color_code` VARCHAR(20) DEFAULT '#3b82f6',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_cnt_tags_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            UNIQUE KEY `uniq_user_tag` (`user_id`, `tag_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'crm_contact_tags' checked/created.";
+
+        // Column checks for crm_contacts
+        $contactCols = [
+            'contact_type' => "VARCHAR(50) DEFAULT 'Prospect'",
+            'owner' => "VARCHAR(255) DEFAULT NULL",
+            'tags' => "TEXT DEFAULT NULL",
+            'city' => "VARCHAR(100) DEFAULT NULL",
+            'state' => "VARCHAR(100) DEFAULT NULL",
+            'country' => "VARCHAR(100) DEFAULT NULL",
+            'last_contacted_at' => "DATETIME DEFAULT NULL",
+            'is_archived' => "TINYINT(1) DEFAULT 0"
+        ];
+        foreach ($contactCols as $col => $def) {
+            $cStmt = $db->query("SHOW COLUMNS FROM `crm_contacts` LIKE '{$col}'");
+            if (!$cStmt->fetch()) {
+                $db->exec("ALTER TABLE `crm_contacts` ADD COLUMN `{$col}` {$def}");
+            }
+        }
+        $messages[] = "Columns on 'crm_contacts' verified/updated.";
     } catch (Exception $e) {
         $messages[] = "Booking/tracking tables migration error: " . $e->getMessage();
     }

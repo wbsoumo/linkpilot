@@ -29,7 +29,7 @@
                             </div>
                             <div>
                                 <h3 class="font-extrabold text-sm text-white">LinkPilot Autonomous AI Co-Pilot</h3>
-                                <p class="text-[10px] text-slate-400">Type any natural language command (Email, WhatsApp, Task, Invoice)</p>
+                                <p class="text-[10px] text-slate-400">Manage Contacts, Email, WhatsApp, Tasks & Invoices via Natural Language</p>
                             </div>
                         </div>
                         <button onclick="closeCopilotModal()" class="text-slate-400 hover:text-white transition p-1 rounded-lg hover:bg-slate-800">
@@ -42,7 +42,7 @@
                         <div class="space-y-2">
                             <label class="block text-xs font-bold text-slate-700">Command Prompt:</label>
                             <div class="relative">
-                                <textarea id="copilot-prompt-input" rows="3" placeholder="e.g. 'Send an email to Rahul telling him proposal is ready', 'WhatsApp Sarah offering 15% discount', 'Schedule this email for tomorrow at 10 AM', 'Create invoice for $1500 for Acme Corp'" class="w-full text-xs p-3.5 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-800 placeholder-slate-400 resize-none shadow-inner"></textarea>
+                                <textarea id="copilot-prompt-input" rows="3" placeholder="e.g. 'Add Rahul Sharma from ABC Ltd, rahul@abc.com as CEO', 'Find all contacts from ABC Ltd', 'Add a note to Rahul saying he wants a demo next week', 'Tag all Kolkata contacts as Kolkata Leads'" class="w-full text-xs p-3.5 pr-10 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-800 placeholder-slate-400 resize-none shadow-inner"></textarea>
                                 <button onclick="parseCopilotCommand()" id="copilot-parse-btn" class="absolute bottom-3 right-3 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition flex items-center justify-center shadow-md">
                                     <i data-lucide="send" class="h-3.5 w-3.5"></i>
                                 </button>
@@ -52,16 +52,16 @@
                         <!-- Action Suggestions Pills -->
                         <div class="flex flex-wrap gap-1.5 text-[10px]">
                             <span class="text-slate-400 font-bold self-center mr-1">Quick Prompts:</span>
-                            <button onclick="setCopilotPrompt('Send Rahul the proposal and tell him we can start Monday.')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">📧 Email Rahul Proposal</button>
-                            <button onclick="setCopilotPrompt('Send the same message to Rahul on WhatsApp.')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">💬 WhatsApp Message</button>
-                            <button onclick="setCopilotPrompt('Schedule this email for tomorrow at 10 AM.')" class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 hover:text-purple-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">📅 Schedule 10 AM</button>
-                            <button onclick="setCopilotPrompt('Create invoice of $1,500 for Web Development services')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">🧾 Create Invoice</button>
+                            <button onclick="setCopilotPrompt('Add Rahul Sharma from ABC Ltd, rahul@abc.com as CEO.')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">👤 Add Rahul Contact</button>
+                            <button onclick="setCopilotPrompt('Find all contacts from ABC Ltd')" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">🔍 Find ABC Contacts</button>
+                            <button onclick="setCopilotPrompt('Add a note to Rahul saying he is interested in the premium package')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">📝 Add Note to Rahul</button>
+                            <button onclick="setCopilotPrompt('Tag Rahul as Hot Lead')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">🏷️ Tag Hot Lead</button>
                         </div>
 
                         <!-- Loading State -->
                         <div id="copilot-loader" class="hidden py-8 flex flex-col items-center justify-center space-y-2 text-slate-500">
                             <i data-lucide="loader-2" class="h-6 w-6 animate-spin text-blue-600"></i>
-                            <span class="text-xs font-bold text-slate-600">Parsing intent & resolving contacts/files...</span>
+                            <span class="text-xs font-bold text-slate-600">Parsing intent & resolving contact data...</span>
                         </div>
 
                         <!-- Ambiguous Contacts Picker Card -->
@@ -71,6 +71,24 @@
                                 <span>Multiple contacts matched. Please select the recipient:</span>
                             </div>
                             <div id="copilot-candidates-list" class="space-y-1.5"></div>
+                        </div>
+
+                        <!-- Duplicate Contact Warning Card -->
+                        <div id="copilot-duplicate-card" class="hidden border border-rose-300 bg-rose-50/70 rounded-xl p-4 space-y-3">
+                            <div class="flex items-center space-x-2 text-rose-800 font-bold text-xs">
+                                <i data-lucide="alert-triangle" class="h-4 w-4 text-rose-600"></i>
+                                <span>Possible Duplicate Contact Found in LinkPilot CRM:</span>
+                            </div>
+                            <div id="copilot-duplicates-list" class="space-y-2"></div>
+                            <div class="flex items-center space-x-2 pt-2 border-t border-rose-200">
+                                <button onclick="forceCreateContactAnyway()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] rounded-lg shadow-sm">Create Anyway</button>
+                            </div>
+                        </div>
+
+                        <!-- Contact Search Result Cards Container -->
+                        <div id="copilot-search-results-card" class="hidden space-y-2">
+                            <span class="text-xs font-bold text-slate-700 block">Search Results:</span>
+                            <div id="copilot-search-results-list" class="space-y-2"></div>
                         </div>
 
                         <!-- Dynamic Interactive Action Preview Card -->
@@ -112,7 +130,7 @@
                             </button>
                             <button onclick="executeCopilotAction(false)" id="copilot-execute-btn" class="hidden px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold rounded-xl text-xs transition shadow-md flex items-center space-x-1.5">
                                 <i data-lucide="send" class="h-4 w-4"></i>
-                                <span>Send Now</span>
+                                <span>Execute Action</span>
                             </button>
                         </div>
                     </div>
@@ -186,6 +204,14 @@
         renderActionPreview(currentParsedData);
     };
 
+    window.forceCreateContactAnyway = function () {
+        const dupCard = document.getElementById('copilot-duplicate-card');
+        if (dupCard) dupCard.classList.add('hidden');
+        if (currentParsedData) {
+            renderActionPreview(currentParsedData);
+        }
+    };
+
     window.parseCopilotCommand = async function () {
         const input = document.getElementById('copilot-prompt-input');
         const prompt = input ? input.value.trim() : '';
@@ -196,6 +222,8 @@
 
         const loader = document.getElementById('copilot-loader');
         const ambCard = document.getElementById('copilot-ambiguous-card');
+        const dupCard = document.getElementById('copilot-duplicate-card');
+        const searchCard = document.getElementById('copilot-search-results-card');
         const previewCard = document.getElementById('copilot-action-preview-card');
         const errBanner = document.getElementById('copilot-error-banner');
         const executeBtn = document.getElementById('copilot-execute-btn');
@@ -203,6 +231,8 @@
 
         if (loader) loader.classList.remove('hidden');
         if (ambCard) ambCard.classList.add('hidden');
+        if (dupCard) dupCard.classList.add('hidden');
+        if (searchCard) searchCard.classList.add('hidden');
         if (previewCard) previewCard.classList.add('hidden');
         if (errBanner) errBanner.classList.add('hidden');
         if (executeBtn) executeBtn.classList.add('hidden');
@@ -223,8 +253,12 @@
             if (loader) loader.classList.add('hidden');
 
             if (data.status === 'success' && data.data) {
-                if (data.data.ambiguous && data.data.candidates) {
-                    // Render Ambiguous Contact Selector Card
+                if (data.data.is_search_result) {
+                    renderSearchResults(data.data.search_results || []);
+                } else if (data.data.duplicate_found && data.data.duplicates) {
+                    currentParsedData = data.data.parsed;
+                    renderDuplicatesWarning(data.data.duplicates);
+                } else if (data.data.ambiguous && data.data.candidates) {
                     currentParsedData = data.data.parsed;
                     renderAmbiguousPicker(data.data.candidates);
                 } else if (data.data.parsed) {
@@ -239,6 +273,51 @@
             if (window.showNotification) showNotification('error', 'Network error: ' + err.message);
         }
     };
+
+    function renderSearchResults(results) {
+        const searchCard = document.getElementById('copilot-search-results-card');
+        const list = document.getElementById('copilot-search-results-list');
+        if (!searchCard || !list) return;
+
+        if (results.length === 0) {
+            list.innerHTML = `<p class="text-xs text-slate-500 py-4 text-center">No contacts match the specified criteria.</p>`;
+        } else {
+            list.innerHTML = results.map(c => `
+                <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
+                    <div>
+                        <span class="font-bold text-slate-800 text-xs">${c.name}</span>
+                        <span class="text-[10px] text-slate-500 block">${c.designation ? c.designation + ' • ' : ''}${c.company_name ? c.company_name : ''} (${c.email || c.phone || 'No contact details'})</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="quickActionOnContact('email', ${c.id}, '${escapeQuotes(c.email)}')" class="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-[10px] font-bold">Email</button>
+                        <button onclick="quickActionOnContact('whatsapp', ${c.id}, '${escapeQuotes(c.phone || c.whatsapp)}')" class="px-2 py-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded text-[10px] font-bold">WhatsApp</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        searchCard.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderDuplicatesWarning(duplicates) {
+        const dupCard = document.getElementById('copilot-duplicate-card');
+        const list = document.getElementById('copilot-duplicates-list');
+        if (!dupCard || !list) return;
+
+        list.innerHTML = duplicates.map(d => `
+            <div class="p-2.5 bg-white border border-rose-200 rounded-xl flex items-center justify-between shadow-xs">
+                <div>
+                    <span class="font-bold text-slate-800 text-xs">${d.name}</span>
+                    <span class="text-[10px] text-slate-500 block">${d.email ? d.email : ''} ${d.phone ? '• ' + d.phone : ''}</span>
+                </div>
+                <button onclick="selectCandidateContact(${d.id}, '${escapeQuotes(d.name)}', '${escapeQuotes(d.email || '')}', '${escapeQuotes(d.phone || '')}')" class="px-2.5 py-1 bg-rose-600 text-white rounded text-[10px] font-bold hover:bg-rose-700">Open Existing</button>
+            </div>
+        `).join('');
+
+        dupCard.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
 
     function renderAmbiguousPicker(candidates) {
         const ambCard = document.getElementById('copilot-ambiguous-card');
@@ -279,12 +358,52 @@
         if (matched) {
             contactInfo.textContent = `To: ${matched.name} <${matched.email || matched.phone || 'N/A'}>`;
         } else {
-            contactInfo.textContent = `To: ${parsed.target_contact?.name || 'Prospect'}`;
+            contactInfo.textContent = `Target: ${parsed.target_contact?.name || 'Prospect'}`;
         }
 
         let fieldsHTML = '';
 
-        if (parsed.action_type === 'SEND_EMAIL') {
+        if (parsed.action_type === 'CREATE_CONTACT') {
+            const target = parsed.target_contact || {};
+            fieldsHTML = `
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="font-bold text-slate-700">Full Name:</label>
+                        <input type="text" id="copilot-field-cnt-name" value="${target.name || ''}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700">Company Name:</label>
+                        <input type="text" id="copilot-field-cnt-comp" value="${target.company || ''}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="font-bold text-slate-700">Email Address:</label>
+                        <input type="email" id="copilot-field-cnt-email" value="${target.email || ''}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-700">Phone / WhatsApp:</label>
+                        <input type="text" id="copilot-field-cnt-phone" value="${target.phone || ''}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                    </div>
+                </div>
+            `;
+        } else if (parsed.action_type === 'ADD_NOTE') {
+            const target = parsed.target_contact || {};
+            fieldsHTML = `
+                <div>
+                    <label class="font-bold text-slate-700">Note Content:</label>
+                    <textarea id="copilot-field-note-text" rows="3" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1 resize-none">${target.note_text || parsed.summary || ''}</textarea>
+                </div>
+            `;
+        } else if (parsed.action_type === 'ADD_TAG') {
+            const target = parsed.target_contact || {};
+            fieldsHTML = `
+                <div>
+                    <label class="font-bold text-slate-700">Tag Name:</label>
+                    <input type="text" id="copilot-field-tag-name" value="${target.tag || 'Hot Lead'}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                </div>
+            `;
+        } else if (parsed.action_type === 'SEND_EMAIL') {
             const draft = parsed.email_draft || {};
             const emailAddr = matched?.email || parsed.target_contact?.email || '';
             fieldsHTML = `
@@ -356,20 +475,22 @@
             `;
         }
 
-        // Render Schedule Controls
-        const sched = parsed.scheduling || {};
-        fieldsHTML += `
-            <div class="pt-2 border-t border-blue-200/60 mt-2">
-                <label class="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" id="copilot-checkbox-schedule" ${sched.is_scheduled ? 'checked' : ''} onchange="toggleCopilotScheduleInput(this.checked)" class="rounded text-blue-600 focus:ring-blue-500">
-                    <span class="font-bold text-slate-700">Schedule for future delivery</span>
-                </label>
-                <div id="copilot-schedule-time-box" class="${sched.is_scheduled ? '' : 'hidden'} mt-2">
-                    <label class="font-bold text-slate-700 block mb-1">Select Schedule Date & Time:</label>
-                    <input type="datetime-local" id="copilot-field-schedule-time" value="${sched.scheduled_at ? sched.scheduled_at.replace(' ', 'T') : ''}" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-mono">
+        // Render Schedule Controls for messaging actions
+        if (parsed.action_type === 'SEND_EMAIL' || parsed.action_type === 'SEND_WHATSAPP') {
+            const sched = parsed.scheduling || {};
+            fieldsHTML += `
+                <div class="pt-2 border-t border-blue-200/60 mt-2">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="copilot-checkbox-schedule" ${sched.is_scheduled ? 'checked' : ''} onchange="toggleCopilotScheduleInput(this.checked)" class="rounded text-blue-600 focus:ring-blue-500">
+                        <span class="font-bold text-slate-700">Schedule for future delivery</span>
+                    </label>
+                    <div id="copilot-schedule-time-box" class="${sched.is_scheduled ? '' : 'hidden'} mt-2">
+                        <label class="font-bold text-slate-700 block mb-1">Select Schedule Date & Time:</label>
+                        <input type="datetime-local" id="copilot-field-schedule-time" value="${sched.scheduled_at ? sched.scheduled_at.replace(' ', 'T') : ''}" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-mono">
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
 
         fieldsContainer.innerHTML = fieldsHTML;
 
@@ -389,7 +510,9 @@
 
         previewCard.classList.remove('hidden');
         if (executeBtn) executeBtn.classList.remove('hidden');
-        if (scheduleBtn) scheduleBtn.classList.remove('hidden');
+        if ((parsed.action_type === 'SEND_EMAIL' || parsed.action_type === 'SEND_WHATSAPP') && scheduleBtn) {
+            scheduleBtn.classList.remove('hidden');
+        }
         if (window.lucide) lucide.createIcons();
     }
 
@@ -398,6 +521,14 @@
         if (box) {
             if (checked) box.classList.remove('hidden');
             else box.classList.add('hidden');
+        }
+    };
+
+    window.quickActionOnContact = function (action, contactId, val) {
+        if (action === 'email') {
+            window.setCopilotPrompt(`Send email to contact ${val}`);
+        } else if (action === 'whatsapp') {
+            window.setCopilotPrompt(`Send WhatsApp message to ${val}`);
         }
     };
 
@@ -435,7 +566,20 @@
         };
 
         // Extract updated form values from preview card
-        if (payload.action_type === 'SEND_EMAIL') {
+        if (payload.action_type === 'CREATE_CONTACT') {
+            payload.target_contact = {
+                name: document.getElementById('copilot-field-cnt-name')?.value || '',
+                company: document.getElementById('copilot-field-cnt-comp')?.value || '',
+                email: document.getElementById('copilot-field-cnt-email')?.value || '',
+                phone: document.getElementById('copilot-field-cnt-phone')?.value || ''
+            };
+        } else if (payload.action_type === 'ADD_NOTE') {
+            if (!payload.target_contact) payload.target_contact = {};
+            payload.target_contact.note_text = document.getElementById('copilot-field-note-text')?.value || '';
+        } else if (payload.action_type === 'ADD_TAG') {
+            if (!payload.target_contact) payload.target_contact = {};
+            payload.target_contact.tag = document.getElementById('copilot-field-tag-name')?.value || '';
+        } else if (payload.action_type === 'SEND_EMAIL') {
             payload.email_draft = {
                 recipient_email: document.getElementById('copilot-field-email')?.value || '',
                 subject: document.getElementById('copilot-field-subject')?.value || '',
@@ -480,7 +624,6 @@
                 if (typeof window.updateGlobalTaskBadges === 'function') window.updateGlobalTaskBadges();
                 if (window.currentView && typeof window.navigateTo === 'function') window.navigateTo(window.currentView);
             } else {
-                // Surface actionable provider error banner if integration is missing
                 if (errBanner && errText) {
                     errText.textContent = data.message || 'Execution failed.';
                     errBanner.classList.remove('hidden');

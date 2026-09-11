@@ -362,5 +362,215 @@ class CRMSyncHelper {
             return false;
         }
     }
+
+    /**
+     * Finds potential duplicate contacts by Email, Phone, or Name + Company.
+     */
+    public static function findDuplicates($userId, $email = null, $phone = null, $name = null, $companyName = null, $db = null) {
+        if (!$db) $db = Database::getConnection();
+
+        $duplicates = [];
+        $email = $email ? strtolower(trim($email)) : null;
+        $phone = $phone ? trim($phone) : null;
+        $cleanPhone = $phone ? preg_replace('/[^0-9]/', '', $phone) : null;
+        $shortPhone = ($cleanPhone && strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
+        $name = $name ? trim($name) : null;
+
+        if ($email) {
+            $stmt = $db->prepare("SELECT * FROM crm_contacts WHERE user_id = ? AND (LOWER(email) = ? OR LOWER(alternate_email) = ?) AND is_archived = 0");
+            $stmt->execute([$userId, $email, $email]);
+            $duplicates = array_merge($duplicates, $stmt->fetchAll(PDO::FETCH_ASSOC));
+        }
+
+        if ($shortPhone) {
+            $stmt = $db->prepare("SELECT * FROM crm_contacts WHERE user_id = ? AND (
+                RIGHT(REGEXP_REPLACE(phone, '[^0-9]', ''), 10) = ? OR 
+                RIGHT(REGEXP_REPLACE(whatsapp, '[^0-9]', ''), 10) = ?
+            ) AND is_archived = 0");
+            $stmt->execute([$userId, $shortPhone, $shortPhone]);
+            $duplicates = array_merge($duplicates, $stmt->fetchAll(PDO::FETCH_ASSOC));
+        }
+
+        if ($name && $companyName) {
+            $stmt = $db->prepare("SELECT c.* FROM crm_contacts c JOIN crm_companies comp ON c.company_id = comp.id WHERE c.user_id = ? AND c.name LIKE ? AND comp.name LIKE ? AND c.is_archived = 0");
+            $stmt->execute([$userId, "%$name%", "%$companyName%"]);
+            $duplicates = array_merge($duplicates, $stmt->fetchAll(PDO::FETCH_ASSOC));
+        }
+
+        // Deduplicate array by ID
+        $unique = [];
+        foreach ($duplicates as $d) {
+            $unique[$d['id']] = $d;
+        }
+
+        return array_values($unique);
+    }
+
+    /**
+     * DB-level contact search and filtering with pagination.
+     */
+    public static function searchContacts($userId, $filters = [], $limit = 50, $offset = 0, $db = null) {
+        if (!$db) $db = Database::getConnection();
+
+        $query = "SELECT c.*, comp.name AS company_name FROM crm_contacts c LEFT JOIN crm_companies comp ON c.company_id = comp.id WHERE c.user_id = :user_id AND c.is_archived = 0";
+        $params = ['user_id' => $userId];
+
+        if (!empty($filters['q'])) {
+            $searchTerm = '%' . trim($filters['q']) . '%';
+            $query .= " AND (c.name LIKE :q OR c.email LIKE :q OR c.phone LIKE :q OR comp.name LIKE :q OR c.designation LIKE :q OR c.tags LIKE :q)";
+            $params['q'] = $searchTerm;
+        }
+
+        if (!empty($filters['city'])) {
+            $query .= " AND (c.city LIKE :city OR c.location LIKE :city)";
+            $params['city'] = '%' . trim($filters['city']) . '%';
+        }
+
+        if (!empty($filters['contact_type'])) {
+            $query .= " AND c.contact_type = :contact_type";
+            $params['contact_type'] = trim($filters['contact_type']);
+        }
+
+        if (!empty($filters['tag'])) {
+            $query .= " AND c.tags LIKE :tag";
+            $params['tag'] = '%' . trim($filters['tag']) . '%';
+        }
+
+        if (!empty($filters['not_contacted_days'])) {
+            $days = (int)$filters['not_contacted_days'];
+            $query .= " AND (c.last_contacted_at IS NULL OR c.last_contacted_at <= DATE_SUB(NOW(), INTERVAL :days DAY))";
+            $params['days'] = $days;
+        }
+
+        $query .= " ORDER BY c.created_at DESC LIMIT :limit OFFSET :offset";
+
+        $stmt = $db->prepare($query);
+        foreach ($params as $key => $val) {
+            if ($key === 'days' || $key === 'limit' || $key === 'offset') {
+                $stmt->bindValue($key, (int)$val, PDO::PARAM_INT);
+            } else {
+                $stmt->bindValue($key, $val, PDO::PARAM_STR);
+            }
+        }
+        $stmt->bindValue('limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue('offset', (int)$offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Merges secondary contact records into primary contact.
+     */
+    public static function mergeContacts($userId, $primaryId, $secondaryId, $db = null) {
+        if (!$db) $db = Database::getConnection();
+
+        $primaryId = (int)$primaryId;
+        $secondaryId = (int)$secondaryId;
+
+        if ($primaryId === $secondaryId) return false;
+
+        $db->beginTransaction();
+        try {
+            // Re-assign timeline activities, notes, tasks, deals, and meetings
+            $db->prepare("UPDATE crm_activity_timeline SET contact_id = ? WHERE user_id = ? AND contact_id = ?")->execute([$primaryId, $userId, $secondaryId]);
+            $db->prepare("UPDATE crm_contact_notes SET contact_id = ? WHERE user_id = ? AND contact_id = ?")->execute([$primaryId, $userId, $secondaryId]);
+            $db->prepare("UPDATE crm_tasks SET contact_id = ? WHERE user_id = ? AND contact_id = ?")->execute([$primaryId, $userId, $secondaryId]);
+            $db->prepare("UPDATE crm_deals SET contact_id = ? WHERE user_id = ? AND contact_id = ?")->execute([$primaryId, $userId, $secondaryId]);
+            $db->prepare("UPDATE crm_meetings SET contact_id = ? WHERE user_id = ? AND contact_id = ?")->execute([$primaryId, $userId, $secondaryId]);
+
+            // Soft-archive secondary contact
+            $db->prepare("UPDATE crm_contacts SET is_archived = 1, notes = CONCAT(IFNULL(notes,''), '\n[Merged into Contact #', ?, ']') WHERE id = ? AND user_id = ?")->execute([$primaryId, $secondaryId, $userId]);
+
+            $db->commit();
+
+            self::logActivity($userId, $primaryId, 'system', 'system', "Merged Contact #$secondaryId into Primary Contact #$primaryId", [], $db);
+            return true;
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Retrieves sanitized contact context object for AI prompts (AI Prompt Injection Protection).
+     */
+    public static function getContactContext($userId, $contactId, $db = null) {
+        if (!$db) $db = Database::getConnection();
+
+        $stmt = $db->prepare("SELECT c.*, comp.name AS company_name FROM crm_contacts c LEFT JOIN crm_companies comp ON c.company_id = comp.id WHERE c.id = ? AND c.user_id = ? LIMIT 1");
+        $stmt->execute([$contactId, $userId]);
+        $c = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$c) return null;
+
+        // Fetch recent notes
+        $stmtNotes = $db->prepare("SELECT note_text, created_at FROM crm_contact_notes WHERE user_id = ? AND contact_id = ? ORDER BY created_at DESC LIMIT 5");
+        $stmtNotes->execute([$userId, $contactId]);
+        $notes = $stmtNotes->fetchAll(PDO::FETCH_ASSOC);
+
+        // Sanitize notes to prevent prompt injection instructions
+        $cleanNotes = array_map(function($n) {
+            $safeText = preg_replace('/(ignore|override|system|delete|system prompt)/i', '[redacted]', $n['note_text']);
+            return "- [{$n['created_at']}] $safeText";
+        }, $notes);
+
+        return [
+            'contact_id' => $c['id'],
+            'name' => $c['name'],
+            'email' => $c['email'],
+            'phone' => $c['phone'],
+            'whatsapp' => $c['whatsapp'],
+            'company' => $c['company_name'],
+            'designation' => $c['designation'],
+            'contact_type' => $c['contact_type'],
+            'tags' => $c['tags'],
+            'city' => $c['city'],
+            'recent_notes' => implode("\n", $cleanNotes)
+        ];
+    }
+
+    /**
+     * Adds a note to crm_contact_notes and logs to activity timeline.
+     */
+    public static function addContactNote($userId, $contactId, $noteText, $authorName = 'AI Co-Pilot', $db = null) {
+        if (!$db) $db = Database::getConnection();
+
+        $stmt = $db->prepare("INSERT INTO crm_contact_notes (user_id, contact_id, note_text, author_name) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$userId, $contactId, $noteText, $authorName]);
+        $noteId = $db->lastInsertId();
+
+        self::logActivity($userId, $contactId, 'system', 'system', "Added Note: \"$noteText\"", ['note_id' => $noteId], $db);
+        return $noteId;
+    }
+
+    /**
+     * Adds a tag to contact tags list.
+     */
+    public static function addContactTag($userId, $contactId, $tagName, $db = null) {
+        if (!$db) $db = Database::getConnection();
+
+        $tagName = trim($tagName);
+        if (empty($tagName)) return false;
+
+        // Ensure tag exists in master tags table
+        $db->prepare("INSERT IGNORE INTO crm_contact_tags (user_id, tag_name) VALUES (?, ?)")->execute([$userId, $tagName]);
+
+        // Append tag to crm_contacts.tags if not present
+        $stmtC = $db->prepare("SELECT tags FROM crm_contacts WHERE id = ? AND user_id = ? LIMIT 1");
+        $stmtC->execute([$contactId, $userId]);
+        $currTags = $stmtC->fetchColumn() ?: '';
+
+        $tagArray = array_filter(array_map('trim', explode(',', $currTags)));
+        if (!in_array($tagName, $tagArray)) {
+            $tagArray[] = $tagName;
+            $newTagStr = implode(',', $tagArray);
+            $db->prepare("UPDATE crm_contacts SET tags = ? WHERE id = ? AND user_id = ?")->execute([$newTagStr, $contactId, $userId]);
+
+            self::logActivity($userId, $contactId, 'system', 'system', "Added Tag: \"$tagName\"", ['tag' => $tagName], $db);
+        }
+        return true;
+    }
 }
+
 

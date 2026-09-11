@@ -30,7 +30,7 @@ try {
         }
 
         // 1. Fetch workspace contacts for context matching
-        $stmtCon = $db->prepare("SELECT id, name, email, phone, whatsapp, company_id FROM crm_contacts WHERE user_id = ? ORDER BY id DESC LIMIT 50");
+        $stmtCon = $db->prepare("SELECT id, name, email, phone, whatsapp, company_id FROM crm_contacts WHERE user_id = ? AND is_archived = 0 ORDER BY id DESC LIMIT 50");
         $stmtCon->execute([$userId]);
         $contacts = $stmtCon->fetchAll(PDO::FETCH_ASSOC);
 
@@ -55,14 +55,25 @@ Supported action_type options:
 4. 'SCHEDULE_MEETING': Schedule a meeting call and create a task.
 5. 'CREATE_TASK': Create a task with due date/time and priority.
 6. 'MOVE_DEAL': Update a deal stage (e.g. Lead, Qualified, Proposal, Negotiation, Closed Won, Closed Lost).
+7. 'CREATE_CONTACT': Add a new contact to CRM.
+8. 'UPDATE_CONTACT': Update contact details (phone, email, company, designation, status, tag).
+9. 'SEARCH_CONTACTS': Search or filter contacts (e.g. by city, company, tag, last contacted days).
+10. 'ADD_NOTE': Add a note to a contact profile.
+11. 'ADD_TAG': Add a tag to a contact.
+12. 'MERGE_CONTACTS': Merge duplicate contacts.
 
 Return your response as a valid JSON object ONLY (no markdown fences around it) with this structure:
 {
-  \"action_type\": \"SEND_EMAIL|SEND_WHATSAPP|CREATE_INVOICE|SCHEDULE_MEETING|CREATE_TASK|MOVE_DEAL\",
+  \"action_type\": \"SEND_EMAIL|SEND_WHATSAPP|CREATE_INVOICE|SCHEDULE_MEETING|CREATE_TASK|MOVE_DEAL|CREATE_CONTACT|UPDATE_CONTACT|SEARCH_CONTACTS|ADD_NOTE|ADD_TAG|MERGE_CONTACTS\",
   \"target_contact\": {
     \"name\": \"...\",
     \"email\": \"...\",
-    \"phone\": \"...\"
+    \"phone\": \"...\",
+    \"company\": \"...\",
+    \"designation\": \"...\",
+    \"location\": \"...\",
+    \"tag\": \"...\",
+    \"note_text\": \"...\"
   },
   \"email_draft\": {
     \"subject\": \"...\",
@@ -90,6 +101,14 @@ Return your response as a valid JSON object ONLY (no markdown fences around it) 
     \"deal_title\": \"...\",
     \"target_stage\": \"Lead|Qualified|Proposal|Negotiation|Closed Won|Closed Lost\"
   },
+  \"search_filters\": {
+    \"q\": \"...\",
+    \"city\": \"...\",
+    \"company\": \"...\",
+    \"tag\": \"...\",
+    \"contact_type\": \"...\",
+    \"not_contacted_days\": 0
+  },
   \"scheduling\": {
     \"is_scheduled\": true|false,
     \"scheduled_at\": \"YYYY-MM-DD HH:MM:SS\" or null
@@ -115,12 +134,45 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         $db->prepare("INSERT INTO ai_action_logs (user_id, prompt, intent, channel, action_status) VALUES (?, ?, ?, ?, 'parsed')")
            ->execute([$userId, $prompt, $aiData['action_type'], strtolower($aiData['action_type'])]);
 
+        // Handle SEARCH_CONTACTS intent
+        if ($aiData['action_type'] === 'SEARCH_CONTACTS') {
+            $filters = $aiData['search_filters'] ?? [];
+            $results = CRMSyncHelper::searchContacts($userId, $filters, 20, 0, $db);
+
+            sendJsonResponse('success', 'Search complete.', [
+                'is_search_result' => true,
+                'search_results' => $results,
+                'parsed' => $aiData
+            ]);
+        }
+
+        // Handle CREATE_CONTACT duplicate check
+        if ($aiData['action_type'] === 'CREATE_CONTACT') {
+            $target = $aiData['target_contact'] ?? [];
+            $dups = CRMSyncHelper::findDuplicates(
+                $userId,
+                $target['email'] ?? null,
+                $target['phone'] ?? null,
+                $target['name'] ?? null,
+                $target['company'] ?? null,
+                $db
+            );
+
+            if (count($dups) > 0) {
+                sendJsonResponse('success', 'Potential duplicate contacts detected.', [
+                    'duplicate_found' => true,
+                    'duplicates' => $dups,
+                    'parsed' => $aiData
+                ]);
+            }
+        }
+
         // 3. Ambiguity Resolution Check: Search DB if multiple contacts match specified name
         $target = $aiData['target_contact'] ?? [];
         $searchName = trim($target['name'] ?? '');
 
-        if (!empty($searchName) && empty($target['email']) && empty($target['phone'])) {
-            $stmtMatches = $db->prepare("SELECT id, name, email, phone, whatsapp FROM crm_contacts WHERE user_id = ? AND (name LIKE ? OR email LIKE ?) LIMIT 5");
+        if (!empty($searchName) && empty($target['email']) && empty($target['phone']) && $aiData['action_type'] !== 'CREATE_CONTACT') {
+            $stmtMatches = $db->prepare("SELECT id, name, email, phone, whatsapp FROM crm_contacts WHERE user_id = ? AND (name LIKE ? OR email LIKE ?) AND is_archived = 0 LIMIT 5");
             $stmtMatches->execute([$userId, "%$searchName%", "%$searchName%"]);
             $matches = $stmtMatches->fetchAll(PDO::FETCH_ASSOC);
 
@@ -145,7 +197,7 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
 
         $aiData['matched_contact'] = $resolvedContact;
 
-        // Attachment Matching (Match real documents from lead_vault/files)
+        // Attachment Matching
         $matchedAttachments = [];
         if (!empty($aiData['requested_attachments']) && is_array($aiData['requested_attachments'])) {
             $stmtVault = $db->prepare("SELECT name, post_url FROM lead_vault WHERE user_id = ? ORDER BY id DESC LIMIT 5");
@@ -183,6 +235,103 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         $resultData = [];
 
         switch ($actionType) {
+            case 'CREATE_CONTACT':
+                $target = $input['target_contact'] ?? [];
+                $name = trim($target['name'] ?? 'New Contact');
+                $email = strtolower(trim($target['email'] ?? ''));
+                $phone = trim($target['phone'] ?? '');
+                $designation = trim($target['designation'] ?? '');
+                $companyName = trim($target['company'] ?? '');
+
+                // Resolve/Create Company
+                $companyId = null;
+                if (!empty($companyName)) {
+                    $stmtC = $db->prepare("SELECT id FROM crm_companies WHERE user_id = ? AND name = ? LIMIT 1");
+                    $stmtC->execute([$userId, $companyName]);
+                    $companyId = $stmtC->fetchColumn();
+                    if (!$companyId) {
+                        $db->prepare("INSERT INTO crm_companies (user_id, name, source) VALUES (?, ?, 'AI Co-Pilot')")->execute([$userId, $companyName]);
+                        $companyId = $db->lastInsertId();
+                    }
+                }
+
+                $insC = $db->prepare("INSERT INTO crm_contacts (user_id, company_id, name, email, phone, whatsapp, designation) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $insC->execute([$userId, $companyId, $name, $email ?: null, $phone ?: null, $phone ?: null, $designation]);
+                $newContactId = $db->lastInsertId();
+
+                CRMSyncHelper::logActivity($userId, $newContactId, 'system', 'system', "Created Contact: \"$name\" ($companyName)", [], $db);
+                $resultData = ['message' => "Contact '$name' created successfully.", 'contact_id' => $newContactId];
+                break;
+
+            case 'UPDATE_CONTACT':
+                $target = $input['target_contact'] ?? [];
+                if (!$contactId && !empty($target['name'])) {
+                    $stmtC = $db->prepare("SELECT id FROM crm_contacts WHERE user_id = ? AND name LIKE ? LIMIT 1");
+                    $stmtC->execute([$userId, "%{$target['name']}%"]);
+                    $contactId = (int)$stmtC->fetchColumn();
+                }
+
+                if (!$contactId) {
+                    sendJsonResponse('error', 'Target contact could not be found to update.', [], 404);
+                }
+
+                $updates = [];
+                $params = [];
+
+                if (!empty($target['phone'])) {
+                    $updates[] = "phone = ?";
+                    $updates[] = "whatsapp = ?";
+                    $params[] = trim($target['phone']);
+                    $params[] = trim($target['phone']);
+                }
+                if (!empty($target['email'])) {
+                    $updates[] = "email = ?";
+                    $params[] = strtolower(trim($target['email']));
+                }
+                if (!empty($target['designation'])) {
+                    $updates[] = "designation = ?";
+                    $params[] = trim($target['designation']);
+                }
+
+                if (count($updates) > 0) {
+                    $params[] = $contactId;
+                    $params[] = $userId;
+                    $db->prepare("UPDATE crm_contacts SET " . implode(', ', $updates) . " WHERE id = ? AND user_id = ?")->execute($params);
+                }
+
+                if (!empty($target['tag'])) {
+                    CRMSyncHelper::addContactTag($userId, $contactId, $target['tag'], $db);
+                }
+                if (!empty($target['note_text'])) {
+                    CRMSyncHelper::addContactNote($userId, $contactId, $target['note_text'], 'AI Co-Pilot', $db);
+                }
+
+                CRMSyncHelper::logActivity($userId, $contactId, 'system', 'system', "Updated Contact details via AI Co-Pilot", [], $db);
+                $resultData = ['message' => "Contact updated successfully.", 'contact_id' => $contactId];
+                break;
+
+            case 'ADD_NOTE':
+                $target = $input['target_contact'] ?? [];
+                $noteText = trim($target['note_text'] ?? $input['summary'] ?? '');
+                if (!$contactId || empty($noteText)) {
+                    sendJsonResponse('error', 'Contact ID and note text are required.', [], 400);
+                }
+
+                $noteId = CRMSyncHelper::addContactNote($userId, $contactId, $noteText, 'AI Co-Pilot', $db);
+                $resultData = ['message' => "Note added to contact successfully.", 'note_id' => $noteId];
+                break;
+
+            case 'ADD_TAG':
+                $target = $input['target_contact'] ?? [];
+                $tagName = trim($target['tag'] ?? '');
+                if (!$contactId || empty($tagName)) {
+                    sendJsonResponse('error', 'Contact ID and tag name are required.', [], 400);
+                }
+
+                CRMSyncHelper::addContactTag($userId, $contactId, $tagName, $db);
+                $resultData = ['message' => "Tag '$tagName' added to contact successfully."];
+                break;
+
             case 'SEND_EMAIL':
                 $emailData = $input['email_draft'] ?? [];
                 $recipientEmail = strtolower(trim($emailData['recipient_email'] ?? $input['target_contact']['email'] ?? ''));

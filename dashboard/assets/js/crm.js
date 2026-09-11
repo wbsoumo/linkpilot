@@ -677,6 +677,59 @@ async function renderDashboard(container) {
         if (whatsappConfigured) progress += 30;
 
         const isBannerHidden = sessionStorage.getItem('linkpilot_hide_setup_banner') === 'true';
+        let warningBannerHtml = '';
+
+        // Claude / ChatGPT Style Hero Bar
+        const hour = new Date().getHours();
+        let greeting = "Hello, night owl";
+        if (hour >= 5 && hour < 12) greeting = "Good morning";
+        else if (hour >= 12 && hour < 17) greeting = "Good afternoon";
+        else if (hour >= 17 && hour < 22) greeting = "Good evening";
+
+        const userName = (window.activeUserProfileSettings && window.activeUserProfileSettings.name) ? window.activeUserProfileSettings.name.split(' ')[0] : 'there';
+
+        const claudeHeroBarHtml = `
+            <div class="w-full max-w-4xl mx-auto my-4 text-center space-y-4 animate-fade-in">
+                <!-- Claude Title Greeting -->
+                <div class="flex items-center justify-center space-x-2.5">
+                    <span class="text-amber-500 text-2xl font-serif">✳</span>
+                    <h2 class="text-2xl md:text-3xl font-serif text-slate-900 tracking-tight">${greeting}, ${userName}</h2>
+                </div>
+
+                <!-- Claude Dark Floating Command Bar -->
+                <div class="bg-[#1e1e1e] border border-slate-800/80 rounded-2xl p-3 shadow-2xl transition transform hover:border-slate-700 text-left relative overflow-hidden group">
+                    <div class="flex items-center space-x-2 px-2 pt-1 pb-2">
+                        <input type="text" id="dash-claude-prompt-input" onkeydown="if(event.key==='Enter') window.submitDashClaudePrompt()" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-100 placeholder-slate-400 text-sm outline-none font-medium">
+                        <div class="h-7 w-7 rounded-full bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-400 shrink-0 shadow-sm">
+                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Bar Pills & Controls -->
+                    <div class="flex items-center justify-between border-t border-slate-800/60 pt-2.5 px-2 text-[11px]">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="window.submitDashClaudePrompt('Chat')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold border border-slate-700 transition flex items-center space-x-1">
+                                <i data-lucide="message-square" class="h-3 w-3 text-blue-400"></i>
+                                <span>Chat</span>
+                            </button>
+                            <button onclick="window.submitDashClaudePrompt('Find my hottest leads')" class="px-3 py-1 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-lg font-medium border border-slate-800 transition">
+                                🔥 Hot Leads
+                            </button>
+                            <button onclick="window.submitDashClaudePrompt('Analyze my sales pipeline')" class="px-3 py-1 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-lg font-medium border border-slate-800 transition">
+                                📊 Pipeline
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3 text-slate-400 font-mono text-[10px]">
+                            <span class="hidden sm:inline-block">LinkPilot AI 2.0 • Pro</span>
+                            <button onclick="window.submitDashClaudePrompt()" class="h-6 w-6 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow-sm">
+                                <i data-lucide="arrow-up" class="h-3.5 w-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
         if (showWarningBanner || progress < 100) {
             warningBannerHtml = `
                 <!-- Interactive Onboarding Checklist Card -->
@@ -793,6 +846,8 @@ async function renderDashboard(container) {
                         </button>
                     </div>
                 </div>
+
+                ${claudeHeroBarHtml}
 
                 ${warningBannerHtml}
 
@@ -1173,6 +1228,38 @@ async function renderDashboard(container) {
 
         // Initialize Charts
         try { renderDashboardCharts(data); } catch (e) { console.warn(e); }
+
+        window.submitDashClaudePrompt = function(presetText) {
+            const input = document.getElementById('dash-claude-prompt-input');
+            let promptVal = presetText || (input ? input.value.trim() : '');
+            
+            if (promptVal === 'Chat') promptVal = '';
+
+            // Smooth magical transition
+            const mainViewport = document.getElementById('main-content-viewport');
+            if (mainViewport) {
+                mainViewport.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                mainViewport.style.opacity = '0.7';
+                mainViewport.style.transform = 'scale(0.99)';
+                setTimeout(() => {
+                    mainViewport.style.opacity = '1';
+                    mainViewport.style.transform = 'scale(1)';
+                }, 300);
+            }
+
+            if (window.openCopilotModal) {
+                window.openCopilotModal();
+                if (promptVal) {
+                    setTimeout(() => {
+                        const copilotInput = document.getElementById('copilot-prompt-input');
+                        if (copilotInput) {
+                            copilotInput.value = promptVal;
+                            if (window.parseCopilotCommand) window.parseCopilotCommand();
+                        }
+                    }, 100);
+                }
+            }
+        };
         
         // Render Quick Action Floating Action Button (FAB) for Dashboard
         let fabContainer = document.getElementById('dashboard-quick-fab');

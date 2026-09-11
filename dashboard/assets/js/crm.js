@@ -907,30 +907,38 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
-                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-3 pb-24 transition-all duration-300 -mt-4">
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-3.5 pb-28 transition-all duration-300 -mt-2">
                     <!-- Top Header Card -->
-                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-5 py-3 shadow-2xs shrink-0">
-                        <div class="flex items-center space-x-3">
-                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-xs font-black text-slate-900 tracking-wide">LinkPilot AI Co-Pilot Stream</span>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-xs flex items-center space-x-1.5" style="color: #ffffff !important;">
-                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                                <span style="color: #ffffff !important;">Active Session</span>
-                            </span>
+                    <div class="flex items-center justify-between bg-white/90 backdrop-blur-md border border-slate-200/90 rounded-2xl px-6 py-3.5 shadow-xs shrink-0">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20">
+                                <i data-lucide="bot" class="h-5 w-5 text-white"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2.5">
+                                    <h3 class="text-xs font-black text-slate-900 tracking-tight">LinkPilot AI Co-Pilot Stream</h3>
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-xs flex items-center space-x-1.5" style="color: #ffffff !important;">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                        <span style="color: #ffffff !important;">Active Session</span>
+                                    </span>
+                                </div>
+                                <p class="text-[10px] text-slate-500 font-medium pt-0.5">Autonomous CRM Operating & Orchestration Engine</p>
+                            </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button type="button" onclick="window.clearInpageChatSession()" class="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer">
-                                Clear Chat
+                            <button type="button" onclick="window.clearInpageChatSession()" class="text-xs font-bold text-slate-500 hover:text-slate-800 px-3.5 py-2 rounded-xl hover:bg-slate-100 transition flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="trash-2" class="h-3.5 w-3.5 text-slate-400"></i>
+                                <span>Clear Chat</span>
                             </button>
-                            <button type="button" onclick="window.returnToDashStatsView()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
-                                <i data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i>
+                            <button type="button" onclick="window.returnToDashStatsView()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200/80 px-4 py-2 rounded-xl transition flex items-center space-x-2 shadow-2xs cursor-pointer">
+                                <i data-lucide="layout-dashboard" class="h-3.5 w-3.5 text-indigo-600"></i>
                                 <span>Show Stats</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Chat Message Bubbles Stream Container (Smooth scrolling) -->
-                    <div id="inpage-chat-messages-container" class="space-y-4 h-[calc(100vh-230px)] max-h-[calc(100vh-230px)] overflow-y-auto pr-2 custom-scrollbar p-3 rounded-2xl bg-slate-50/50 border border-slate-200/60">
+                    <!-- Chat Message Bubbles Stream Canvas Container -->
+                    <div id="inpage-chat-messages-container" class="space-y-6 h-[calc(100vh-250px)] max-h-[calc(100vh-250px)] overflow-y-auto pr-3 custom-scrollbar p-5 rounded-3xl bg-slate-50/70 border border-slate-200/80 shadow-inner">
                         <!-- Dynamic Messages Appended Here -->
                     </div>
                 </div>
@@ -1481,7 +1489,7 @@ async function renderDashboard(container) {
                     
                     // Smoothly slide and lock hero bar to bottom fixed position
                     heroEl.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-                    heroEl.classList.add('fixed', 'bottom-4', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
+                    heroEl.classList.add('fixed', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
                     heroEl.classList.remove('my-4', 'shrink-0');
 
                     if (window.executeInpageCopilotPrompt) {
@@ -1520,7 +1528,7 @@ async function renderDashboard(container) {
                 if (footerMeta) footerMeta.classList.remove('hidden');
 
                 // Restore hero to top position
-                heroEl.classList.remove('fixed', 'bottom-4', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
+                heroEl.classList.remove('fixed', 'bottom-4', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
                 heroEl.classList.add('my-4', 'shrink-0');
                 heroEl.style.transform = '';
 
@@ -1604,13 +1612,17 @@ async function renderDashboard(container) {
             window.inpageChatHistory.push({ role: 'user', content: query });
 
             // User Prompt Bubble
+            const userInitials = (window.currentUser && window.currentUser.name) 
+                ? window.currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() 
+                : 'SS';
+
             const userMsgHtml = `
                 <div class="flex items-start justify-end space-x-3 text-right animate-fade-in">
-                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-3.5 shadow-md max-w-xl text-xs font-semibold leading-relaxed">
+                    <div class="bg-gradient-to-r from-indigo-600 via-indigo-700 to-blue-600 text-white rounded-2xl rounded-tr-xs px-5 py-3.5 shadow-md shadow-indigo-500/15 max-w-xl text-xs font-semibold leading-relaxed tracking-wide">
                         ${esc(query)}
                     </div>
-                    <div class="h-9 w-9 rounded-xl bg-slate-800 text-white flex items-center justify-center font-black shrink-0 shadow-sm text-xs">
-                        You
+                    <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-slate-900 to-indigo-950 text-white border border-indigo-500/30 flex items-center justify-center font-black shrink-0 shadow-md text-xs tracking-wider" title="You">
+                        ${userInitials}
                     </div>
                 </div>
             `;
@@ -1619,14 +1631,14 @@ async function renderDashboard(container) {
             // Loader Bubble
             const loaderId = 'ai-loader-' + Date.now();
             const loaderHtml = `
-                <div id="${loaderId}" class="flex items-start space-x-3 text-left animate-fade-in">
-                    <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
-                        <i data-lucide="bot" class="h-5 w-5 animate-pulse"></i>
+                <div id="${loaderId}" class="flex items-start space-x-3.5 text-left animate-fade-in">
+                    <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20">
+                        <i data-lucide="bot" class="h-5 w-5 text-white animate-pulse"></i>
                     </div>
-                    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-xs space-y-2 text-slate-600">
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm text-xs space-y-2 text-slate-600 max-w-xl">
                         <div class="flex items-center space-x-2 text-indigo-600 font-extrabold">
                             <i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>
-                            <span>Thinking & analyzing context...</span>
+                            <span>Analyzing LinkPilot CRM context & running tool...</span>
                         </div>
                     </div>
                 </div>
@@ -1712,11 +1724,11 @@ async function renderDashboard(container) {
                 }
 
                 const aiMsgHtml = `
-                    <div class="flex items-start space-x-3 text-left animate-fade-in">
-                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
-                            <i data-lucide="bot" class="h-5 w-5"></i>
+                    <div class="flex items-start space-x-3.5 text-left animate-fade-in">
+                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20">
+                            <i data-lucide="bot" class="h-5 w-5 text-white"></i>
                         </div>
-                        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs max-w-2xl text-xs space-y-2">
+                        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm max-w-2xl text-xs space-y-3">
                             ${aiReplyHtml}
                         </div>
                     </div>
@@ -1730,11 +1742,11 @@ async function renderDashboard(container) {
                 if (loaderEl) loaderEl.remove();
 
                 const errHtml = `
-                    <div class="flex items-start space-x-3 text-left animate-fade-in">
-                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
-                            <i data-lucide="bot" class="h-5 w-5"></i>
+                    <div class="flex items-start space-x-3.5 text-left animate-fade-in">
+                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20">
+                            <i data-lucide="bot" class="h-5 w-5 text-white"></i>
                         </div>
-                        <div class="bg-white border border-rose-200/90 rounded-2xl p-4 shadow-2xs max-w-2xl text-xs text-rose-600 space-y-1">
+                        <div class="bg-white border border-rose-200/90 rounded-2xl p-5 shadow-sm max-w-2xl text-xs text-rose-600 space-y-1">
                             <span class="font-extrabold block">Connection Notice</span>
                             <p>${esc(err.message)}</p>
                         </div>

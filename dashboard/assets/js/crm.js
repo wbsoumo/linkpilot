@@ -679,53 +679,93 @@ async function renderDashboard(container) {
         const isBannerHidden = sessionStorage.getItem('linkpilot_hide_setup_banner') === 'true';
         let warningBannerHtml = '';
 
-        // Claude / ChatGPT Style Hero Bar
+        // Claude / ChatGPT Style Hero Bar (Exact Design Match)
         const hour = new Date().getHours();
-        let greeting = "Hello, night owl";
-        if (hour >= 5 && hour < 12) greeting = "Good morning";
-        else if (hour >= 12 && hour < 17) greeting = "Good afternoon";
-        else if (hour >= 17 && hour < 22) greeting = "Good evening";
+        let greetingPeriod = "night owl";
+        if (hour >= 5 && hour < 12) greetingPeriod = "morning";
+        else if (hour >= 12 && hour < 17) greetingPeriod = "afternoon";
+        else if (hour >= 17 && hour < 22) greetingPeriod = "evening";
 
         const userName = (window.activeUserProfileSettings && window.activeUserProfileSettings.name) ? window.activeUserProfileSettings.name.split(' ')[0] : 'there';
 
         const claudeHeroBarHtml = `
-            <div class="w-full max-w-4xl mx-auto my-4 text-center space-y-4 animate-fade-in">
-                <!-- Claude Title Greeting -->
-                <div class="flex items-center justify-center space-x-2.5">
-                    <span class="text-amber-500 text-2xl font-serif">✳</span>
-                    <h2 class="text-2xl md:text-3xl font-serif text-slate-900 tracking-tight">${greeting}, ${userName}</h2>
+            <div class="w-full max-w-5xl mx-auto my-6 text-center space-y-4 animate-fade-in">
+                <!-- Center Greeting Title -->
+                <div class="space-y-1">
+                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+                        Hello, <span class="text-indigo-600 font-black">${greetingPeriod}, ${userName}</span>
+                    </h2>
+                    <p class="text-slate-500 font-medium text-sm sm:text-base">How can I help you with your CRM today?</p>
                 </div>
 
-                <!-- Claude Dark Floating Command Bar -->
-                <div class="bg-[#1e1e1e] border border-slate-800/80 rounded-2xl p-3 shadow-2xl transition transform hover:border-slate-700 text-left relative overflow-hidden group">
-                    <div class="flex items-center space-x-2 px-2 pt-1 pb-2">
-                        <input type="text" id="dash-claude-prompt-input" onkeydown="if(event.key==='Enter') window.submitDashClaudePrompt()" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-100 placeholder-slate-400 text-sm outline-none font-medium">
-                        <div class="h-7 w-7 rounded-full bg-teal-500/20 border border-teal-400/40 flex items-center justify-center text-teal-400 shrink-0 shadow-sm">
-                            <i data-lucide="sparkles" class="h-3.5 w-3.5"></i>
+                <!-- Pristine Floating Command Bar -->
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto ring-4 ring-slate-100/60 hover:shadow-2xl hover:border-indigo-300 transition-all duration-300 relative group">
+                    <!-- Glowing 3D AI Robot Avatar -->
+                    <div class="h-11 w-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
+                        <div class="w-full h-full rounded-full bg-slate-950/10 flex items-center justify-center">
+                            <i data-lucide="bot" class="h-5.5 w-5.5 text-white"></i>
                         </div>
                     </div>
 
-                    <!-- Bottom Bar Pills & Controls -->
-                    <div class="flex items-center justify-between border-t border-slate-800/60 pt-2.5 px-2 text-[11px]">
-                        <div class="flex items-center space-x-2">
-                            <button onclick="window.submitDashClaudePrompt('Chat')" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold border border-slate-700 transition flex items-center space-x-1">
-                                <i data-lucide="message-square" class="h-3 w-3 text-blue-400"></i>
-                                <span>Chat</span>
-                            </button>
-                            <button onclick="window.submitDashClaudePrompt('Find my hottest leads')" class="px-3 py-1 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-lg font-medium border border-slate-800 transition">
-                                🔥 Hot Leads
-                            </button>
-                            <button onclick="window.submitDashClaudePrompt('Analyze my sales pipeline')" class="px-3 py-1 bg-slate-800/60 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-lg font-medium border border-slate-800 transition">
-                                📊 Pipeline
-                            </button>
-                        </div>
-                        <div class="flex items-center space-x-3 text-slate-400 font-mono text-[10px]">
-                            <span class="hidden sm:inline-block">LinkPilot AI 2.0 • Pro</span>
-                            <button onclick="window.submitDashClaudePrompt()" class="h-6 w-6 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow-sm">
-                                <i data-lucide="arrow-up" class="h-3.5 w-3.5"></i>
-                            </button>
-                        </div>
+                    <!-- Input Box -->
+                    <input type="text" id="dash-claude-prompt-input" onkeydown="if(event.key==='Enter') window.submitDashClaudePrompt()" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none font-medium px-2 font-sans">
+
+                    <!-- Inner Action Buttons (Paperclip & Mic) -->
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <button type="button" title="Attach file" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer">
+                            <i data-lucide="paperclip" class="h-4.5 w-4.5"></i>
+                        </button>
+                        <button type="button" title="Voice prompt" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer">
+                            <i data-lucide="mic" class="h-4.5 w-4.5"></i>
+                        </button>
                     </div>
+
+                    <!-- Circular Blue Send Button -->
+                    <button type="button" onclick="window.submitDashClaudePrompt()" title="Send prompt" class="h-11 w-11 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition shrink-0 cursor-pointer">
+                        <i data-lucide="send" class="h-5 w-5 text-white" style="color: #ffffff !important;"></i>
+                    </button>
+                </div>
+
+                <!-- Quick Action Pills Row -->
+                <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                    <button type="button" onclick="window.submitDashClaudePrompt('Chat')" class="px-4 py-2 bg-blue-100/90 hover:bg-blue-200/90 text-blue-700 font-bold rounded-full border border-blue-200/80 shadow-2xs transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="message-square" class="h-3.5 w-3.5 text-blue-600"></i>
+                        <span>Chat</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Find my hottest leads')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="flame" class="h-3.5 w-3.5 text-amber-500"></i>
+                        <span>Hot Leads</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Analyze my sales pipeline')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="bar-chart-3" class="h-3.5 w-3.5 text-emerald-500"></i>
+                        <span>Pipeline</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Draft a sales outreach email')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="mail" class="h-3.5 w-3.5 text-purple-500"></i>
+                        <span>Draft Email</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Find contacts in tech industry')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="users" class="h-3.5 w-3.5 text-blue-500"></i>
+                        <span>Find Contacts</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Create an automation workflow')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-400"></i>
+                        <span>Automate</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Show me sales insights & CRM analytics')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-indigo-500"></i>
+                        <span>See Insights</span>
+                    </button>
+                </div>
+
+                <!-- Footer Metadata -->
+                <div class="flex items-center justify-center space-x-3 text-slate-400 text-[11px] font-medium pt-1">
+                    <span>Powered by LinkPilot AI 2.0 • Pro</span>
+                    <span>|</span>
+                    <span class="flex items-center space-x-1">
+                        <i data-lucide="shield-check" class="h-3.5 w-3.5 text-slate-400"></i>
+                        <span>Secure & Private</span>
+                    </span>
                 </div>
             </div>
         `;

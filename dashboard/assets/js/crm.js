@@ -698,8 +698,22 @@ async function renderDashboard(container) {
                     <p class="text-slate-500 font-medium text-sm sm:text-base">How can I help you with your CRM today?</p>
                 </div>
 
-                <!-- Pristine Floating Command Bar (Border-Free) -->
+                <!-- Pristine Floating Command Bar (Border-Free with Slash Menu) -->
                 <div class="bg-white/95 backdrop-blur-xl shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto hover:shadow-2xl transition-all duration-300 relative group border-0">
+                    <!-- Floating Slash Commands Autocomplete Menu -->
+                    <div id="dash-slash-menu" class="hidden absolute left-2 right-2 bottom-full mb-3 bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 z-[9999] animate-fade-in text-left max-h-64 overflow-y-auto">
+                        <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50/60 rounded-xl mb-1 flex items-center justify-between">
+                            <span class="flex items-center space-x-1.5">
+                                <i data-lucide="sparkles" class="h-3 w-3 text-indigo-600"></i>
+                                <span>LinkPilot AI Skills & Slash Commands</span>
+                            </span>
+                            <span class="text-[9px] font-mono text-slate-400">Press ↑ ↓ to navigate, Enter to select</span>
+                        </div>
+                        <div id="dash-slash-menu-items" class="space-y-1">
+                            <!-- Populated dynamically when user types '/' -->
+                        </div>
+                    </div>
+
                     <!-- Glowing 3D AI Robot Avatar -->
                     <div class="h-11 w-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
                         <div class="w-full h-full rounded-full bg-slate-950/10 flex items-center justify-center">
@@ -707,8 +721,8 @@ async function renderDashboard(container) {
                         </div>
                     </div>
 
-                    <!-- Input Box -->
-                    <input type="text" id="dash-claude-prompt-input" onkeydown="if(event.key==='Enter') window.submitDashClaudePrompt()" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none border-none focus:border-none focus:outline-none focus:ring-0 font-medium px-2 font-sans">
+                    <!-- Input Box with Slash Command Autocomplete -->
+                    <input type="text" id="dash-claude-prompt-input" oninput="window.handleDashSlashCommandInput(this)" onkeydown="window.handleDashSlashKeydown(event)" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none border-none focus:border-none focus:outline-none focus:ring-0 font-medium px-2 font-sans">
 
                     <!-- Inner Action Buttons (Paperclip & Mic) -->
                     <div class="flex items-center space-x-1 shrink-0">
@@ -1269,10 +1283,132 @@ async function renderDashboard(container) {
         // Initialize Charts
         try { renderDashboardCharts(data); } catch (e) { console.warn(e); }
 
+        // ----------------------------------------------------
+        // AI Hero Bar Slash Commands Autocomplete (/chat, /hotleads, /pipeline, etc.)
+        // ----------------------------------------------------
+        window.dashSlashSelectedIndex = 0;
+        window.DASH_SLASH_COMMANDS = [
+            { cmd: '/chat', label: 'Chat', desc: 'Open interactive AI Co-Pilot chat', icon: 'message-square', iconColor: 'text-blue-500', actionText: 'Chat' },
+            { cmd: '/hotleads', label: 'Hot Leads', desc: 'Find & analyze highest scoring leads', icon: 'flame', iconColor: 'text-amber-500', actionText: 'Find my hottest leads' },
+            { cmd: '/pipeline', label: 'Pipeline', desc: 'Analyze sales stages & deal pipeline', icon: 'bar-chart-3', iconColor: 'text-emerald-500', actionText: 'Analyze my sales pipeline' },
+            { cmd: '/email', label: 'Draft Email', desc: 'Generate AI sales outreach email', icon: 'mail', iconColor: 'text-purple-500', actionText: 'Draft a sales outreach email' },
+            { cmd: '/contacts', label: 'Find Contacts', desc: 'Search & query CRM contact records', icon: 'users', iconColor: 'text-blue-500', actionText: 'Find contacts' },
+            { cmd: '/automate', label: 'Automate', desc: 'Create CRM workflow & trigger rules', icon: 'zap', iconColor: 'text-amber-400', actionText: 'Create an automation workflow' },
+            { cmd: '/insights', label: 'See Insights', desc: 'View sales intelligence & analytics', icon: 'layout-grid', iconColor: 'text-indigo-500', actionText: 'Show me sales insights & CRM analytics' }
+        ];
+
+        window.handleDashSlashCommandInput = function(inputEl) {
+            const menuEl = document.getElementById('dash-slash-menu');
+            const itemsEl = document.getElementById('dash-slash-menu-items');
+            if (!menuEl || !itemsEl || !inputEl) return;
+
+            const val = inputEl.value.trim();
+            if (!val.startsWith('/')) {
+                menuEl.classList.add('hidden');
+                return;
+            }
+
+            const query = val.toLowerCase();
+            const matches = window.DASH_SLASH_COMMANDS.filter(c => c.cmd.toLowerCase().startsWith(query) || c.label.toLowerCase().includes(query.replace('/', '')));
+
+            if (matches.length === 0) {
+                menuEl.classList.add('hidden');
+                return;
+            }
+
+            if (window.dashSlashSelectedIndex >= matches.length) window.dashSlashSelectedIndex = 0;
+            if (window.dashSlashSelectedIndex < 0) window.dashSlashSelectedIndex = 0;
+
+            itemsEl.innerHTML = matches.map((c, idx) => `
+                <div onclick="window.selectDashSlashCommand('${c.cmd}')" class="px-3 py-2 rounded-xl flex items-center justify-between cursor-pointer transition ${idx === window.dashSlashSelectedIndex ? 'bg-indigo-50 text-indigo-900 font-bold border border-indigo-200/80 shadow-2xs' : 'hover:bg-slate-50 text-slate-700 font-medium'}">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-7 w-7 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
+                            <i data-lucide="${c.icon}" class="h-4 w-4 ${c.iconColor}"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-black font-mono text-indigo-600">${c.cmd}</span>
+                            <span class="text-xs font-bold text-slate-800 ml-1">(${c.label})</span>
+                            <p class="text-[10px] text-slate-500 font-normal mt-0.5">${c.desc}</p>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md font-semibold">Select ↵</span>
+                </div>
+            `).join('');
+
+            menuEl.classList.remove('hidden');
+            if (window.lucide) window.lucide.createIcons();
+        };
+
+        window.selectDashSlashCommand = function(cmdStr) {
+            const inputEl = document.getElementById('dash-claude-prompt-input');
+            const menuEl = document.getElementById('dash-slash-menu');
+            if (menuEl) menuEl.classList.add('hidden');
+
+            const cmdObj = window.DASH_SLASH_COMMANDS.find(c => c.cmd.toLowerCase() === cmdStr.toLowerCase());
+            if (cmdObj) {
+                if (inputEl) inputEl.value = cmdObj.cmd + ' ';
+                window.submitDashClaudePrompt(cmdObj.actionText || cmdObj.label);
+            }
+        };
+
+        window.handleDashSlashKeydown = function(event) {
+            const menuEl = document.getElementById('dash-slash-menu');
+            const inputEl = document.getElementById('dash-claude-prompt-input');
+            
+            if (menuEl && !menuEl.classList.contains('hidden')) {
+                const val = inputEl ? inputEl.value.trim().toLowerCase() : '';
+                const matches = window.DASH_SLASH_COMMANDS.filter(c => c.cmd.toLowerCase().startsWith(val) || c.label.toLowerCase().includes(val.replace('/', '')));
+
+                if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    window.dashSlashSelectedIndex = (window.dashSlashSelectedIndex + 1) % matches.length;
+                    window.handleDashSlashCommandInput(inputEl);
+                    return;
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    window.dashSlashSelectedIndex = (window.dashSlashSelectedIndex - 1 + matches.length) % matches.length;
+                    window.handleDashSlashCommandInput(inputEl);
+                    return;
+                } else if (event.key === 'Enter' || event.key === 'Tab') {
+                    if (matches[window.dashSlashSelectedIndex]) {
+                        event.preventDefault();
+                        window.selectDashSlashCommand(matches[window.dashSlashSelectedIndex].cmd);
+                        return;
+                    }
+                } else if (event.key === 'Escape') {
+                    menuEl.classList.add('hidden');
+                    return;
+                }
+            }
+
+            if (event.key === 'Enter') {
+                window.submitDashClaudePrompt();
+            }
+        };
+
+        // Close slash menu on outside click
+        document.addEventListener('click', function(e) {
+            const menuEl = document.getElementById('dash-slash-menu');
+            const inputEl = document.getElementById('dash-claude-prompt-input');
+            if (menuEl && inputEl && !menuEl.contains(e.target) && !inputEl.contains(e.target)) {
+                menuEl.classList.add('hidden');
+            }
+        });
+
         window.submitDashClaudePrompt = function(presetText) {
             const input = document.getElementById('dash-claude-prompt-input');
             let promptVal = presetText || (input ? input.value.trim() : '');
             
+            // Map typed slash commands like '/chat', '/hotleads', etc. to exact actions
+            if (promptVal.startsWith('/')) {
+                const lower = promptVal.toLowerCase();
+                const matchedCmd = window.DASH_SLASH_COMMANDS.find(c => lower.startsWith(c.cmd.toLowerCase()));
+                if (matchedCmd) {
+                    const extraArgs = promptVal.slice(matchedCmd.cmd.length).trim();
+                    promptVal = matchedCmd.actionText ? (matchedCmd.actionText + (extraArgs ? ' ' + extraArgs : '')) : extraArgs;
+                }
+            }
+
             if (promptVal === 'Chat') promptVal = '';
 
             // Smooth magical transition

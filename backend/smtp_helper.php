@@ -440,11 +440,11 @@ class SMTPHelper {
     }
 
     /**
-     * Call AWS EC2 Mail Worker (mailbaby.linkpilot.work / 13.201.120.240)
+     * Call AWS EC2 Mail Worker (mailbaby.linkpilot.work / 13.232.195.16)
      */
     public static function callAwsProxyWorker($action, $data) {
         $workerUrls = [
-            "http://13.201.120.240/mailbaby/index.php?action=" . urlencode($action),
+            "http://13.232.195.16/mailbaby/index.php?action=" . urlencode($action),
             "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action)
         ];
         $secretKey = "LINKPILOT_AWS_SECRET_KEY_2026";

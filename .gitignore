@@ -16,3 +16,12 @@ backend/api/whatsapp/whatsapp_debug.log
 backend/api/whatsapp/request_log.txt
 ai_debug.log
 db_log_out.txt
+
+# Flutter root build output exclusions (Flutter app is inside mobile/)
+/canvaskit/
+/flutter.js
+/flutter_bootstrap.js
+/flutter_service_worker.js
+/main.dart.js
+/version.json
+

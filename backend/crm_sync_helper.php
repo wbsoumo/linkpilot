@@ -255,7 +255,25 @@ class CRMSyncHelper {
      * Merges phone and email if matched via one of them.
      */
     public static function resolveContact($userId, $email = null, $phone = null, $name = null, $db = null) {
-        if (!$db) {
+        // Overload support: if 2nd parameter is an array (e.g. ['id' => 123] or $params array)
+        if (is_array($email)) {
+            $params = $email;
+            $db = $phone instanceof PDO ? $phone : ($name instanceof PDO ? $name : null);
+            
+            if (isset($params['id'])) {
+                if (!$db) $db = Database::getConnection();
+                $stmtId = $db->prepare("SELECT * FROM crm_contacts WHERE id = ? AND user_id = ?");
+                $stmtId->execute([(int)$params['id'], (int)$userId]);
+                $c = $stmtId->fetch(PDO::FETCH_ASSOC);
+                if ($c) return $c;
+            }
+
+            $email = $params['email'] ?? null;
+            $phone = $params['phone'] ?? $params['whatsapp'] ?? null;
+            $name = $params['name'] ?? null;
+        }
+
+        if (!$db || !($db instanceof PDO)) {
             $db = Database::getConnection();
         }
 

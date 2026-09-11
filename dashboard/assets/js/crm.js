@@ -901,13 +901,15 @@ async function renderDashboard(container) {
                     </div>
                 </div>
 
-                <!-- Hero AI Command Center Section (Animates to bottom on submit) -->
-                <div id="dash-claude-hero-section" class="w-full max-w-5xl mx-auto my-4 text-center space-y-4 transition-all duration-500 ease-in-out shrink-0">
-                    ${claudeHeroBarHtml}
+                <!-- Hero AI Command Center Section -->
+                <div id="dash-hero-top-slot" class="w-full">
+                    <div id="dash-claude-hero-section" class="w-full max-w-5xl mx-auto my-4 text-center space-y-4 transition-all duration-500 ease-in-out shrink-0">
+                        ${claudeHeroBarHtml}
+                    </div>
                 </div>
 
                 <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
-                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-3.5 pb-28 transition-all duration-300 -mt-2">
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-3.5 transition-all duration-300 -mt-2">
                     <!-- Top Header Card -->
                     <div class="flex items-center justify-between bg-white/90 backdrop-blur-md border border-slate-200/90 rounded-2xl px-6 py-3.5 shadow-xs shrink-0">
                         <div class="flex items-center space-x-3.5">
@@ -938,9 +940,12 @@ async function renderDashboard(container) {
                     </div>
 
                     <!-- Chat Message Bubbles Stream Canvas Container -->
-                    <div id="inpage-chat-messages-container" class="space-y-6 h-[calc(100vh-250px)] max-h-[calc(100vh-250px)] overflow-y-auto pr-3 custom-scrollbar p-5 rounded-3xl bg-slate-50/70 border border-slate-200/80 shadow-inner">
+                    <div id="inpage-chat-messages-container" class="space-y-6 h-[calc(100vh-320px)] min-h-[300px] max-h-[calc(100vh-320px)] overflow-y-auto pr-3 custom-scrollbar p-5 rounded-3xl bg-slate-50/70 border border-slate-200/80 shadow-inner">
                         <!-- Dynamic Messages Appended Here -->
                     </div>
+
+                    <!-- Bottom Input Box Slot inside Chat Container -->
+                    <div id="dash-inpage-chat-input-slot" class="w-full shrink-0 pt-1"></div>
                 </div>
 
                 <!-- Dashboard Stats View Container -->
@@ -1487,10 +1492,13 @@ async function renderDashboard(container) {
                     chatView.classList.remove('hidden');
                     chatView.style.opacity = '1';
                     
-                    // Smoothly slide and lock hero bar to bottom fixed position
-                    heroEl.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-                    heroEl.classList.add('fixed', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
-                    heroEl.classList.remove('my-4', 'shrink-0');
+                    const chatInputSlot = document.getElementById('dash-inpage-chat-input-slot');
+                    if (chatInputSlot && heroEl.parentElement !== chatInputSlot) {
+                        heroEl.classList.remove('fixed', 'bottom-4', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50', 'px-4');
+                        heroEl.classList.add('my-0', 'w-full');
+                        heroEl.style.transform = '';
+                        chatInputSlot.appendChild(heroEl);
+                    }
 
                     if (window.executeInpageCopilotPrompt) {
                         window.executeInpageCopilotPrompt(promptVal);
@@ -1517,6 +1525,7 @@ async function renderDashboard(container) {
             const heroTitleEl = document.getElementById('dash-claude-greeting-title');
             const statsContainer = document.getElementById('dash-stats-view-container');
             const chatView = document.getElementById('dash-inpage-chat-view');
+            const heroTopSlot = document.getElementById('dash-hero-top-slot');
             const bannerHeader = document.getElementById('dash-banner-header');
             const pillsRow = document.getElementById('dash-claude-pills-row');
             const footerMeta = document.getElementById('dash-claude-footer-meta');
@@ -1527,10 +1536,13 @@ async function renderDashboard(container) {
                 if (pillsRow) pillsRow.classList.remove('hidden');
                 if (footerMeta) footerMeta.classList.remove('hidden');
 
-                // Restore hero to top position
-                heroEl.classList.remove('fixed', 'bottom-4', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
-                heroEl.classList.add('my-4', 'shrink-0');
-                heroEl.style.transform = '';
+                const heroTopSlot = document.getElementById('dash-hero-top-slot');
+                if (heroTopSlot && heroEl.parentElement !== heroTopSlot) {
+                    heroEl.classList.remove('fixed', 'bottom-4', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50');
+                    heroEl.classList.add('my-4', 'w-full', 'shrink-0');
+                    heroEl.style.transform = '';
+                    heroTopSlot.appendChild(heroEl);
+                }
 
                 if (heroTitleEl) {
                     heroTitleEl.classList.remove('hidden');

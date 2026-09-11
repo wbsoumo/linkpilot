@@ -689,9 +689,9 @@ async function renderDashboard(container) {
         const userName = (window.activeUserProfileSettings && window.activeUserProfileSettings.name) ? window.activeUserProfileSettings.name.split(' ')[0] : 'there';
 
         const claudeHeroBarHtml = `
-            <div class="w-full max-w-5xl mx-auto my-6 text-center space-y-4 animate-fade-in">
+            <div class="w-full max-w-5xl mx-auto text-center space-y-4">
                 <!-- Center Greeting Title -->
-                <div class="space-y-1">
+                <div id="dash-claude-greeting-title" class="space-y-1 transition-all duration-300">
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
                         Hello, <span class="text-indigo-600 font-black">${greetingPeriod}, ${userName}</span>
                     </h2>
@@ -886,27 +886,57 @@ async function renderDashboard(container) {
         }
         
         container.innerHTML = `
-            <div class="space-y-8 animate-fade-in">
+            <div class="space-y-6 animate-fade-in relative min-h-[85vh] flex flex-col" id="dashboard-main-wrapper">
                 <!-- Banner header -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 shrink-0">
                     <div>
                         <h1 class="text-3xl font-black text-slate-900 tracking-tight">AI CRM Control Hub</h1>
                         <p class="text-slate-600 text-sm mt-1 font-medium">Real-time statistics, email intelligence queues, and lead activity pipeline.</p>
                     </div>
                     <div class="flex space-x-3">
-                        <button onclick="triggerManualEmailSync(this)" class="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition" style="color: #ffffff !important;">
+                        <button onclick="triggerManualEmailSync(this)" class="flex items-center space-x-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-sm" style="color: #ffffff !important;">
                             <i data-lucide="refresh-cw" class="h-3.5 w-3.5" style="color: #ffffff !important;"></i>
                             <span style="color: #ffffff !important;">Sync Inbox Now</span>
                         </button>
                     </div>
                 </div>
 
-                ${claudeHeroBarHtml}
+                <!-- Hero AI Command Center Section (Animates to bottom on submit) -->
+                <div id="dash-claude-hero-section" class="w-full max-w-5xl mx-auto my-4 text-center space-y-4 transition-all duration-500 ease-in-out shrink-0">
+                    ${claudeHeroBarHtml}
+                </div>
 
-                ${warningBannerHtml}
+                <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-4 pb-28 transition-all duration-300">
+                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-5 py-3 shadow-2xs">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="text-xs font-black text-slate-800 tracking-wide">LinkPilot AI Co-Pilot Stream</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">Active Session</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="window.clearInpageChatSession()" class="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer">
+                                Clear Chat
+                            </button>
+                            <button type="button" onclick="window.returnToDashStatsView()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i>
+                                <span>Show Stats</span>
+                            </button>
+                        </div>
+                    </div>
 
-                <!-- 12 Top Statistics Cards Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- Chat Message Bubbles Stream Container -->
+                    <div id="inpage-chat-messages-container" class="space-y-4 min-h-[350px] max-h-[55vh] overflow-y-auto pr-2 custom-scrollbar p-2">
+                        <!-- Dynamic Messages Appended Here -->
+                    </div>
+                </div>
+
+                <!-- Dashboard Stats View Container -->
+                <div id="dash-stats-view-container" class="space-y-8 transition-all duration-300">
+                    ${warningBannerHtml}
+
+                    <!-- 12 Top Statistics Cards Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                     <!-- Received Emails -->
                     <div onclick="window.location.hash = '#/inbox'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
                         <div class="flex justify-between items-center text-slate-500">
@@ -1091,6 +1121,7 @@ async function renderDashboard(container) {
                     </div>
                 </div>
             </div>
+        </div>
         `;
         
         // Safe metric counts fetching
@@ -1411,29 +1442,278 @@ async function renderDashboard(container) {
 
             if (promptVal === 'Chat') promptVal = '';
 
-            // Smooth magical transition
-            const mainViewport = document.getElementById('main-content-viewport');
-            if (mainViewport) {
-                mainViewport.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                mainViewport.style.opacity = '0.7';
-                mainViewport.style.transform = 'scale(0.99)';
+            const heroEl = document.getElementById('dash-claude-hero-section');
+            const heroTitleEl = document.getElementById('dash-claude-greeting-title');
+            const statsContainer = document.getElementById('dash-stats-view-container');
+            const chatView = document.getElementById('dash-inpage-chat-view');
+
+            if (input) input.value = '';
+
+            if (heroEl && statsContainer && chatView) {
+                // Animate title out
+                if (heroTitleEl) {
+                    heroTitleEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                    heroTitleEl.style.opacity = '0';
+                    heroTitleEl.style.transform = 'translateY(-12px)';
+                    setTimeout(() => { heroTitleEl.classList.add('hidden'); }, 250);
+                }
+
+                // Animate stats view out
+                statsContainer.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                statsContainer.style.opacity = '0';
+                statsContainer.style.transform = 'translateY(16px)';
+
                 setTimeout(() => {
-                    mainViewport.style.opacity = '1';
-                    mainViewport.style.transform = 'scale(1)';
-                }, 300);
+                    statsContainer.classList.add('hidden');
+                    chatView.classList.remove('hidden');
+                    chatView.style.opacity = '1';
+                    
+                    // Smoothly slide and lock hero bar to bottom fixed position
+                    heroEl.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                    heroEl.classList.add('fixed', 'bottom-4', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
+                    heroEl.classList.remove('my-4', 'shrink-0');
+
+                    if (window.executeInpageCopilotPrompt) {
+                        window.executeInpageCopilotPrompt(promptVal);
+                    }
+                }, 250);
+            } else {
+                if (window.openCopilotModal) {
+                    window.openCopilotModal();
+                    if (promptVal) {
+                        setTimeout(() => {
+                            const copilotInput = document.getElementById('copilot-prompt-input');
+                            if (copilotInput) {
+                                copilotInput.value = promptVal;
+                                if (window.parseCopilotCommand) window.parseCopilotCommand();
+                            }
+                        }, 100);
+                    }
+                }
+            }
+        };
+
+        window.returnToDashStatsView = function() {
+            const heroEl = document.getElementById('dash-claude-hero-section');
+            const heroTitleEl = document.getElementById('dash-claude-greeting-title');
+            const statsContainer = document.getElementById('dash-stats-view-container');
+            const chatView = document.getElementById('dash-inpage-chat-view');
+
+            if (heroEl && statsContainer && chatView) {
+                // Restore hero to top position
+                heroEl.classList.remove('fixed', 'bottom-4', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');
+                heroEl.classList.add('my-4', 'shrink-0');
+                heroEl.style.transform = '';
+
+                if (heroTitleEl) {
+                    heroTitleEl.classList.remove('hidden');
+                    heroTitleEl.style.opacity = '1';
+                    heroTitleEl.style.transform = 'translateY(0)';
+                }
+
+                chatView.classList.add('hidden');
+                statsContainer.classList.remove('hidden');
+                statsContainer.style.opacity = '1';
+                statsContainer.style.transform = 'translateY(0)';
+            }
+        };
+
+        window.clearInpageChatSession = function() {
+            const msgContainer = document.getElementById('inpage-chat-messages-container');
+            if (msgContainer) {
+                msgContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 space-y-2 animate-fade-in">
+                        <div class="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 mx-auto flex items-center justify-center font-bold shadow-2xs">
+                            <i data-lucide="bot" class="h-6 w-6"></i>
+                        </div>
+                        <h4 class="text-xs font-bold text-slate-700">LinkPilot AI Session Cleared</h4>
+                        <p class="text-[11px] text-slate-500 max-w-sm mx-auto">Ask any question or use slash commands below to query leads, deals, email & workflow automations.</p>
+                    </div>
+                `;
+                if (window.lucide) window.lucide.createIcons();
+            }
+        };
+
+        window.executeInpageCopilotPrompt = async function(promptText) {
+            const msgContainer = document.getElementById('inpage-chat-messages-container');
+            if (!msgContainer) return;
+
+            if (msgContainer.children.length === 1 && msgContainer.querySelector('.text-slate-400')) {
+                msgContainer.innerHTML = '';
             }
 
-            if (window.openCopilotModal) {
-                window.openCopilotModal();
-                if (promptVal) {
-                    setTimeout(() => {
-                        const copilotInput = document.getElementById('copilot-prompt-input');
-                        if (copilotInput) {
-                            copilotInput.value = promptVal;
-                            if (window.parseCopilotCommand) window.parseCopilotCommand();
-                        }
-                    }, 100);
+            const query = (promptText || '').trim();
+            if (!query) {
+                // Greeting default introduction message
+                const welcomeMsg = `
+                    <div class="flex items-start space-x-3 text-left animate-fade-in">
+                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+                            <i data-lucide="bot" class="h-5 w-5"></i>
+                        </div>
+                        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs max-w-2xl text-xs space-y-2.5">
+                            <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
+                                <span class="font-extrabold text-slate-900">LinkPilot AI 2.0 Co-Pilot</span>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 font-black">Connected & Ready</span>
+                            </div>
+                            <p class="text-slate-700 leading-relaxed font-medium">Hello! I am your autonomous CRM AI Co-Pilot. I can help you search contacts, analyze lead scores, draft emails, create automation workflows, and inspect your sales pipeline in real-time.</p>
+                            <div class="pt-1 text-[11px] text-slate-500 font-semibold">Try quick prompts:</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                                <button type="button" onclick="window.submitDashClaudePrompt('Find my hottest leads')" class="p-2.5 bg-amber-50/60 hover:bg-amber-100/80 border border-amber-200 rounded-xl text-amber-900 text-left transition font-bold flex items-center space-x-2 cursor-pointer">
+                                    <i data-lucide="flame" class="h-4 w-4 text-amber-500 shrink-0"></i>
+                                    <span>🔥 Find hottest lead scores</span>
+                                </button>
+                                <button type="button" onclick="window.submitDashClaudePrompt('Analyze my sales pipeline')" class="p-2.5 bg-emerald-50/60 hover:bg-emerald-100/80 border border-emerald-200 rounded-xl text-emerald-900 text-left transition font-bold flex items-center space-x-2 cursor-pointer">
+                                    <i data-lucide="bar-chart-3" class="h-4 w-4 text-emerald-600 shrink-0"></i>
+                                    <span>📊 Pipeline conversion breakdown</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                msgContainer.insertAdjacentHTML('beforeend', welcomeMsg);
+                if (window.lucide) window.lucide.createIcons();
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+                return;
+            }
+
+            const esc = (s) => (s ? String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '');
+
+            // User Prompt Bubble
+            const userMsgHtml = `
+                <div class="flex items-start justify-end space-x-3 text-right animate-fade-in">
+                    <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-3.5 shadow-md max-w-xl text-xs font-semibold leading-relaxed">
+                        ${esc(query)}
+                    </div>
+                    <div class="h-9 w-9 rounded-xl bg-slate-800 text-white flex items-center justify-center font-black shrink-0 shadow-sm text-xs">
+                        You
+                    </div>
+                </div>
+            `;
+            msgContainer.insertAdjacentHTML('beforeend', userMsgHtml);
+
+            // Loader Bubble
+            const loaderId = 'ai-loader-' + Date.now();
+            const loaderHtml = `
+                <div id="${loaderId}" class="flex items-start space-x-3 text-left animate-fade-in">
+                    <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+                        <i data-lucide="bot" class="h-5 w-5 animate-pulse"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-xs space-y-2 text-slate-600">
+                        <div class="flex items-center space-x-2 text-indigo-600 font-extrabold">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>
+                            <span>Analyzing intent & querying LinkPilot backend...</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            msgContainer.insertAdjacentHTML('beforeend', loaderHtml);
+            if (window.lucide) window.lucide.createIcons();
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            try {
+                const res = await apiCall('crm/copilot_action.php', { prompt: query });
+                const loaderEl = document.getElementById(loaderId);
+                if (loaderEl) loaderEl.remove();
+
+                let aiReplyHtml = '';
+                if (res && res.success) {
+                    const parsed = res.parsed || {};
+                    const intent = parsed.intent || 'GENERAL_CHAT';
+
+                    if (intent === 'GET_HOT_LEADS' && res.hot_leads) {
+                        aiReplyHtml = `
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-2 text-amber-600 font-extrabold border-b border-slate-100 pb-2">
+                                    <i data-lucide="flame" class="h-4 w-4 text-amber-500"></i>
+                                    <span>AI Lead Scoring: Top Prioritized Leads</span>
+                                </div>
+                                <p class="text-slate-700 font-medium">${esc(res.message || 'Here are your highest scoring leads prioritized by LinkPilot AI Intelligence:')}</p>
+                                <div class="grid grid-cols-1 gap-2 pt-1">
+                                    ${res.hot_leads.slice(0, 5).map(lead => `
+                                        <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl flex items-center justify-between hover:border-amber-300 transition">
+                                            <div class="space-y-0.5 truncate">
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="font-extrabold text-slate-900 text-xs">${esc(lead.name || 'Lead')}</span>
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300">🔥 Score: ${lead.lead_score || 85}/100</span>
+                                                </div>
+                                                <p class="text-[11px] text-slate-500 truncate">${esc(lead.company || lead.email || '')}</p>
+                                            </div>
+                                            <button type="button" onclick="window.submitDashClaudePrompt('Draft email to ${esc(lead.email || lead.name)}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-extrabold transition shrink-0 shadow-2xs cursor-pointer" style="color: #ffffff !important;">
+                                                <span style="color: #ffffff !important;">Draft Email</span>
+                                            </button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    } else if (intent === 'ANALYZE_PIPELINE' && res.pipeline) {
+                        aiReplyHtml = `
+                            <div class="space-y-3">
+                                <div class="flex items-center space-x-2 text-emerald-600 font-extrabold border-b border-slate-100 pb-2">
+                                    <i data-lucide="bar-chart-3" class="h-4 w-4 text-emerald-600"></i>
+                                    <span>Sales Pipeline & Deal Intelligence Summary</span>
+                                </div>
+                                <p class="text-slate-700 font-medium">${esc(res.message || 'Pipeline analysis generated from real-time CRM deals:')}</p>
+                                <div class="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl text-emerald-950 text-xs font-semibold">
+                                    ${esc(typeof res.pipeline === 'object' ? JSON.stringify(res.pipeline, null, 2) : res.pipeline)}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        aiReplyHtml = `
+                            <div class="space-y-2">
+                                <div class="flex items-center space-x-2 text-indigo-600 font-extrabold border-b border-slate-100 pb-2">
+                                    <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
+                                    <span>AI Co-Pilot Execution Result</span>
+                                </div>
+                                <p class="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">${esc(res.message || 'Action executed successfully in LinkPilot CRM.')}</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    aiReplyHtml = `
+                        <div class="space-y-2 text-rose-700 font-medium">
+                            <div class="flex items-center space-x-2 font-extrabold text-rose-600 border-b border-rose-100 pb-2">
+                                <i data-lucide="alert-circle" class="h-4 w-4"></i>
+                                <span>AI Execution Notice</span>
+                            </div>
+                            <p class="text-xs">${esc((res && res.message) || 'Request processed.')}</p>
+                        </div>
+                    `;
                 }
+
+                const aiMsgHtml = `
+                    <div class="flex items-start space-x-3 text-left animate-fade-in">
+                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+                            <i data-lucide="bot" class="h-5 w-5"></i>
+                        </div>
+                        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs max-w-2xl text-xs space-y-2">
+                            ${aiReplyHtml}
+                        </div>
+                    </div>
+                `;
+                msgContainer.insertAdjacentHTML('beforeend', aiMsgHtml);
+                if (window.lucide) window.lucide.createIcons();
+                msgContainer.scrollTop = msgContainer.scrollHeight;
+
+            } catch (err) {
+                const loaderEl = document.getElementById(loaderId);
+                if (loaderEl) loaderEl.remove();
+
+                const errHtml = `
+                    <div class="flex items-start space-x-3 text-left animate-fade-in">
+                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
+                            <i data-lucide="bot" class="h-5 w-5"></i>
+                        </div>
+                        <div class="bg-white border border-rose-200/90 rounded-2xl p-4 shadow-2xs max-w-2xl text-xs text-rose-600 space-y-1">
+                            <span class="font-extrabold block">Connection Notice</span>
+                            <p>${esc(err.message)}</p>
+                        </div>
+                    </div>
+                `;
+                msgContainer.insertAdjacentHTML('beforeend', errHtml);
+                if (window.lucide) window.lucide.createIcons();
+                msgContainer.scrollTop = msgContainer.scrollHeight;
             }
         };
         

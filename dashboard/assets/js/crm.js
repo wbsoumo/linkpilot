@@ -741,7 +741,7 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- Quick Action Pills Row -->
-                <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <div id="dash-claude-pills-row" class="flex flex-wrap items-center justify-center gap-2 pt-1">
                     <button type="button" onclick="window.submitDashClaudePrompt('Chat')" class="px-4 py-2 bg-blue-100/90 hover:bg-blue-200/90 text-blue-700 font-bold rounded-full border border-blue-200/80 shadow-2xs transition-all flex items-center space-x-2 text-xs cursor-pointer">
                         <i data-lucide="message-square" class="h-3.5 w-3.5 text-blue-600"></i>
                         <span>Chat</span>
@@ -773,7 +773,7 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- Footer Metadata -->
-                <div class="flex items-center justify-center space-x-3 text-slate-400 text-[11px] font-medium pt-1">
+                <div id="dash-claude-footer-meta" class="flex items-center justify-center space-x-3 text-slate-400 text-[11px] font-medium pt-1">
                     <span>Powered by LinkPilot AI 2.0 • Pro</span>
                     <span>|</span>
                     <span class="flex items-center space-x-1">
@@ -907,12 +907,16 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
-                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-4 pb-28 transition-all duration-300">
-                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-5 py-3 shadow-2xs">
-                        <div class="flex items-center space-x-2.5">
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-3 pb-24 transition-all duration-300 -mt-4">
+                    <!-- Top Header Card -->
+                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-5 py-3 shadow-2xs shrink-0">
+                        <div class="flex items-center space-x-3">
                             <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            <span class="text-xs font-black text-slate-800 tracking-wide">LinkPilot AI Co-Pilot Stream</span>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">Active Session</span>
+                            <span class="text-xs font-black text-slate-900 tracking-wide">LinkPilot AI Co-Pilot Stream</span>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-xs flex items-center space-x-1.5" style="color: #ffffff !important;">
+                                <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                <span style="color: #ffffff !important;">Active Session</span>
+                            </span>
                         </div>
                         <div class="flex items-center space-x-2">
                             <button type="button" onclick="window.clearInpageChatSession()" class="text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer">
@@ -925,8 +929,8 @@ async function renderDashboard(container) {
                         </div>
                     </div>
 
-                    <!-- Chat Message Bubbles Stream Container -->
-                    <div id="inpage-chat-messages-container" class="space-y-4 min-h-[350px] max-h-[55vh] overflow-y-auto pr-2 custom-scrollbar p-2">
+                    <!-- Chat Message Bubbles Stream Container (Smooth scrolling) -->
+                    <div id="inpage-chat-messages-container" class="space-y-4 h-[calc(100vh-230px)] max-h-[calc(100vh-230px)] overflow-y-auto pr-2 custom-scrollbar p-3 rounded-2xl bg-slate-50/50 border border-slate-200/60">
                         <!-- Dynamic Messages Appended Here -->
                     </div>
                 </div>
@@ -1447,12 +1451,17 @@ async function renderDashboard(container) {
             const statsContainer = document.getElementById('dash-stats-view-container');
             const chatView = document.getElementById('dash-inpage-chat-view');
             const bannerHeader = document.getElementById('dash-banner-header');
+            const pillsRow = document.getElementById('dash-claude-pills-row');
+            const footerMeta = document.getElementById('dash-claude-footer-meta');
 
             if (input) input.value = '';
 
             if (heroEl && statsContainer && chatView) {
-                // Animate title and banner header out
+                // Animate title, banner header, pills row, and footer out
                 if (bannerHeader) bannerHeader.classList.add('hidden');
+                if (pillsRow) pillsRow.classList.add('hidden');
+                if (footerMeta) footerMeta.classList.add('hidden');
+
                 if (heroTitleEl) {
                     heroTitleEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
                     heroTitleEl.style.opacity = '0';
@@ -1501,10 +1510,14 @@ async function renderDashboard(container) {
             const statsContainer = document.getElementById('dash-stats-view-container');
             const chatView = document.getElementById('dash-inpage-chat-view');
             const bannerHeader = document.getElementById('dash-banner-header');
+            const pillsRow = document.getElementById('dash-claude-pills-row');
+            const footerMeta = document.getElementById('dash-claude-footer-meta');
 
             if (heroEl && statsContainer && chatView) {
-                // Restore banner header
+                // Restore banner header, pills, and footer
                 if (bannerHeader) bannerHeader.classList.remove('hidden');
+                if (pillsRow) pillsRow.classList.remove('hidden');
+                if (footerMeta) footerMeta.classList.remove('hidden');
 
                 // Restore hero to top position
                 heroEl.classList.remove('fixed', 'bottom-4', 'left-1/2', '-translate-x-1/2', 'z-50', 'm-0', 'w-full', 'max-w-4xl', 'px-4');

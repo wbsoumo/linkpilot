@@ -698,8 +698,8 @@ async function renderDashboard(container) {
                     <p class="text-slate-500 font-medium text-sm sm:text-base">How can I help you with your CRM today?</p>
                 </div>
 
-                <!-- Pristine Floating Command Bar (Border-Free with Slash Menu) -->
-                <div class="bg-white/95 backdrop-blur-xl shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto hover:shadow-2xl transition-all duration-300 relative group border-0">
+                <!-- Pristine Floating Command Bar -->
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto ring-4 ring-slate-100/60 hover:shadow-2xl hover:border-indigo-300 transition-all duration-300 relative group">
                     <!-- Floating Slash Commands Autocomplete Menu -->
                     <div id="dash-slash-menu" class="hidden absolute left-2 right-2 bottom-full mb-3 bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 z-[9999] animate-fade-in text-left max-h-64 overflow-y-auto">
                         <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50/60 rounded-xl mb-1 flex items-center justify-between">
@@ -721,8 +721,8 @@ async function renderDashboard(container) {
                         </div>
                     </div>
 
-                    <!-- Input Box with Slash Command Autocomplete -->
-                    <input type="text" id="dash-claude-prompt-input" oninput="window.handleDashSlashCommandInput(this)" onkeydown="window.handleDashSlashKeydown(event)" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none border-none focus:border-none focus:outline-none focus:ring-0 font-medium px-2 font-sans">
+                    <!-- Input Box with Zero Focus Rectangle Border -->
+                    <input type="text" id="dash-claude-prompt-input" oninput="window.handleDashSlashCommandInput(this)" onkeydown="window.handleDashSlashKeydown(event)" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base font-medium px-2 font-sans" style="outline: none !important; border: none !important; box-shadow: none !important; border-width: 0 !important; -webkit-appearance: none !important;">
 
                     <!-- Inner Action Buttons (Paperclip & Mic) -->
                     <div class="flex items-center space-x-1 shrink-0">

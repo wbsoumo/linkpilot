@@ -433,6 +433,29 @@
                     <textarea id="copilot-field-wamsg" rows="4" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1 resize-none">${draft.message || ''}</textarea>
                 </div>
             `;
+        } else if (parsed.action_type === 'CREATE_AUTOMATION') {
+            const wfName = parsed.summary || 'New Automation Sequence';
+            const trigger = parsed.trigger_type || 'lead.created';
+            fieldsHTML = `
+                <div>
+                    <label class="font-bold text-slate-700">Automation Workflow Name:</label>
+                    <input type="text" id="copilot-field-auto-name" value="${wfName}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700">Trigger Event:</label>
+                    <input type="text" id="copilot-field-auto-trigger" value="${trigger}" readonly class="w-full p-2 border border-slate-200 bg-slate-100 text-slate-600 rounded-lg text-xs mt-1 font-mono">
+                </div>
+                <div class="bg-blue-50 border border-blue-200/80 rounded-xl p-3 space-y-2 text-xs">
+                    <div class="font-bold text-blue-900 flex items-center"><i data-lucide="sparkles" class="h-3.5 w-3.5 mr-1 text-blue-600"></i> Planned Workflow Steps:</div>
+                    <ol class="list-decimal list-inside space-y-1 text-slate-700 text-[11px] font-medium">
+                        <li>Trigger when event <code class="bg-blue-100 text-blue-800 px-1 py-0.5 rounded">${trigger}</code> occurs</li>
+                        <li>Assign owner &amp; update CRM contact record</li>
+                        <li>Send automated communication email / WhatsApp</li>
+                        <li>Wait for response delay condition check</li>
+                        <li>Escalate or mark completed</li>
+                    </ol>
+                </div>
+            `;
         } else if (parsed.action_type === 'CREATE_INVOICE') {
             const draft = parsed.invoice_draft || {};
             fieldsHTML = `

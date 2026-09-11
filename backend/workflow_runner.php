@@ -2,342 +2,601 @@
 // backend/workflow_runner.php
 
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/wallet_helper.php';
-require_once __DIR__ . '/smtp_helper.php';
-require_once __DIR__ . '/providers/whatsapp_meta_service.php';
+require_once __DIR__ . '/crm_sync_helper.php';
+require_once __DIR__ . '/communication_provider_helper.php';
 
 class WorkflowRunner {
+    private static $maxDepth = 10;
 
     /**
-     * Execute a visual node workflow graph
-     * 
-     * @param int $userId
-     * @param array $workflow The workflow row from database
-     * @param array $context The event variables
+     * Trigger workflows listening for an event (e.g. 'lead.created', 'contact.updated', etc.)
      */
-    public static function execute($userId, $workflow, $context = []) {
-        $db = Database::getConnection();
-        
-        $actions = json_decode($workflow['actions_json'], true);
-        if (!$actions || empty($actions['nodes'])) {
-            return;
+    public static function triggerEvent($userId, $eventType, array $eventContext = [], PDO $db = null) {
+        if (!$db) {
+            $db = Database::getConnection();
         }
 
-        // Gather all nodes by ID
-        $nodes = [];
-        foreach ($actions['nodes'] as $n) {
-            $nodes[$n['id']] = $n;
+        // Fetch all active workflows matching user_id and trigger_type
+        $stmt = $db->prepare("
+            SELECT * FROM automation_workflows 
+            WHERE user_id = ? 
+              AND trigger_type = ? 
+              AND status = 'active'
+        ");
+        $stmt->execute([$userId, $eventType]);
+        $workflows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $startedExecutions = [];
+        foreach ($workflows as $wf) {
+            $execId = self::startExecution($userId, $wf, $eventContext, $db);
+            if ($execId) {
+                $startedExecutions[] = $execId;
+            }
         }
 
-        // Find starting trigger node
+        return $startedExecutions;
+    }
+
+    /**
+     * Start a new persistent workflow execution
+     */
+    public static function startExecution($userId, array $workflow, array $eventContext, PDO $db = null) {
+        if (!$db) {
+            $db = Database::getConnection();
+        }
+
+        $nodes = json_decode($workflow['nodes_json'] ?? '[]', true) ?: [];
+        $edges = json_decode($workflow['edges_json'] ?? '[]', true) ?: [];
+
+        if (empty($nodes)) {
+            // Support legacy actions_json fallback if nodes_json is missing
+            $legacyActions = json_decode($workflow['actions_json'] ?? '[]', true) ?: [];
+            if (!empty($legacyActions)) {
+                $nodes = self::convertLegacyActionsToNodes($workflow['trigger_type'], $legacyActions);
+                $edges = self::buildLinearEdges($nodes);
+            } else {
+                return null;
+            }
+        }
+
+        // Find trigger node
         $triggerNode = null;
         foreach ($nodes as $n) {
-            $isTrigger = ($n['id'] === 'node-trigger' || 
-                          ($n['category'] ?? '') === 'TRIGGERS' || 
-                          $n['type'] === 'email_received' || 
-                          $n['type'] === 'whatsapp_received' ||
-                          $n['type'] === 'meeting_scheduled');
-            if ($isTrigger) {
+            if (($n['type'] ?? '') === 'trigger') {
                 $triggerNode = $n;
                 break;
             }
         }
+        if (!$triggerNode && !empty($nodes)) {
+            $triggerNode = $nodes[0];
+        }
 
-        if (!$triggerNode) {
+        // Build context
+        $context = array_merge([
+            'trigger_type' => $workflow['trigger_type'],
+            'user_id' => $userId,
+            'triggered_at' => date('Y-m-d H:i:s')
+        ], $eventContext);
+
+        $contactId = $context['contact_id'] ?? null;
+        $leadId = $context['lead_id'] ?? null;
+        $dealId = $context['deal_id'] ?? null;
+
+        // Idempotency token to prevent duplicate trigger runs
+        $idempotencyKey = 'wf_' . $workflow['id'] . '_v' . ($workflow['version'] ?? 1) . '_' . md5(json_encode($context) . '_' . microtime(true));
+
+        $stmt = $db->prepare("
+            INSERT INTO automation_executions 
+            (user_id, workflow_id, workflow_version, contact_id, lead_id, deal_id, current_node_id, execution_context_json, status, idempotency_key, depth)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'running', ?, 1)
+        ");
+        $stmt->execute([
+            $userId,
+            $workflow['id'],
+            $workflow['version'] ?? 1,
+            $contactId,
+            $leadId,
+            $dealId,
+            $triggerNode['id'] ?? 'trigger_1',
+            json_encode($context),
+            $idempotencyKey
+        ]);
+        $execId = (int)$db->lastInsertId();
+
+        // Increment workflow run counter
+        $db->prepare("UPDATE automation_workflows SET runs_count = runs_count + 1, last_run_at = NOW() WHERE id = ?")->execute([$workflow['id']]);
+
+        // Log step
+        self::logStep($execId, $userId, $triggerNode['id'] ?? 'trigger_1', 'trigger', 'Trigger Fired', 'passed', $context, ['status' => 'matched'], null, $db);
+
+        // Advance to next node from trigger
+        $nextNodes = self::getNextNodes($triggerNode['id'] ?? 'trigger_1', 'default', $nodes, $edges);
+        if (!empty($nextNodes)) {
+            self::processNode($execId, $nextNodes[0]['id'], $nodes, $edges, $context, $db);
+        } else {
+            // Workflow complete
+            self::completeExecution($execId, $workflow['id'], $db);
+        }
+
+        return $execId;
+    }
+
+    /**
+     * Process a node in an active execution
+     */
+    public static function processNode($execId, $nodeId, array $nodes, array $edges, array $context, PDO $db = null) {
+        if (!$db) {
+            $db = Database::getConnection();
+        }
+
+        // Fetch execution state
+        $stmt = $db->prepare("SELECT * FROM automation_executions WHERE id = ?");
+        $stmt->execute([$execId]);
+        $exec = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$exec || in_array($exec['status'], ['completed', 'failed', 'cancelled'])) {
             return;
         }
 
-        // Record execution log start
-        $startTime = microtime(true);
-
-        // Flatten context for dot-notation dynamic variable substitution
-        $flatContext = [];
-        $flatten = function($arr, $prefix = '') use (&$flatten, &$flatContext) {
-            foreach ($arr as $k => $v) {
-                if (is_array($v)) {
-                    $flatten($v, $prefix . $k . '.');
-                } else {
-                    $flatContext[$prefix . $k] = $v;
-                }
-            }
-        };
-        $flatten($context);
-
-        // Keep track of visited nodes to prevent cycles
-        $visited = [];
-
-        try {
-            self::executeNode($userId, $triggerNode, $nodes, $actions['connections'] ?? [], $flatContext, $visited);
-            
-            $duration = microtime(true) - $startTime;
-            
-            // Log successful workflow execution
-            $stmt = $db->prepare("INSERT INTO workflow_execution_logs (user_id, workflow_id, workflow_name, status, execution_time) VALUES (?, ?, ?, 'success', ?)");
-            $stmt->execute([$userId, $workflow['id'], $workflow['name'], $duration]);
-        } catch (Throwable $e) {
-            $duration = microtime(true) - $startTime;
-            
-            // Log failed workflow execution
-            $stmt = $db->prepare("INSERT INTO workflow_execution_logs (user_id, workflow_id, workflow_name, status, execution_time, error_message) VALUES (?, ?, ?, 'failed', ?, ?)");
-            $stmt->execute([$userId, $workflow['id'], $workflow['name'], $duration, $e->getMessage()]);
+        if ((int)$exec['depth'] > self::$maxDepth) {
+            self::failExecution($execId, $exec['workflow_id'], "Execution depth exceeded safe limit of " . self::$maxDepth . " (Loop Protection)", $db);
+            return;
         }
-    }
 
-    /**
-     * Recursively traverse and execute nodes
-     */
-    private static function executeNode($userId, $node, $allNodes, $connections, &$context, &$visited) {
-        if (in_array($node['id'], $visited)) {
-            return; // Prevent infinite loops
+        // Locate target node
+        $currentNode = null;
+        foreach ($nodes as $n) {
+            if ($n['id'] === $nodeId) {
+                $currentNode = $n;
+                break;
+            }
         }
-        $visited[] = $node['id'];
 
-        $db = Database::getConnection();
-        $type = $node['type'] ?? '';
-        $config = $node['config'] ?? [];
+        if (!$currentNode) {
+            self::completeExecution($execId, $exec['workflow_id'], $db);
+            return;
+        }
 
-        // Helper for variable replacement (Supports both {{var}} and {var} brackets)
-        $replaceVars = function($txt) use (&$context, $db, $userId) {
-            if (empty($txt)) return $txt;
-            
-            // Load contact details dynamically if referenced
-            if ((strpos($txt, '{{contact.') !== false || strpos($txt, '{contact.') !== false) && !empty($context['contact_id'])) {
-                $stmtC = $db->prepare("SELECT * FROM crm_contacts WHERE id = ? AND user_id = ?");
-                $stmtC->execute([$context['contact_id'], $userId]);
-                $cRow = $stmtC->fetch(PDO::FETCH_ASSOC);
-                if ($cRow) {
-                    foreach ($cRow as $ck => $cv) {
-                        $context['contact.' . $ck] = $cv;
-                    }
-                }
-            }
-            
-            // Load lead details dynamically if referenced
-            if ((strpos($txt, '{{lead.') !== false || strpos($txt, '{lead.') !== false) && !empty($context['lead_id'])) {
-                $stmtL = $db->prepare("SELECT * FROM crm_leads WHERE id = ? AND user_id = ?");
-                $stmtL->execute([$context['lead_id'], $userId]);
-                $lRow = $stmtL->fetch(PDO::FETCH_ASSOC);
-                if ($lRow) {
-                    foreach ($lRow as $lk => $lv) {
-                        $context['lead.' . $lk] = $lv;
-                    }
-                }
-            }
+        // Update current node in execution
+        $db->prepare("UPDATE automation_executions SET current_node_id = ?, depth = depth + 1 WHERE id = ?")->execute([$nodeId, $execId]);
 
-            foreach ($context as $key => $val) {
-                if (is_scalar($val)) {
-                    $txt = str_replace('{{' . $key . '}}', $val, $txt);
-                    $txt = str_replace('{' . $key . '}', $val, $txt);
-                }
-            }
-            return $txt;
-        };
+        $nodeType = $currentNode['type'] ?? 'action';
+        $nodeConfig = $currentNode['config'] ?? $currentNode['data'] ?? [];
+        $nodeLabel = $currentNode['label'] ?? $currentNode['name'] ?? $nodeType;
 
-        $nextConnectionLabel = null; // Used for branching condition nodes
+        switch ($nodeType) {
+            case 'delay':
+                $delaySeconds = self::parseDelaySeconds($nodeConfig);
+                $resumeAt = date('Y-m-d H:i:s', time() + $delaySeconds);
+                
+                $db->prepare("
+                    UPDATE automation_executions 
+                    SET status = 'waiting', next_run_at = ?, execution_context_json = ? 
+                    WHERE id = ?
+                ")->execute([$resumeAt, json_encode($context), $execId]);
 
-        switch ($type) {
-            case 'create_lead':
-                $leadName = $replaceVars($config['leadName'] ?? ($context['sender_name'] ?? 'New Lead'));
-                $leadCompany = $replaceVars($config['company'] ?? ($context['company_name'] ?? ''));
-                $leadBudget = (float)($config['budget'] ?? ($context['budget'] ?? 0.00));
-                $leadPriority = $config['priority'] ?? 'medium';
-                $leadSource = $config['source'] ?? 'Automation';
-
-                $stmt = $db->prepare("INSERT INTO crm_leads (user_id, name, company, budget, priority, lead_source, stage) VALUES (?, ?, ?, ?, ?, ?, 'New')");
-                $stmt->execute([$userId, $leadName, $leadCompany, $leadBudget, $leadPriority, $leadSource]);
-                $newLeadId = $db->lastInsertId();
-                $context['lead_id'] = $newLeadId;
-
-                // Log to timeline
-                self::logTimeline($db, $userId, 'Lead Created', "Lead '$leadName' was automatically created by visual workflow.", $newLeadId);
-                break;
-
-            case 'create_task':
-                $taskTitle = $replaceVars($config['taskTitle'] ?? 'Follow up required');
-                $taskDesc = $replaceVars($config['taskDesc'] ?? '');
-                $dueDate = date('Y-m-d', strtotime('+' . ($config['dueDate'] ?? 2) . ' days'));
-                $priority = $config['priority'] ?? 'medium';
-
-                $leadId = $context['lead_id'] ?? null;
-                $contactId = $context['contact_id'] ?? null;
-
-                $stmt = $db->prepare("INSERT INTO crm_tasks (user_id, lead_id, contact_id, title, description, due_date, status, priority) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)");
-                $stmt->execute([$userId, $leadId, $contactId, $taskTitle, $taskDesc, $dueDate, $priority]);
-                $newTaskId = $db->lastInsertId();
-                $context['task_id'] = $newTaskId;
-
-                // Log to timeline
-                self::logTimeline($db, $userId, 'Task Created', "Task '$taskTitle' (due $dueDate) was automatically scheduled by visual workflow.", $leadId, $contactId);
-                break;
-
-            case 'send_email':
-                $to = $replaceVars($config['toEmail'] ?? ($context['sender_email'] ?? ''));
-                $subject = $replaceVars($config['subject'] ?? 'Notification');
-                $body = $replaceVars($config['body'] ?? '');
-
-                if (!empty($to)) {
-                    SMTPHelper::sendEmail($userId, $to, $subject, $body);
-                    self::logTimeline($db, $userId, 'Email Outbound', "Automated email sent to $to: '$subject'", $context['lead_id'] ?? null, $context['contact_id'] ?? null);
-                }
-                break;
-
-            case 'whatsapp_outbound':
-                $to = $replaceVars($config['to'] ?? ($context['sender_phone'] ?? ''));
-                $message = $replaceVars($config['message'] ?? '');
-                $reminderOffset = $config['reminderOffset'] ?? 'None (Send Immediately)';
-
-                // Clean phone number
-                $toClean = preg_replace('/[^0-9]/', '', $to);
-
-                if (!empty($toClean) && !empty($message)) {
-                    // Fetch connected WhatsApp account
-                    $stmtAcc = $db->prepare("SELECT access_token, phone_number_id FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
-                    $stmtAcc->execute([$userId]);
-                    $acc = $stmtAcc->fetch();
-
-                    if ($acc) {
-                        $phoneNumberId = $acc['phone_number_id'];
-                        
-                        // Parse scheduled reminder date if configured
-                        $scheduledAt = null;
-                        if (!empty($reminderOffset) && $reminderOffset !== 'None (Send Immediately)' && !empty($context['meeting_start'])) {
-                            $meetingStartTs = strtotime($context['meeting_start']);
-                            
-                            if ($reminderOffset === '5 minutes before meeting') {
-                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 300);
-                            } elseif ($reminderOffset === '15 minutes before meeting') {
-                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 900);
-                            } elseif ($reminderOffset === '30 minutes before meeting') {
-                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 1800);
-                            } elseif ($reminderOffset === '1 hour before meeting') {
-                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 3600);
-                            } elseif ($reminderOffset === '1 day before meeting') {
-                                $scheduledAt = date('Y-m-d H:i:s', $meetingStartTs - 86400);
-                            }
-                        }
-
-                        if ($scheduledAt !== null) {
-                            // Queue the message with status 'pending' and correct scheduled_at timestamp
-                            $payloadJson = json_encode(['body' => $message]);
-                            $stmtQueue = $db->prepare("
-                                INSERT INTO whatsapp_queue (user_id, phone_number_id, recipient_number, payload_json, type, status, scheduled_at)
-                                VALUES (?, ?, ?, ?, 'text', 'pending', ?)
-                            ");
-                            $stmtQueue->execute([$userId, $phoneNumberId, $toClean, $payloadJson, $scheduledAt]);
-
-                            self::logTimeline($db, $userId, 'WhatsApp Outbound', "Automated WhatsApp reminder queued for $toClean at $scheduledAt: " . substr($message, 0, 80), $context['lead_id'] ?? null, $context['contact_id'] ?? null);
-                        } else {
-                            // Send immediately
-                            $encryptedToken = $acc['access_token'];
-                            $decrypted = decryptData($encryptedToken);
-                            $accessToken = ($decrypted !== false) ? $decrypted : $encryptedToken;
-                            
-                            $isMock = (strpos($accessToken, 'Mock') !== false || $accessToken === 'EAAGemini' || $accessToken === 'EAAGeminiTest');
-                            $metaMsgId = '';
-                            if (!$isMock) {
-                                $res = WhatsAppMetaService::sendTextMessage($userId, $phoneNumberId, $toClean, $message, $accessToken);
-                                $metaMsgId = $res['messages'][0]['id'] ?? 'wamid.' . uniqid();
-                            } else {
-                                $metaMsgId = 'wamid.MockAuto.' . uniqid();
-                            }
-
-                            // Log outbound message to database
-                            $stmtExist = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? AND RIGHT(wa_id, 10) = RIGHT(?, 10) ORDER BY last_message_at DESC LIMIT 1");
-                            $stmtExist->execute([$userId, $toClean]);
-                            $waContactId = $stmtExist->fetchColumn();
-                            
-                            if (!$waContactId) {
-                                $stmtInsWaCon = $db->prepare("INSERT INTO whatsapp_contacts (user_id, wa_id, profile_name, last_message_at, unread_count) VALUES (?, ?, ?, NOW(), 0)");
-                                $stmtInsWaCon->execute([$userId, $toClean, 'WhatsApp Contact']);
-                                $waContactId = $db->lastInsertId();
-                            }
-                            
-                            $stmtInsMsg = $db->prepare("INSERT INTO whatsapp_messages (user_id, wa_contact_id, message_id, direction, type, body, status) VALUES (?, ?, ?, 'outbound', 'text', ?, 'sent')");
-                            $stmtInsMsg->execute([$userId, $waContactId, $metaMsgId, $message]);
-                            
-                            $db->prepare("UPDATE whatsapp_contacts SET last_message_at = NOW() WHERE id = ?")->execute([$waContactId]);
-
-                            self::logTimeline($db, $userId, 'WhatsApp Outbound', "Automated WhatsApp sent to $toClean: " . substr($message, 0, 80), $context['lead_id'] ?? null, $context['contact_id'] ?? null);
-                        }
-                    }
-                }
-                break;
+                self::logStep($execId, $exec['user_id'], $nodeId, 'delay', $nodeLabel, 'waiting', ['delay_seconds' => $delaySeconds], ['resume_at' => $resumeAt], null, $db);
+                return; // Execution pauses until queue worker resumes
 
             case 'condition':
-            case 'if_branch':
-                $left = $replaceVars($config['leftValue'] ?? '');
-                $op = $config['operator'] ?? 'Equals';
-                $right = $replaceVars($config['rightValue'] ?? '');
+                $conditionResult = self::evaluateConditionGroup($nodeConfig, $context, $exec['user_id'], $db);
+                $outcomeBranch = $conditionResult ? 'true' : 'false';
 
-                $matched = false;
-                if ($op === 'Equals') $matched = (strtolower($left) == strtolower($right));
-                elseif ($op === 'Not Equals') $matched = (strtolower($left) != strtolower($right));
-                elseif ($op === 'Contains') $matched = (stripos($left, $right) !== false);
-                elseif ($op === 'Greater Than') $matched = ((float)$left > (float)$right);
-                elseif ($op === 'Less Than') $matched = ((float)$left < (float)$right);
-                elseif ($op === 'Exists') $matched = !empty($left);
-                else $matched = false;
+                self::logStep($execId, $exec['user_id'], $nodeId, 'condition', $nodeLabel, 'passed', $nodeConfig, ['evaluated' => $conditionResult, 'branch' => $outcomeBranch], null, $db);
 
-                $nextConnectionLabel = $matched ? 'Yes' : 'No';
-                break;
-
-            case 'add_tag':
-                $tagName = $replaceVars($config['tagName'] ?? '');
-                $leadId = $context['lead_id'] ?? null;
-                
-                if (!empty($tagName) && $leadId) {
-                    // Update tags on lead
-                    $stmtGet = $db->prepare("SELECT tags FROM crm_leads WHERE id = ? AND user_id = ?");
-                    $stmtGet->execute([$leadId, $userId]);
-                    $currTags = trim($stmtGet->fetchColumn() ?: '');
-                    
-                    $newTags = empty($currTags) ? $tagName : $currTags . ', ' . $tagName;
-                    $db->prepare("UPDATE crm_leads SET tags = ? WHERE id = ?")->execute([$newTags, $leadId]);
-                    
-                    self::logTimeline($db, $userId, 'Lead Updated', "Added tag '$tagName' to lead.", $leadId);
+                $nextNodes = self::getNextNodes($nodeId, $outcomeBranch, $nodes, $edges);
+                if (empty($nextNodes)) {
+                    // Fallback to default edge if specific true/false branch not found
+                    $nextNodes = self::getNextNodes($nodeId, 'default', $nodes, $edges);
                 }
-                break;
+
+                if (!empty($nextNodes)) {
+                    self::processNode($execId, $nextNodes[0]['id'], $nodes, $edges, $context, $db);
+                } else {
+                    self::completeExecution($execId, $exec['workflow_id'], $db);
+                }
+                return;
+
+            case 'action':
+                $actionType = $currentNode['action_type'] ?? $nodeConfig['action_type'] ?? '';
+                $actionParams = $nodeConfig['params'] ?? $nodeConfig;
+
+                try {
+                    $actionOutput = self::executeAction($exec['user_id'], $actionType, $actionParams, $context, $db);
+                    
+                    // Merge any newly produced context values (e.g. created task_id, sent comm_id)
+                    if (is_array($actionOutput)) {
+                        $context = array_merge($context, $actionOutput);
+                    }
+
+                    self::logStep($execId, $exec['user_id'], $nodeId, 'action', $nodeLabel, 'passed', $actionParams, $actionOutput, null, $db);
+
+                    $nextNodes = self::getNextNodes($nodeId, 'default', $nodes, $edges);
+                    if (!empty($nextNodes)) {
+                        self::processNode($execId, $nextNodes[0]['id'], $nodes, $edges, $context, $db);
+                    } else {
+                        self::completeExecution($execId, $exec['workflow_id'], $db);
+                    }
+                } catch (Exception $e) {
+                    self::logStep($execId, $exec['user_id'], $nodeId, 'action', $nodeLabel, 'failed', $actionParams, null, $e->getMessage(), $db);
+                    self::failExecution($execId, $exec['workflow_id'], "Action '{$nodeLabel}' failed: " . $e->getMessage(), $db);
+                }
+                return;
+
+            case 'end':
+                self::logStep($execId, $exec['user_id'], $nodeId, 'end', 'Workflow Finished', 'passed', [], [], null, $db);
+                self::completeExecution($execId, $exec['workflow_id'], $db);
+                return;
 
             default:
-                // Other nodes are currently no-ops in backend execution
-                break;
-        }
-
-        // Find next nodes following connections
-        $outgoing = [];
-        foreach ($connections as $conn) {
-            $fromId = $conn['from'] ?? ($conn['fromId'] ?? '');
-            $toId = $conn['to'] ?? ($conn['toId'] ?? '');
-            $label = $conn['handle'] ?? ($conn['label'] ?? '');
-
-            if ($fromId === $node['id']) {
-                if ($nextConnectionLabel !== null) {
-                    if (strtolower($label) === strtolower($nextConnectionLabel)) {
-                        $outgoing[] = $toId;
-                    }
+                // Move to next
+                $nextNodes = self::getNextNodes($nodeId, 'default', $nodes, $edges);
+                if (!empty($nextNodes)) {
+                    self::processNode($execId, $nextNodes[0]['id'], $nodes, $edges, $context, $db);
                 } else {
-                    $outgoing[] = $toId;
+                    self::completeExecution($execId, $exec['workflow_id'], $db);
                 }
-            }
-        }
-
-        // Execute subsequent nodes
-        foreach ($outgoing as $nextId) {
-            if (isset($allNodes[$nextId])) {
-                self::executeNode($userId, $allNodes[$nextId], $allNodes, $connections, $context, $visited);
-            }
+                return;
         }
     }
 
     /**
-     * Helper to log activities into CRM timeline
+     * Execute structured backend action using existing LinkPilot services
      */
-    private static function logTimeline($db, $userId, $activityType, $description, $leadId = null, $contactId = null) {
-        try {
-            $stmt = $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, activity_type, description) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$userId, $leadId, $contactId, $activityType, $description]);
-        } catch (Throwable $e) {
-            // Ignore timeline logger errors to prevent halting execution
+    private static function executeAction($userId, $actionType, array $params, array &$context, PDO $db) {
+        $contactId = $context['contact_id'] ?? null;
+        $leadId = $context['lead_id'] ?? null;
+        $dealId = $context['deal_id'] ?? null;
+
+        // Resolve contact if contactId not directly passed but leadId exists
+        if (!$contactId && $leadId) {
+            $stmt = $db->prepare("SELECT contact_id FROM crm_leads WHERE id = ? AND user_id = ?");
+            $stmt->execute([$leadId, $userId]);
+            $contactId = $stmt->fetchColumn() ?: null;
         }
+
+        switch ($actionType) {
+            case 'send_email':
+            case 'send_whatsapp':
+                $channel = ($actionType === 'send_whatsapp') ? 'whatsapp' : 'email';
+                $message = self::interpolateVariables($params['message'] ?? $params['body'] ?? '', $context, $userId, $db);
+                $subject = self::interpolateVariables($params['subject'] ?? 'Notification from LinkPilot', $context, $userId, $db);
+
+                $recipient = $params['recipient'] ?? null;
+                if (!$recipient && $contactId) {
+                    $c = CRMSyncHelper::resolveContact($userId, ['id' => $contactId], $db);
+                    $recipient = ($channel === 'whatsapp') ? ($c['whatsapp'] ?? $c['phone']) : $c['email'];
+                }
+                if (!$recipient) {
+                    throw new Exception("No recipient available for {$channel} communication.");
+                }
+
+                $commResult = CommunicationProviderHelper::sendCommunication(
+                    $userId,
+                    $channel,
+                    $recipient,
+                    $subject,
+                    $message,
+                    $contactId,
+                    $params['attachments'] ?? []
+                );
+
+                if ($commResult['status'] === 'failed') {
+                    throw new Exception($commResult['message'] ?? 'Communication dispatch failed');
+                }
+
+                return [
+                    'communication_id' => $commResult['action_id'] ?? null,
+                    'communication_status' => $commResult['status']
+                ];
+
+            case 'assign_lead':
+            case 'assign_owner':
+                $assignee = self::interpolateVariables($params['assignee'] ?? $params['owner'] ?? 'Unassigned', $context, $userId, $db);
+                if ($leadId) {
+                    $db->prepare("UPDATE crm_leads SET assigned_employee = ? WHERE id = ? AND user_id = ?")->execute([$assignee, $leadId, $userId]);
+                }
+                if ($contactId) {
+                    $db->prepare("UPDATE crm_contacts SET owner = ? WHERE id = ? AND user_id = ?")->execute([$assignee, $contactId, $userId]);
+                }
+                if ($dealId) {
+                    $db->prepare("UPDATE crm_deals SET owner = ? WHERE id = ? AND user_id = ?")->execute([$assignee, $dealId, $userId]);
+                }
+
+                CRMSyncHelper::logActivityTimeline($userId, $contactId, $leadId, null, $dealId, 'system', 'outbound', "Assigned to {$assignee} via Automation", "Assigned owner to {$assignee}", 'completed', null, ['assignee' => $assignee], $db);
+
+                return ['assigned_owner' => $assignee];
+
+            case 'create_task':
+                $title = self::interpolateVariables($params['title'] ?? 'Follow up task', $context, $userId, $db);
+                $description = self::interpolateVariables($params['description'] ?? '', $context, $userId, $db);
+                $priority = $params['priority'] ?? 'medium';
+
+                $dueDate = date('Y-m-d');
+                if (!empty($params['due_in_days'])) {
+                    $dueDate = date('Y-m-d', strtotime('+' . (int)$params['due_in_days'] . ' days'));
+                } elseif (!empty($params['due_date'])) {
+                    $dueDate = date('Y-m-d', strtotime($params['due_date']));
+                }
+
+                $stmt = $db->prepare("
+                    INSERT INTO crm_tasks (user_id, contact_id, lead_id, title, description, priority, due_date, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+                ");
+                $stmt->execute([$userId, $contactId, $leadId, $title, $description, $priority, $dueDate]);
+                $taskId = (int)$db->lastInsertId();
+
+                CRMSyncHelper::logActivityTimeline($userId, $contactId, $leadId, null, null, 'task', 'outbound', "Task Created: {$title}", $description, 'completed', null, ['task_id' => $taskId], $db);
+
+                return ['created_task_id' => $taskId];
+
+            case 'add_tag':
+                $tagName = self::interpolateVariables($params['tag_name'] ?? $params['tag'] ?? '', $context, $userId, $db);
+                if ($contactId && $tagName) {
+                    CRMSyncHelper::addContactTag($userId, $contactId, $tagName, '#3b82f6', $db);
+                }
+                return ['added_tag' => $tagName];
+
+            case 'change_stage':
+            case 'update_stage':
+                $newStage = self::interpolateVariables($params['stage'] ?? $params['new_stage'] ?? '', $context, $userId, $db);
+                if ($leadId && $newStage) {
+                    $db->prepare("UPDATE crm_leads SET stage = ? WHERE id = ? AND user_id = ?")->execute([$newStage, $leadId, $userId]);
+                }
+                if ($dealId && $newStage) {
+                    $db->prepare("UPDATE crm_deals SET stage = ? WHERE id = ? AND user_id = ?")->execute([$newStage, $dealId, $userId]);
+                }
+                return ['new_stage' => $newStage];
+
+            case 'notify_user':
+                $title = self::interpolateVariables($params['title'] ?? 'Automation Alert', $context, $userId, $db);
+                $msg = self::interpolateVariables($params['message'] ?? '', $context, $userId, $db);
+                
+                CRMSyncHelper::logActivityTimeline($userId, $contactId, $leadId, null, $dealId, 'system', 'outbound', "Notification: {$title}", $msg, 'completed', null, ['notification' => true], $db);
+                return ['notified' => true];
+
+            default:
+                // Generic log action fallback
+                return ['status' => 'executed', 'action' => $actionType];
+        }
+    }
+
+    /**
+     * Evaluate condition block (Allowlisted fields & operators)
+     */
+    private static function evaluateConditionGroup(array $config, array $context, $userId, PDO $db) {
+        $field = $config['field'] ?? '';
+        $operator = strtolower($config['operator'] ?? 'equals');
+        $expectedValue = $config['value'] ?? '';
+
+        $actualValue = self::resolveFieldValue($field, $context, $userId, $db);
+
+        switch ($operator) {
+            case 'equals':
+            case '==':
+                return strtolower((string)$actualValue) === strtolower((string)$expectedValue);
+            case 'not_equals':
+            case '!=':
+                return strtolower((string)$actualValue) !== strtolower((string)$expectedValue);
+            case 'contains':
+                return stripos((string)$actualValue, (string)$expectedValue) !== false;
+            case 'not_contains':
+                return stripos((string)$actualValue, (string)$expectedValue) === false;
+            case 'greater_than':
+            case '>':
+                return (float)$actualValue > (float)$expectedValue;
+            case 'less_than':
+            case '<':
+                return (float)$actualValue < (float)$expectedValue;
+            case 'exists':
+            case 'is_not_empty':
+                return !empty($actualValue);
+            case 'does_not_exist':
+            case 'is_empty':
+                return empty($actualValue);
+            case 'no_reply_in_days':
+            case 'older_than_days':
+                $days = (int)$expectedValue;
+                if (empty($actualValue)) return true; // Never contacted
+                $diffDays = (time() - strtotime($actualValue)) / 86400;
+                return $diffDays >= $days;
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * Resolve field values from context or database safely
+     */
+    private static function resolveFieldValue($field, array $context, $userId, PDO $db) {
+        if (array_key_exists($field, $context)) {
+            return $context[$field];
+        }
+
+        $contactId = $context['contact_id'] ?? null;
+        $leadId = $context['lead_id'] ?? null;
+        $dealId = $context['deal_id'] ?? null;
+
+        if ($field === 'last_contacted_at' || $field === 'last_activity') {
+            if ($contactId) {
+                $stmt = $db->prepare("SELECT MAX(created_at) FROM crm_activity_timeline WHERE contact_id = ? AND user_id = ?");
+                $stmt->execute([$contactId, $userId]);
+                return $stmt->fetchColumn() ?: null;
+            }
+        }
+
+        if (strpos($field, 'contact.') === 0 && $contactId) {
+            $prop = str_replace('contact.', '', $field);
+            $stmt = $db->prepare("SELECT * FROM crm_contacts WHERE id = ? AND user_id = ?");
+            $stmt->execute([$contactId, $userId]);
+            $c = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $c[$prop] ?? null;
+        }
+
+        if (strpos($field, 'lead.') === 0 && $leadId) {
+            $prop = str_replace('lead.', '', $field);
+            $stmt = $db->prepare("SELECT * FROM crm_leads WHERE id = ? AND user_id = ?");
+            $stmt->execute([$leadId, $userId]);
+            $l = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $l[$prop] ?? null;
+        }
+
+        if (strpos($field, 'deal.') === 0 && $dealId) {
+            $prop = str_replace('deal.', '', $field);
+            $stmt = $db->prepare("SELECT * FROM crm_deals WHERE id = ? AND user_id = ?");
+            $stmt->execute([$dealId, $userId]);
+            $d = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $d[$prop] ?? null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Safely interpolate template variables e.g. {{first_name}}, {{lead.name}}
+     */
+    private static function interpolateVariables($text, array $context, $userId, PDO $db) {
+        if (empty($text) || strpos($text, '{{') === false) {
+            return $text;
+        }
+
+        $contactId = $context['contact_id'] ?? null;
+        $contact = $contactId ? CRMSyncHelper::resolveContact($userId, ['id' => $contactId], $db) : [];
+
+        $leadId = $context['lead_id'] ?? null;
+        $lead = [];
+        if ($leadId) {
+            $stmt = $db->prepare("SELECT * FROM crm_leads WHERE id = ? AND user_id = ?");
+            $stmt->execute([$leadId, $userId]);
+            $lead = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        }
+
+        $replacements = [
+            '{{first_name}}' => $contact['name'] ?? $lead['name'] ?? 'Customer',
+            '{{contact.name}}' => $contact['name'] ?? 'Customer',
+            '{{contact.email}}' => $contact['email'] ?? '',
+            '{{contact.phone}}' => $contact['phone'] ?? '',
+            '{{lead.name}}' => $lead['name'] ?? 'Lead',
+            '{{lead.company}}' => $lead['company'] ?? '',
+            '{{lead.stage}}' => $lead['stage'] ?? '',
+            '{{owner_name}}' => $context['assigned_owner'] ?? $lead['assigned_employee'] ?? $contact['owner'] ?? 'LinkPilot Support'
+        ];
+
+        return strtr($text, $replacements);
+    }
+
+    private static function parseDelaySeconds(array $config) {
+        $unit = strtolower($config['unit'] ?? 'hours');
+        $val = (float)($config['value'] ?? $config['duration'] ?? 1);
+
+        switch ($unit) {
+            case 'minutes':
+            case 'minute':
+                return (int)($val * 60);
+            case 'days':
+            case 'day':
+                return (int)($val * 86400);
+            case 'hours':
+            case 'hour':
+            default:
+                return (int)($val * 3600);
+        }
+    }
+
+    private static function getNextNodes($currentNodeId, $branchOutput, array $nodes, array $edges) {
+        $targetIds = [];
+        foreach ($edges as $e) {
+            if ($e['source'] === $currentNodeId) {
+                $sourceHandle = $e['sourceHandle'] ?? 'default';
+                if ($branchOutput === 'default' || $sourceHandle === $branchOutput || $sourceHandle === 'default') {
+                    $targetIds[] = $e['target'];
+                }
+            }
+        }
+
+        $result = [];
+        foreach ($nodes as $n) {
+            if (in_array($n['id'], $targetIds)) {
+                $result[] = $n;
+            }
+        }
+        return $result;
+    }
+
+    private static function logStep($execId, $userId, $nodeId, $nodeType, $nodeName, $status, $input, $output, $error, PDO $db) {
+        $stmt = $db->prepare("
+            INSERT INTO automation_execution_steps 
+            (execution_id, user_id, node_id, node_type, node_name, status, input_json, output_json, error_message)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $execId,
+            $userId,
+            $nodeId,
+            $nodeType,
+            $nodeName,
+            $status,
+            json_encode($input),
+            json_encode($output),
+            $error
+        ]);
+    }
+
+    private static function completeExecution($execId, $workflowId, PDO $db) {
+        $db->prepare("
+            UPDATE automation_executions 
+            SET status = 'completed', completed_at = NOW() 
+            WHERE id = ?
+        ")->execute([$execId]);
+
+        $db->prepare("UPDATE automation_workflows SET success_count = success_count + 1 WHERE id = ?")->execute([$workflowId]);
+    }
+
+    private static function failExecution($execId, $workflowId, $reason, PDO $db) {
+        $db->prepare("
+            UPDATE automation_executions 
+            SET status = 'failed', error_message = ?, completed_at = NOW() 
+            WHERE id = ?
+        ")->execute([$reason, $execId]);
+
+        $db->prepare("UPDATE automation_workflows SET failed_count = failed_count + 1 WHERE id = ?")->execute([$workflowId]);
+    }
+
+    private static function convertLegacyActionsToNodes($triggerType, array $actions) {
+        $nodes = [
+            [
+                'id' => 'node_trigger',
+                'type' => 'trigger',
+                'label' => 'Trigger: ' . $triggerType,
+                'config' => ['trigger_type' => $triggerType]
+            ]
+        ];
+
+        $idx = 1;
+        foreach ($actions as $act) {
+            $nodes[] = [
+                'id' => 'node_action_' . $idx,
+                'type' => $act['type'] === 'delay' ? 'delay' : 'action',
+                'label' => $act['label'] ?? $act['type'],
+                'action_type' => $act['type'],
+                'config' => $act
+            ];
+            $idx++;
+        }
+        $nodes[] = ['id' => 'node_end', 'type' => 'end', 'label' => 'End Workflow'];
+        return $nodes;
+    }
+
+    private static function buildLinearEdges(array $nodes) {
+        $edges = [];
+        for ($i = 0; $i < count($nodes) - 1; $i++) {
+            $edges[] = [
+                'id' => 'edge_' . $i,
+                'source' => $nodes[$i]['id'],
+                'target' => $nodes[$i + 1]['id'],
+                'sourceHandle' => 'default'
+            ];
+        }
+        return $edges;
     }
 }

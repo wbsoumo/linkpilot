@@ -351,20 +351,94 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'crm_documents' checked/created.";
 
-    // 14. Automation Workflows Table
+    // 14. Automation Workflows Table (Expanded schema for CRM Automation Engine)
     $db->exec("CREATE TABLE IF NOT EXISTS `automation_workflows` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `user_id` INT NOT NULL,
         `name` VARCHAR(255) NOT NULL,
+        `description` TEXT DEFAULT NULL,
         `trigger_type` VARCHAR(100) NOT NULL,
         `trigger_value` VARCHAR(100) DEFAULT NULL,
-        `actions_json` TEXT NOT NULL,
+        `trigger_config_json` LONGTEXT DEFAULT NULL,
+        `nodes_json` LONGTEXT DEFAULT NULL,
+        `edges_json` LONGTEXT DEFAULT NULL,
+        `actions_json` LONGTEXT DEFAULT NULL,
+        `status` ENUM('draft', 'active', 'paused', 'disabled', 'archived') NOT NULL DEFAULT 'active',
         `is_active` TINYINT(1) DEFAULT 1,
+        `version` INT DEFAULT 1,
+        `runs_count` INT DEFAULT 0,
+        `success_count` INT DEFAULT 0,
+        `failed_count` INT DEFAULT 0,
+        `last_run_at` DATETIME DEFAULT NULL,
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT `fk_workflows_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        CONSTRAINT `fk_workflows_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+        INDEX `idx_wf_user_trigger` (`user_id`, `trigger_type`, `status`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     $messages[] = "Table 'automation_workflows' checked/created.";
+
+    // Ensure columns exist on automation_workflows if table pre-existed
+    $wfCols = [
+        'description' => 'TEXT DEFAULT NULL',
+        'trigger_config_json' => 'LONGTEXT DEFAULT NULL',
+        'nodes_json' => 'LONGTEXT DEFAULT NULL',
+        'edges_json' => 'LONGTEXT DEFAULT NULL',
+        'status' => "ENUM('draft', 'active', 'paused', 'disabled', 'archived') NOT NULL DEFAULT 'active'",
+        'version' => 'INT DEFAULT 1',
+        'runs_count' => 'INT DEFAULT 0',
+        'success_count' => 'INT DEFAULT 0',
+        'failed_count' => 'INT DEFAULT 0',
+        'last_run_at' => 'DATETIME DEFAULT NULL'
+    ];
+    foreach ($wfCols as $col => $def) {
+        $cStmt = $db->query("SHOW COLUMNS FROM `automation_workflows` LIKE '{$col}'");
+        if (!$cStmt->fetch()) {
+            $db->exec("ALTER TABLE `automation_workflows` ADD COLUMN `{$col}` {$def}");
+        }
+    }
+
+    // Automation Executions Table (Persistent server-side workflow execution state)
+    $db->exec("CREATE TABLE IF NOT EXISTS `automation_executions` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `workflow_id` INT NOT NULL,
+        `workflow_version` INT DEFAULT 1,
+        `contact_id` INT DEFAULT NULL,
+        `lead_id` INT DEFAULT NULL,
+        `deal_id` INT DEFAULT NULL,
+        `current_node_id` VARCHAR(100) DEFAULT NULL,
+        `execution_context_json` LONGTEXT DEFAULT NULL,
+        `status` ENUM('pending', 'running', 'waiting', 'completed', 'failed', 'cancelled') NOT NULL DEFAULT 'pending',
+        `next_run_at` DATETIME DEFAULT NULL,
+        `error_message` TEXT DEFAULT NULL,
+        `idempotency_key` VARCHAR(150) UNIQUE DEFAULT NULL,
+        `depth` INT DEFAULT 0,
+        `started_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `completed_at` DATETIME DEFAULT NULL,
+        CONSTRAINT `fk_wf_exec_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `fk_wf_exec_wf` FOREIGN KEY (`workflow_id`) REFERENCES `automation_workflows` (`id`) ON DELETE CASCADE,
+        INDEX `idx_wf_exec_poll` (`user_id`, `status`, `next_run_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'automation_executions' checked/created.";
+
+    // Automation Execution Steps Table (Step-by-step audit log)
+    $db->exec("CREATE TABLE IF NOT EXISTS `automation_execution_steps` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `execution_id` INT NOT NULL,
+        `node_id` VARCHAR(100) NOT NULL,
+        `node_type` VARCHAR(50) NOT NULL,
+        `node_name` VARCHAR(255) DEFAULT NULL,
+        `status` ENUM('passed', 'failed', 'skipped', 'waiting') NOT NULL DEFAULT 'passed',
+        `input_json` LONGTEXT DEFAULT NULL,
+        `output_json` LONGTEXT DEFAULT NULL,
+        `error_message` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT `fk_wf_step_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+        CONSTRAINT `fk_wf_step_exec` FOREIGN KEY (`execution_id`) REFERENCES `automation_executions` (`id`) ON DELETE CASCADE,
+        INDEX `idx_wf_step_lookup` (`execution_id`, `node_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+    $messages[] = "Table 'automation_execution_steps' checked/created.";
 
     $db->exec("CREATE TABLE IF NOT EXISTS `workflow_execution_logs` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,

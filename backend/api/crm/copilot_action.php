@@ -61,6 +61,11 @@ Supported action_type options:
 10. 'ADD_NOTE': Add a note to a contact profile.
 11. 'ADD_TAG': Add a tag to a contact.
 12. 'MERGE_CONTACTS': Merge duplicate contacts.
+13. 'CREATE_AUTOMATION': Build an automation workflow from trigger, condition, wait delay, and actions.
+14. 'UPDATE_AUTOMATION': Modify an existing workflow definition or delay time.
+15. 'PAUSE_AUTOMATION': Pause an active automation workflow.
+16. 'RESUME_AUTOMATION': Resume/activate a paused or draft workflow.
+17. 'SEARCH_AUTOMATIONS': Find, inspect, or query user automations and execution history logs.
 
 Return your response as a valid JSON object ONLY (no markdown fences around it) with this structure:
 {
@@ -433,6 +438,98 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
                 ], $db);
 
                 $resultData = ['message' => "Deal stage updated to '$targetStage'"];
+                break;
+
+            case 'CREATE_AUTOMATION':
+            case 'UPDATE_AUTOMATION':
+                $autoData = $input['automation_draft'] ?? $input;
+                $wfName = trim($autoData['name'] ?? $input['summary'] ?? 'AI Automation Workflow');
+                $triggerType = trim($autoData['trigger_type'] ?? 'lead.created');
+                $nodes = $autoData['nodes'] ?? [];
+                $edges = $autoData['edges'] ?? [];
+                $actions = $autoData['actions'] ?? [];
+
+                // Convert natural actions array to structured nodes if nodes is empty
+                if (empty($nodes) && !empty($actions)) {
+                    $nodes = [
+                        ['id' => 'node_trigger', 'type' => 'trigger', 'label' => 'Trigger: ' . $triggerType, 'config' => ['trigger_type' => $triggerType]]
+                    ];
+                    $idx = 1;
+                    foreach ($actions as $act) {
+                        $nodes[] = [
+                            'id' => 'node_act_' . $idx,
+                            'type' => ($act['type'] ?? '') === 'delay' ? 'delay' : 'action',
+                            'label' => $act['label'] ?? $act['type'] ?? 'Action Step',
+                            'action_type' => $act['action_type'] ?? $act['type'] ?? 'send_email',
+                            'config' => $act
+                        ];
+                        $idx++;
+                    }
+                    $nodes[] = ['id' => 'node_end', 'type' => 'end', 'label' => 'End Workflow'];
+                    
+                    $edges = [];
+                    for ($i = 0; $i < count($nodes) - 1; $i++) {
+                        $edges[] = [
+                            'id' => 'edge_' . $i,
+                            'source' => $nodes[$i]['id'],
+                            'target' => $nodes[$i + 1]['id'],
+                            'sourceHandle' => 'default'
+                        ];
+                    }
+                }
+
+                $stmtIns = $db->prepare("
+                    INSERT INTO automation_workflows (user_id, name, description, trigger_type, nodes_json, edges_json, status, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?, 'active', 1)
+                ");
+                $stmtIns->execute([
+                    $userId,
+                    $wfName,
+                    "Created via AI Co-Pilot command",
+                    $triggerType,
+                    json_encode($nodes),
+                    json_encode($edges)
+                ]);
+                $wfId = $db->lastInsertId();
+
+                $resultData = [
+                    'message' => "Automation workflow '$wfName' created and activated successfully.",
+                    'workflow_id' => $wfId,
+                    'status' => 'active'
+                ];
+                break;
+
+            case 'PAUSE_AUTOMATION':
+            case 'RESUME_AUTOMATION':
+                $wfName = trim($input['automation_name'] ?? '');
+                $targetStatus = ($actionType === 'PAUSE_AUTOMATION') ? 'paused' : 'active';
+                $isActiveVal = ($targetStatus === 'active') ? 1 : 0;
+
+                if (!empty($wfName)) {
+                    $stmtWf = $db->prepare("UPDATE automation_workflows SET status = ?, is_active = ? WHERE user_id = ? AND name LIKE ?");
+                    $stmtWf->execute([$targetStatus, $isActiveVal, $userId, "%$wfName%"]);
+                } else {
+                    $stmtWf = $db->prepare("UPDATE automation_workflows SET status = ?, is_active = ? WHERE user_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmtWf->execute([$targetStatus, $isActiveVal, $userId]);
+                }
+
+                $resultData = ['message' => "Automation status set to '$targetStatus'."];
+                break;
+
+            case 'SEARCH_AUTOMATIONS':
+                $stmtWfs = $db->prepare("
+                    SELECT id, name, trigger_type, status, runs_count, success_count, failed_count, last_run_at 
+                    FROM automation_workflows 
+                    WHERE user_id = ? 
+                    ORDER BY id DESC LIMIT 20
+                ");
+                $stmtWfs->execute([$userId]);
+                $wfs = $stmtWfs->fetchAll(PDO::FETCH_ASSOC);
+
+                $resultData = [
+                    'message' => 'Fetched automations list.',
+                    'automations' => $wfs
+                ];
                 break;
 
             default:

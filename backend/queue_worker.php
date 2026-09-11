@@ -1065,4 +1065,48 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
 
         return $processedCount;
     }
+
+    /**
+     * Process persistent server-side waiting automations (Delays resumption)
+     */
+    public static function processWaitingAutomations() {
+        $db = Database::getConnection();
+
+        $stmt = $db->prepare("
+            SELECT e.*, w.nodes_json, w.edges_json 
+            FROM automation_executions e
+            JOIN automation_workflows w ON e.workflow_id = w.id
+            WHERE e.status = 'waiting' 
+              AND (e.next_run_at <= NOW() OR e.next_run_at IS NULL)
+            ORDER BY e.next_run_at ASC
+            LIMIT 20
+        ");
+        $stmt->execute();
+        $waitingExecutions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $processedCount = 0;
+        if (empty($waitingExecutions)) {
+            return 0;
+        }
+
+        require_once __DIR__ . '/workflow_runner.php';
+
+        foreach ($waitingExecutions as $exec) {
+            $execId = (int)$exec['id'];
+            $nodes = json_decode($exec['nodes_json'] ?? '[]', true) ?: [];
+            $edges = json_decode($exec['edges_json'] ?? '[]', true) ?: [];
+            $context = json_decode($exec['execution_context_json'] ?? '[]', true) ?: [];
+
+            // Set state back to running
+            $db->prepare("UPDATE automation_executions SET status = 'running', next_run_at = NULL WHERE id = ?")->execute([$execId]);
+
+            // Find next node connected to current delay node
+            $currentNodeId = $exec['current_node_id'];
+            $nextNodes = WorkflowRunner::processNode($execId, $currentNodeId, $nodes, $edges, $context, $db);
+
+            $processedCount++;
+        }
+
+        return $processedCount;
+    }
 }

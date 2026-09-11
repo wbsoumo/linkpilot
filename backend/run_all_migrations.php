@@ -245,6 +245,41 @@ function executeDirectMigrations($db) {
         `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         INDEX `idx_ls_hist_lookup` (`user_id`, `lead_id`, `created_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 14. Ensure required columns on existing tables
+    $contactCols = [
+        'contact_type' => "VARCHAR(50) DEFAULT 'Prospect'",
+        'owner' => "VARCHAR(255) DEFAULT NULL",
+        'tags' => "TEXT DEFAULT NULL",
+        'city' => "VARCHAR(100) DEFAULT NULL",
+        'state' => "VARCHAR(100) DEFAULT NULL",
+        'country' => "VARCHAR(100) DEFAULT NULL",
+        'last_contacted_at' => "DATETIME DEFAULT NULL",
+        'is_archived' => "TINYINT(1) DEFAULT 0"
+    ];
+    foreach ($contactCols as $col => $def) {
+        try {
+            $cStmt = $db->query("SHOW COLUMNS FROM `crm_contacts` LIKE '{$col}'");
+            if (!$cStmt->fetch()) {
+                $db->exec("ALTER TABLE `crm_contacts` ADD COLUMN `{$col}` {$def}");
+            }
+        } catch (Exception $e) {}
+    }
+
+    $emailCols = [
+        'is_archived' => "TINYINT(1) DEFAULT 0",
+        'is_spam' => "TINYINT(1) DEFAULT 0",
+        'parent_id' => "INT DEFAULT NULL",
+        'ai_status' => "VARCHAR(20) DEFAULT 'pending'"
+    ];
+    foreach ($emailCols as $col => $def) {
+        try {
+            $cStmt = $db->query("SHOW COLUMNS FROM `received_emails` LIKE '{$col}'");
+            if (!$cStmt->fetch()) {
+                $db->exec("ALTER TABLE `received_emails` ADD COLUMN `{$col}` {$def}");
+            }
+        } catch (Exception $e) {}
+    }
 }
 
 executeDirectMigrations($db);

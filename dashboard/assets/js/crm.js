@@ -1611,7 +1611,7 @@ async function renderDashboard(container) {
             msgContainer.scrollTop = msgContainer.scrollHeight;
 
             try {
-                const res = await apiCall('crm/copilot_action.php', { prompt: query });
+                const res = await apiCall('crm/copilot_action.php', 'POST', { prompt: query });
                 const loaderEl = document.getElementById(loaderId);
                 if (loaderEl) loaderEl.remove();
 
@@ -1717,28 +1717,10 @@ async function renderDashboard(container) {
             }
         };
         
-        // Render Quick Action Floating Action Button (FAB) for Dashboard
+        // Remove quick FAB plus icon button completely
         let fabContainer = document.getElementById('dashboard-quick-fab');
-        if (!fabContainer) {
-            fabContainer = document.createElement('div');
-            fabContainer.id = 'dashboard-quick-fab';
-            fabContainer.className = 'fixed bottom-6 right-6 z-[9999] flex flex-col items-end space-y-2';
-            fabContainer.innerHTML = `
-                <div id="fab-options" class="hidden flex flex-col items-end space-y-2.5 mb-2 transition-all duration-300 transform scale-95 origin-bottom-right">
-                    <button onclick="openNewLeadModal(); toggleFabMenu();" class="flex items-center space-x-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg text-xs font-bold transition transform hover:scale-105" style="color: #ffffff !important;">
-                        <i data-lucide="user-plus" class="h-4 w-4" style="color: #ffffff !important;"></i>
-                        <span>Fast Lead Entry</span>
-                    </button>
-                    <button onclick="openNewMeetingModal(); toggleFabMenu();" class="flex items-center space-x-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg text-xs font-bold transition transform hover:scale-105" style="color: #ffffff !important;">
-                        <i data-lucide="calendar-plus" class="h-4 w-4" style="color: #ffffff !important;"></i>
-                        <span>Fast Meeting Entry</span>
-                    </button>
-                </div>
-                <button id="fab-main-btn" onclick="toggleFabMenu()" class="h-14 w-14 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white flex items-center justify-center shadow-2xl shadow-indigo-500/50 transition-all duration-300 transform hover:scale-110 active:scale-95 cursor-pointer">
-                    <i id="fab-icon" data-lucide="plus" class="h-6 w-6 text-white transition-transform duration-300"></i>
-                </button>
-            `;
-            document.body.appendChild(fabContainer);
+        if (fabContainer) {
+            fabContainer.remove();
         }
 
         if (typeof lucide !== 'undefined' && lucide.createIcons) {

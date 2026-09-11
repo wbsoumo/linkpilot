@@ -11,13 +11,6 @@
         const modalDiv = document.createElement('div');
         modalDiv.id = 'copilot-modal-root';
         modalDiv.innerHTML = `
-            <!-- Floating Co-Pilot Launch Button -->
-            <button id="copilot-floating-btn" onclick="openCopilotModal()" class="fixed bottom-6 right-20 z-40 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold px-4 py-3 rounded-full shadow-xl flex items-center space-x-2 transition transform hover:scale-105 border border-white/20">
-                <i data-lucide="sparkles" class="h-4.5 w-4.5 animate-pulse text-amber-300"></i>
-                <span class="text-xs tracking-wide">AI Co-Pilot</span>
-                <kbd class="hidden sm:inline-block bg-white/20 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">⌘K</kbd>
-            </button>
-
             <!-- Modal Backdrop -->
             <div id="copilot-modal-backdrop" onclick="closeCopilotModal(event)" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
                 <div onclick="event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden flex flex-col transform transition-all duration-300 scale-95" id="copilot-modal-card">

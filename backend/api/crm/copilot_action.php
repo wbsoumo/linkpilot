@@ -137,16 +137,57 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
 
         $userPrompt = "User Command Prompt: \"$prompt\"";
 
-        $ai = callAI($systemPrompt, $userPrompt, $userId);
-        $aiData = json_decode($ai['text'], true);
+        $lowerPrompt = strtolower($prompt);
+        if (in_array($lowerPrompt, ['hello', 'hi', 'hey', 'greetings', 'help', 'who are you', 'what can you do', 'test', 'hi there', 'hello linkpilot'])) {
+            sendJsonResponse('success', "Hello! I am your autonomous LinkPilot AI CRM Co-Pilot. I can help you search contacts, analyze lead scores, draft outreach emails, build automation workflows, and inspect your sales pipeline. How can I help you today?", [
+                'is_chat_result' => true,
+                'parsed' => ['action_type' => 'GENERAL_CHAT'],
+                'message' => "Hello! I am your autonomous LinkPilot AI CRM Co-Pilot. I can help you search contacts, analyze lead scores, draft outreach emails, build automation workflows, and inspect your sales pipeline. How can I help you today?"
+            ]);
+        }
+
+        $rawText = '';
+        $aiData = null;
+        try {
+            $ai = callAI($systemPrompt, $userPrompt, $userId);
+            $rawText = $ai['text'] ?? '';
+            $cleanJson = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', trim($rawText));
+            $firstBrace = strpos($cleanJson, '{');
+            $lastBrace = strrpos($cleanJson, '}');
+            if ($firstBrace !== false && $lastBrace !== false) {
+                $cleanJson = substr($cleanJson, $firstBrace, $lastBrace - $firstBrace + 1);
+            }
+            $aiData = json_decode($cleanJson, true);
+        } catch (Throwable $t) {
+            $aiData = null;
+        }
 
         if (!$aiData || empty($aiData['action_type'])) {
-            sendJsonResponse('error', 'AI could not parse command. Please rephrase your request.', [], 422);
+            $summaryText = (!empty($rawText) && !str_contains($rawText, '{')) 
+                ? $rawText 
+                : "Hello! I received your prompt. I can assist you with lead scoring, contact searches, drafting emails, automation workflows, and sales analytics. What would you like me to do?";
+            
+            $aiData = [
+                'action_type' => 'GENERAL_CHAT',
+                'summary' => $summaryText
+            ];
         }
 
         // Audit Log AI Parsing Action
-        $db->prepare("INSERT INTO ai_action_logs (user_id, prompt, intent, channel, action_status) VALUES (?, ?, ?, ?, 'parsed')")
-           ->execute([$userId, $prompt, $aiData['action_type'], strtolower($aiData['action_type'])]);
+        try {
+            $db->prepare("INSERT INTO ai_action_logs (user_id, prompt, intent, channel, action_status) VALUES (?, ?, ?, ?, 'parsed')")
+               ->execute([$userId, $prompt, $aiData['action_type'], strtolower($aiData['action_type'])]);
+        } catch (Throwable $t) {}
+
+        // Handle GENERAL_CHAT intent
+        if ($aiData['action_type'] === 'GENERAL_CHAT') {
+            $msgText = $aiData['summary'] ?? "Hello! How can I assist you with LinkPilot CRM today?";
+            sendJsonResponse('success', $msgText, [
+                'is_chat_result' => true,
+                'parsed' => $aiData,
+                'message' => $msgText
+            ]);
+        }
 
         // Handle GET_HOT_LEADS intent
         if ($aiData['action_type'] === 'GET_HOT_LEADS') {

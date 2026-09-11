@@ -1618,7 +1618,7 @@ async function renderDashboard(container) {
                 let aiReplyHtml = '';
                 if (res && res.success) {
                     const parsed = res.parsed || {};
-                    const intent = parsed.intent || 'GENERAL_CHAT';
+                    const intent = parsed.action_type || parsed.intent || 'GENERAL_CHAT';
 
                     if (intent === 'GET_HOT_LEADS' && res.hot_leads) {
                         aiReplyHtml = `

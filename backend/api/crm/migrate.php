@@ -621,6 +621,63 @@ try {
             INDEX `idx_act_timeline_lookup` (`user_id`, `contact_id`, `channel`, `created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
         $messages[] = "Table 'crm_activity_timeline' checked/created.";
+
+        // 11. Communication Actions Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `communication_actions` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `contact_id` INT DEFAULT NULL,
+            `channel` VARCHAR(50) NOT NULL DEFAULT 'email',
+            `recipient` VARCHAR(255) NOT NULL,
+            `subject` VARCHAR(255) DEFAULT NULL,
+            `message` LONGTEXT NOT NULL,
+            `attachments_json` LONGTEXT DEFAULT NULL,
+            `status` ENUM('draft', 'pending_approval', 'approved', 'queued', 'processing', 'sent', 'failed', 'scheduled', 'cancelled') NOT NULL DEFAULT 'draft',
+            `idempotency_token` VARCHAR(100) UNIQUE DEFAULT NULL,
+            `provider_response` LONGTEXT DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_comm_actions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            INDEX `idx_comm_act_lookup` (`user_id`, `contact_id`, `channel`, `status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'communication_actions' checked/created.";
+
+        // 12. Scheduled Communications Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `scheduled_communications` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `contact_id` INT DEFAULT NULL,
+            `channel` VARCHAR(50) NOT NULL DEFAULT 'email',
+            `recipient` VARCHAR(255) NOT NULL,
+            `subject` VARCHAR(255) DEFAULT NULL,
+            `message` LONGTEXT NOT NULL,
+            `attachments_json` LONGTEXT DEFAULT NULL,
+            `scheduled_at` DATETIME NOT NULL,
+            `status` ENUM('scheduled', 'processing', 'sent', 'failed', 'cancelled') NOT NULL DEFAULT 'scheduled',
+            `attempts` INT DEFAULT 0,
+            `last_error` TEXT DEFAULT NULL,
+            `idempotency_token` VARCHAR(100) UNIQUE DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_sched_comm_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            INDEX `idx_sched_comm_status` (`user_id`, `status`, `scheduled_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'scheduled_communications' checked/created.";
+
+        // 13. AI Action Audit Logs Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `ai_action_logs` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `prompt` TEXT NOT NULL,
+            `intent` VARCHAR(100) NOT NULL,
+            `channel` VARCHAR(50) DEFAULT NULL,
+            `resolved_contact_id` INT DEFAULT NULL,
+            `action_status` VARCHAR(50) DEFAULT 'parsed',
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_ai_act_logs_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            INDEX `idx_ai_act_user` (`user_id`, `created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'ai_action_logs' checked/created.";
     } catch (Exception $e) {
         $messages[] = "Booking/tracking tables migration error: " . $e->getMessage();
     }

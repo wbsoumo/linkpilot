@@ -6,6 +6,7 @@ require_once __DIR__ . '/../../jwt_helper.php';
 require_once __DIR__ . '/../../crm_sync_helper.php';
 require_once __DIR__ . '/../../smtp_helper.php';
 require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
+require_once __DIR__ . '/../../communication_provider_helper.php';
 require_once __DIR__ . '/../../wallet_helper.php';
 
 header('Content-Type: application/json');
@@ -28,7 +29,7 @@ try {
             sendJsonResponse('error', 'Prompt text cannot be empty.', [], 400);
         }
 
-        // 1. Fetch user workspace contacts for context matching
+        // 1. Fetch workspace contacts for context matching
         $stmtCon = $db->prepare("SELECT id, name, email, phone, whatsapp, company_id FROM crm_contacts WHERE user_id = ? ORDER BY id DESC LIMIT 50");
         $stmtCon->execute([$userId]);
         $contacts = $stmtCon->fetchAll(PDO::FETCH_ASSOC);
@@ -89,6 +90,11 @@ Return your response as a valid JSON object ONLY (no markdown fences around it) 
     \"deal_title\": \"...\",
     \"target_stage\": \"Lead|Qualified|Proposal|Negotiation|Closed Won|Closed Lost\"
   },
+  \"scheduling\": {
+    \"is_scheduled\": true|false,
+    \"scheduled_at\": \"YYYY-MM-DD HH:MM:SS\" or null
+  },
+  \"requested_attachments\": [\"proposal\", \"quotation\", \"invoice\"],
   \"summary\": \"Brief human-readable summary of the action parsed\"
 }
 
@@ -105,8 +111,30 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
             sendJsonResponse('error', 'AI could not parse command. Please rephrase your request.', [], 422);
         }
 
-        // Match or resolve contact in DB
+        // Audit Log AI Parsing Action
+        $db->prepare("INSERT INTO ai_action_logs (user_id, prompt, intent, channel, action_status) VALUES (?, ?, ?, ?, 'parsed')")
+           ->execute([$userId, $prompt, $aiData['action_type'], strtolower($aiData['action_type'])]);
+
+        // 3. Ambiguity Resolution Check: Search DB if multiple contacts match specified name
         $target = $aiData['target_contact'] ?? [];
+        $searchName = trim($target['name'] ?? '');
+
+        if (!empty($searchName) && empty($target['email']) && empty($target['phone'])) {
+            $stmtMatches = $db->prepare("SELECT id, name, email, phone, whatsapp FROM crm_contacts WHERE user_id = ? AND (name LIKE ? OR email LIKE ?) LIMIT 5");
+            $stmtMatches->execute([$userId, "%$searchName%", "%$searchName%"]);
+            $matches = $stmtMatches->fetchAll(PDO::FETCH_ASSOC);
+
+            if (count($matches) > 1) {
+                // Ambiguous match: Return candidates list for Contact Picker UI
+                sendJsonResponse('success', "Multiple contacts match '$searchName'. Please select one.", [
+                    'ambiguous' => true,
+                    'candidates' => $matches,
+                    'parsed' => $aiData
+                ]);
+            }
+        }
+
+        // Resolve single contact
         $resolvedContact = CRMSyncHelper::resolveContact(
             $userId,
             !empty($target['email']) ? $target['email'] : null,
@@ -117,7 +145,25 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
 
         $aiData['matched_contact'] = $resolvedContact;
 
+        // Attachment Matching (Match real documents from lead_vault/files)
+        $matchedAttachments = [];
+        if (!empty($aiData['requested_attachments']) && is_array($aiData['requested_attachments'])) {
+            $stmtVault = $db->prepare("SELECT name, post_url FROM lead_vault WHERE user_id = ? ORDER BY id DESC LIMIT 5");
+            $stmtVault->execute([$userId]);
+            $files = $stmtVault->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($files as $f) {
+                if (!empty($f['name'])) {
+                    $matchedAttachments[] = [
+                        'name' => $f['name'],
+                        'url' => $f['post_url'] ?? '#'
+                    ];
+                }
+            }
+        }
+        $aiData['resolved_attachments'] = $matchedAttachments;
+
         sendJsonResponse('success', 'Command parsed successfully into actionable draft.', [
+            'ambiguous' => false,
             'parsed' => $aiData
         ]);
     }
@@ -126,6 +172,9 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         $actionType = $input['action_type'] ?? '';
         $contactId = (int)($input['contact_id'] ?? 0);
         $summary = $input['summary'] ?? 'Executed AI Co-Pilot action';
+        $idempotencyToken = $input['idempotency_token'] ?? ('idem_' . uniqid());
+        $isScheduled = !empty($input['scheduling']['is_scheduled']);
+        $scheduledAt = $input['scheduling']['scheduled_at'] ?? null;
 
         if (empty($actionType)) {
             sendJsonResponse('error', 'Action type is required for execution.', [], 400);
@@ -139,58 +188,38 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
                 $recipientEmail = strtolower(trim($emailData['recipient_email'] ?? $input['target_contact']['email'] ?? ''));
                 $subject = trim($emailData['subject'] ?? 'Message from LinkPilot AI');
                 $body = trim($emailData['body'] ?? '');
+                $attachments = $input['resolved_attachments'] ?? [];
 
                 if (empty($recipientEmail) || empty($body)) {
                     sendJsonResponse('error', 'Recipient email and message body are required.', [], 400);
                 }
 
-                // Check SMTP config
-                $smtpConfig = SMTPHelper::getSMTPConfig($userId);
-                if (!$smtpConfig) {
-                    sendJsonResponse('error', 'SMTP is not configured. Please configure email settings in Setup.', [], 400);
+                if ($isScheduled && !empty($scheduledAt)) {
+                    $res = CommunicationProviderHelper::scheduleCommunication($userId, 'email', $recipientEmail, $subject, $body, $scheduledAt, $attachments, $idempotencyToken, $contactId, $db);
+                    $resultData = ['message' => "Email scheduled for $scheduledAt to $recipientEmail", 'schedule_id' => $res['scheduled_id']];
+                } else {
+                    $res = CommunicationProviderHelper::sendCommunication($userId, 'email', $recipientEmail, $subject, $body, $attachments, $idempotencyToken, $contactId, $db);
+                    $resultData = ['message' => "Email sent successfully to $recipientEmail", 'action_id' => $res['action_id']];
                 }
-
-                $sent = SMTPHelper::sendEmail($userId, $recipientEmail, $subject, $body, true);
-                if (!$sent['success']) {
-                    sendJsonResponse('error', 'Failed to send email: ' . ($sent['message'] ?? 'SMTP Error'), [], 500);
-                }
-
-                CRMSyncHelper::logActivity($userId, $contactId, 'email', 'outbound', "Sent Email: \"$subject\"", [
-                    'recipient' => $recipientEmail,
-                    'subject' => $subject
-                ], $db);
-
-                $resultData = ['message' => "Email sent successfully to $recipientEmail"];
                 break;
 
             case 'SEND_WHATSAPP':
                 $waData = $input['whatsapp_draft'] ?? [];
                 $recipientPhone = trim($waData['recipient_phone'] ?? $input['target_contact']['phone'] ?? '');
                 $waMessage = trim($waData['message'] ?? '');
+                $attachments = $input['resolved_attachments'] ?? [];
 
                 if (empty($recipientPhone) || empty($waMessage)) {
                     sendJsonResponse('error', 'Recipient phone number and message text are required.', [], 400);
                 }
 
-                // Fetch account
-                $stmtAcc = $db->prepare("SELECT phone_number_id, access_token FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
-                $stmtAcc->execute([$userId]);
-                $waAcc = $stmtAcc->fetch();
-
-                if (!$waAcc) {
-                    sendJsonResponse('error', 'WhatsApp Cloud API account is not connected.', [], 400);
+                if ($isScheduled && !empty($scheduledAt)) {
+                    $res = CommunicationProviderHelper::scheduleCommunication($userId, 'whatsapp', $recipientPhone, '', $waMessage, $scheduledAt, $attachments, $idempotencyToken, $contactId, $db);
+                    $resultData = ['message' => "WhatsApp message scheduled for $scheduledAt to $recipientPhone", 'schedule_id' => $res['scheduled_id']];
+                } else {
+                    $res = CommunicationProviderHelper::sendCommunication($userId, 'whatsapp', $recipientPhone, '', $waMessage, $attachments, $idempotencyToken, $contactId, $db);
+                    $resultData = ['message' => "WhatsApp message sent successfully to $recipientPhone", 'action_id' => $res['action_id']];
                 }
-
-                $decrypted = decryptData($waAcc['access_token']);
-                $token = ($decrypted !== false) ? $decrypted : $waAcc['access_token'];
-
-                $sendRes = WhatsAppMetaService::sendTextMessage($userId, $waAcc['phone_number_id'], $recipientPhone, $waMessage, $token);
-
-                CRMSyncHelper::logActivity($userId, $contactId, 'whatsapp', 'outbound', "Sent WhatsApp message: \"$waMessage\"", [
-                    'recipient' => $recipientPhone
-                ], $db);
-
-                $resultData = ['message' => "WhatsApp message sent successfully to $recipientPhone"];
                 break;
 
             case 'CREATE_TASK':
@@ -222,7 +251,6 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
                 $desc = trim($invData['description'] ?? 'Services rendered');
                 $dueDate = !empty($invData['due_date']) ? $invData['due_date'] : date('Y-m-d', strtotime('+7 days'));
 
-                // Log task & activity for invoice
                 $invTitle = "Invoice #INV-" . rand(1000, 9999) . " ($currency " . number_format($amount, 2) . ") for $clientName";
                 $stmtInvTask = $db->prepare("INSERT INTO crm_tasks (user_id, contact_id, title, description, due_date, priority, status) VALUES (?, ?, ?, ?, ?, 'high', 'pending')");
                 $stmtInvTask->execute([$userId, $contactId ?: null, "[Invoice] $invTitle", $desc, $dueDate]);
@@ -261,6 +289,9 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
             default:
                 sendJsonResponse('error', 'Unsupported action type.', [], 400);
         }
+
+        // Update AI Action Audit log status
+        $db->prepare("UPDATE ai_action_logs SET action_status = 'executed' WHERE user_id = ? ORDER BY id DESC LIMIT 1")->execute([$userId]);
 
         sendJsonResponse('success', 'Co-Pilot action executed successfully.', $resultData);
     } else {

@@ -1019,4 +1019,50 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
         
         return $processedCount;
     }
+
+    /**
+     * Process server-side scheduled communications queue
+     */
+    public static function processScheduledCommunications() {
+        $db = Database::getConnection();
+
+        $stmt = $db->prepare("
+            SELECT * FROM scheduled_communications
+            WHERE status = 'scheduled' AND scheduled_at <= NOW()
+            ORDER BY scheduled_at ASC
+            LIMIT 20
+        ");
+        $stmt->execute();
+        $scheduledItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $processedCount = 0;
+
+        foreach ($scheduledItems as $item) {
+            $schedId = (int)$item['id'];
+            $userId = (int)$item['user_id'];
+            $contactId = $item['contact_id'] ? (int)$item['contact_id'] : null;
+            $channel = $item['channel'];
+            $recipient = $item['recipient'];
+            $subject = $item['subject'];
+            $message = $item['message'];
+            $attachments = !empty($item['attachments_json']) ? json_decode($item['attachments_json'], true) : [];
+            $idempotencyToken = $item['idempotency_token'];
+
+            // Mark processing
+            $db->prepare("UPDATE scheduled_communications SET status = 'processing', attempts = attempts + 1 WHERE id = ?")->execute([$schedId]);
+
+            try {
+                require_once __DIR__ . '/communication_provider_helper.php';
+                CommunicationProviderHelper::sendCommunication($userId, $channel, $recipient, $subject, $message, $attachments, $idempotencyToken, $contactId, $db);
+
+                $db->prepare("UPDATE scheduled_communications SET status = 'sent', last_error = NULL WHERE id = ?")->execute([$schedId]);
+                $processedCount++;
+            } catch (Throwable $e) {
+                $statusVal = ($item['attempts'] >= 2) ? 'failed' : 'scheduled';
+                $db->prepare("UPDATE scheduled_communications SET status = ?, last_error = ? WHERE id = ?")->execute([$statusVal, $e->getMessage(), $schedId]);
+            }
+        }
+
+        return $processedCount;
+    }
 }

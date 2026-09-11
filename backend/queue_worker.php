@@ -843,12 +843,22 @@ TODAY'S DATE AND TIME: $currentDate $currentTime.
 
                     $db->prepare("INSERT INTO crm_timeline (user_id, lead_id, contact_id, company_id, activity_type, description) VALUES (?, ?, ?, ?, 'Task Created', ?)")
                        ->execute([$userId, $leadId, $crmContactId, $companyId, "Meeting task '$taskTitle' was automatically scheduled and invite sent via WhatsApp AI agent."]);
+
+                    CRMSyncHelper::logActivity($userId, $crmContactId, 'task', 'system', "Meeting task '$taskTitle' automatically scheduled for $timingFormatted", [
+                        'task_id' => $newTaskId,
+                        'meet_link' => $meetLink,
+                        'contact_gmail' => $contactGmail
+                    ], $db);
                 }
             }
         }
 
         // Transmit AI reply if generated
         if (!empty($aiSuggestedReply)) {
+            CRMSyncHelper::logActivity($userId, $crmContactId, 'whatsapp', 'outbound', "Sent WhatsApp AI reply: \"$aiSuggestedReply\"", [
+                'wa_contact_id' => $waContactId,
+                'from_wa_id' => $fromWaId
+            ], $db);
             // Verify credit balance (and self-heal monthly free credits if needed)
             checkAndResetMonthlyCredits($userId);
 

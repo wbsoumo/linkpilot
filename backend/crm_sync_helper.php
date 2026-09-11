@@ -249,4 +249,118 @@ class CRMSyncHelper {
             error_log("Inbound Email CRM Sync error: " . $e->getMessage());
         }
     }
+
+    /**
+     * Resolves an existing contact or creates a new one by cross-matching Email or Phone/WhatsApp.
+     * Merges phone and email if matched via one of them.
+     */
+    public static function resolveContact($userId, $email = null, $phone = null, $name = null, $db = null) {
+        if (!$db) {
+            $db = Database::getConnection();
+        }
+
+        $email = $email ? strtolower(trim($email)) : null;
+        $phone = $phone ? trim($phone) : null;
+        $cleanPhone = $phone ? preg_replace('/[^0-9]/', '', $phone) : null;
+        $shortPhone = ($cleanPhone && strlen($cleanPhone) >= 10) ? substr($cleanPhone, -10) : $cleanPhone;
+
+        $contact = null;
+
+        // 1. Match by Email first
+        if ($email) {
+            $stmt = $db->prepare("SELECT * FROM crm_contacts WHERE user_id = ? AND (LOWER(email) = ? OR LOWER(alternate_email) = ?) LIMIT 1");
+            $stmt->execute([$userId, $email, $email]);
+            $contact = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        // 2. If not found by email, match by Phone/WhatsApp
+        if (!$contact && $shortPhone) {
+            $stmt = $db->prepare("SELECT * FROM crm_contacts WHERE user_id = ? AND (
+                RIGHT(REGEXP_REPLACE(phone, '[^0-9]', ''), 10) = ? OR 
+                RIGHT(REGEXP_REPLACE(whatsapp, '[^0-9]', ''), 10) = ?
+            ) LIMIT 1");
+            $stmt->execute([$userId, $shortPhone, $shortPhone]);
+            $contact = $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        // 3. Update missing email or phone on existing contact
+        if ($contact) {
+            $updates = [];
+            $params = [];
+
+            if ($email && empty($contact['email'])) {
+                $updates[] = "email = ?";
+                $params[] = $email;
+                $contact['email'] = $email;
+            }
+            if ($phone && empty($contact['phone'])) {
+                $updates[] = "phone = ?";
+                $params[] = $phone;
+                $contact['phone'] = $phone;
+            }
+            if ($phone && empty($contact['whatsapp'])) {
+                $updates[] = "whatsapp = ?";
+                $params[] = $phone;
+                $contact['whatsapp'] = $phone;
+            }
+            if ($name && (empty($contact['name']) || $contact['name'] === 'Unknown Contact')) {
+                $updates[] = "name = ?";
+                $params[] = trim($name);
+                $contact['name'] = trim($name);
+            }
+
+            if (count($updates) > 0) {
+                $params[] = $contact['id'];
+                $params[] = $userId;
+                $stmtUpd = $db->prepare("UPDATE crm_contacts SET " . implode(", ", $updates) . " WHERE id = ? AND user_id = ?");
+                $stmtUpd->execute($params);
+            }
+
+            return $contact;
+        }
+
+        // 4. Create new contact if not found
+        $displayName = $name ? trim($name) : ($email ? explode('@', $email)[0] : ($phone ? $phone : 'Unknown Lead'));
+        
+        $ins = $db->prepare("INSERT INTO crm_contacts (user_id, name, email, phone, whatsapp, custom_fields) VALUES (?, ?, ?, ?, ?, ?)");
+        $ins->execute([
+            $userId,
+            $displayName,
+            $email,
+            $phone,
+            $phone,
+            json_encode(['source' => 'Cross-Channel Identity Resolver'])
+        ]);
+
+        $newId = $db->lastInsertId();
+        $stmtNew = $db->prepare("SELECT * FROM crm_contacts WHERE id = ?");
+        $stmtNew->execute([$newId]);
+        return $stmtNew->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Logs an event to the unified crm_activity_timeline table.
+     */
+    public static function logActivity($userId, $contactId, $channel, $direction, $summary, $metadata = [], $db = null) {
+        if (!$db) {
+            $db = Database::getConnection();
+        }
+
+        try {
+            $stmt = $db->prepare("INSERT INTO crm_activity_timeline (user_id, contact_id, channel, direction, summary, metadata_json) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $userId,
+                $contactId ? (int)$contactId : null,
+                $channel,
+                $direction,
+                $summary,
+                !empty($metadata) ? json_encode($metadata) : null
+            ]);
+            return $db->lastInsertId();
+        } catch (Exception $e) {
+            error_log("logActivity Error: " . $e->getMessage());
+            return false;
+        }
+    }
 }
+

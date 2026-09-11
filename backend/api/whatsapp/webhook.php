@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../wallet_helper.php';
+require_once __DIR__ . '/../../crm_sync_helper.php';
 require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
 require_once __DIR__ . '/../../external_apps_helper.php';
 
@@ -166,24 +167,11 @@ try {
                         $db->prepare("UPDATE whatsapp_contacts SET unread_count = unread_count + 1, last_message_at = FROM_UNIXTIME(?) WHERE id = ?")
                            ->execute([$timestamp, $waContactId]);
                     } else {
-                        // Create CRM contact if configured
+                        // Create/Resolve CRM contact via Identity Resolver
                         if ($settings['auto_contact_detection']) {
-                            // Find existing CRM contact by phone
-                            $stmtCrmCon = $db->prepare("SELECT id FROM crm_contacts WHERE (phone = ? OR whatsapp = ?) AND user_id = ? LIMIT 1");
-                            $stmtCrmCon->execute([$fromWaId, $fromWaId, $userId]);
-                            $crmConRow = $stmtCrmCon->fetch();
-                            
-                            if ($crmConRow) {
-                                $crmContactId = (int)$crmConRow['id'];
-                            } else {
-                                // Auto create basic contact
-                                $stmtCrmIns = $db->prepare("INSERT INTO crm_contacts (user_id, name, phone, whatsapp) VALUES (?, ?, ?, ?)");
-                                $stmtCrmIns->execute([$userId, $profileName, $fromWaId, $fromWaId]);
-                                $crmContactId = (int)$db->lastInsertId();
-                                
-                                // Log Timeline
-                                $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, activity_type, description) VALUES (?, ?, 'Contact Created', ?)")
-                                   ->execute([$userId, $crmContactId, "Contact '$profileName' created from incoming WhatsApp chat."]);
+                            $resolvedContact = CRMSyncHelper::resolveContact($userId, null, $fromWaId, $profileName, $db);
+                            if ($resolvedContact) {
+                                $crmContactId = (int)$resolvedContact['id'];
                             }
                         }
                         
@@ -238,9 +226,15 @@ try {
                     // Update user statistics
                     updateStatistic($userId, 'whatsapp_generated');
                     
-                    // Log to CRM timeline
+                    // Log to legacy CRM timeline & unified crm_activity_timeline
                     $db->prepare("INSERT INTO crm_timeline (user_id, contact_id, activity_type, description) VALUES (?, ?, 'WhatsApp Inbound', ?)")
                        ->execute([$userId, $crmContactId, "Received WhatsApp message from '$profileName': " . substr($bodyText, 0, 100)]);
+
+                    CRMSyncHelper::logActivity($userId, $crmContactId, 'whatsapp', 'inbound', "Received WhatsApp message from '$profileName': \"$bodyText\"", [
+                        'message_id' => $messageId,
+                        'wa_id' => $fromWaId,
+                        'msg_type' => $msgType
+                    ], $db);
 
                     // d. If AI is enabled and message has text, enqueue for async processing via whatsapp_queue
                     if (!empty($settings['ai_enabled']) && !empty($bodyText) && !in_array($msgType, ['status', 'system', 'reaction', 'unknown'])) {

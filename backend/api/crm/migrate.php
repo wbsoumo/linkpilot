@@ -605,6 +605,22 @@ try {
             $db->exec("ALTER TABLE `user_profiles` ADD COLUMN `email_open_tracking` TINYINT(1) DEFAULT 1");
             $messages[] = "Added column 'email_open_tracking' to 'user_profiles'.";
         }
+
+        // 10. Unified Activity Timeline Table
+        $db->exec("CREATE TABLE IF NOT EXISTS `crm_activity_timeline` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `contact_id` INT DEFAULT NULL,
+            `channel` ENUM('email', 'whatsapp', 'call', 'task', 'ticket', 'system') NOT NULL,
+            `direction` ENUM('inbound', 'outbound', 'system') NOT NULL DEFAULT 'system',
+            `summary` TEXT NOT NULL,
+            `metadata_json` LONGTEXT DEFAULT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT `fk_act_timeline_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_act_timeline_contact` FOREIGN KEY (`contact_id`) REFERENCES `crm_contacts` (`id`) ON DELETE SET NULL,
+            INDEX `idx_act_timeline_lookup` (`user_id`, `contact_id`, `channel`, `created_at`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        $messages[] = "Table 'crm_activity_timeline' checked/created.";
     } catch (Exception $e) {
         $messages[] = "Booking/tracking tables migration error: " . $e->getMessage();
     }

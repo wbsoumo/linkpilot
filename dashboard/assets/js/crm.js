@@ -687,97 +687,51 @@ async function renderDashboard(container) {
         else if (hour >= 17 && hour < 22) greetingPeriod = "evening";
 
         const userName = (window.activeUserProfileSettings && window.activeUserProfileSettings.name) ? window.activeUserProfileSettings.name.split(' ')[0] : 'there';
-
+        
         const claudeHeroBarHtml = `
-            <div class="w-full max-w-5xl mx-auto text-center space-y-4">
-                <!-- Center Greeting Title -->
-                <div id="dash-claude-greeting-title" class="space-y-1 transition-all duration-300">
+            <div class="w-full max-w-5xl mx-auto space-y-4">
+                <!-- Center Greeting Title (Shown on dashboard load) -->
+                <div id="dash-claude-greeting-title" class="space-y-1 text-center transition-all duration-300">
                     <h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
                         Hello, <span class="text-indigo-600 font-black">${greetingPeriod}, ${userName}</span>
                     </h2>
                     <p class="text-slate-500 font-medium text-sm sm:text-base">How can I help you with your CRM today?</p>
                 </div>
 
-                <!-- Pristine Floating Command Bar -->
-                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto ring-4 ring-slate-100/60 hover:shadow-2xl hover:border-indigo-300 transition-all duration-300 relative group">
-                    <!-- Floating Slash Commands Autocomplete Menu -->
-                    <div id="dash-slash-menu" class="hidden absolute left-2 right-2 bottom-full mb-3 bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 z-[9999] animate-fade-in text-left max-h-64 overflow-y-auto">
-                        <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50/60 rounded-xl mb-1 flex items-center justify-between">
-                            <span class="flex items-center space-x-1.5">
-                                <i data-lucide="sparkles" class="h-3 w-3 text-indigo-600"></i>
-                                <span>LinkPilot AI Skills & Slash Commands</span>
-                            </span>
-                            <span class="text-[9px] font-mono text-slate-400">Press ↑ ↓ to navigate, Enter to select</span>
-                        </div>
-                        <div id="dash-slash-menu-items" class="space-y-1">
-                            <!-- Populated dynamically when user types '/' -->
-                        </div>
-                    </div>
+                <!-- Input Row Matching Reference Screenshot -->
+                <div class="w-full flex items-center space-x-3 max-w-4xl mx-auto">
+                    <!-- Left Circular Paperclip Button -->
+                    <button type="button" title="Attach file" class="h-11 w-11 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-500 flex items-center justify-center shadow-2xs transition shrink-0 cursor-pointer">
+                        <i data-lucide="paperclip" class="h-4.5 w-4.5"></i>
+                    </button>
 
-                    <!-- Glowing 3D AI Robot Avatar -->
-                    <div class="h-11 w-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
-                        <div class="w-full h-full rounded-full bg-slate-950/10 flex items-center justify-center">
-                            <i data-lucide="bot" class="h-5.5 w-5.5 text-white"></i>
+                    <!-- Center Pill Input Box -->
+                    <div class="bg-white border border-slate-200/90 rounded-full px-5 py-2.5 shadow-2xs flex items-center flex-grow space-x-2 ring-1 ring-slate-100 hover:border-indigo-400 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 transition relative">
+                        <!-- Floating Slash Commands Autocomplete Menu -->
+                        <div id="dash-slash-menu" class="hidden absolute left-2 right-2 bottom-full mb-3 bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-2xl shadow-2xl p-2 z-[9999] animate-fade-in text-left max-h-64 overflow-y-auto">
+                            <div class="px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 bg-indigo-50/60 rounded-xl mb-1 flex items-center justify-between">
+                                <span class="flex items-center space-x-1.5">
+                                    <i data-lucide="sparkles" class="h-3 w-3 text-indigo-600"></i>
+                                    <span>LinkPilot AI Skills & Slash Commands</span>
+                                </span>
+                                <span class="text-[9px] font-mono text-slate-400">Press ↑ ↓ to navigate, Enter to select</span>
+                            </div>
+                            <div id="dash-slash-menu-items" class="space-y-1"></div>
                         </div>
-                    </div>
 
-                    <!-- Input Box with Zero Focus Rectangle Border -->
-                    <input type="text" id="dash-claude-prompt-input" oninput="window.handleDashSlashCommandInput(this)" onkeydown="window.handleDashSlashKeydown(event)" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base font-medium px-2 font-sans" style="outline: none !important; border: none !important; box-shadow: none !important; border-width: 0 !important; -webkit-appearance: none !important;">
+                        <input type="text" id="dash-claude-prompt-input" oninput="window.handleDashSlashCommandInput(this)" onkeydown="window.handleDashSlashKeydown(event)" placeholder="Type a message or ask LinkPilot anything..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm font-medium px-1 font-sans focus:outline-none border-none outline-none ring-0">
 
-                    <!-- Inner Action Buttons (Paperclip & Mic) -->
-                    <div class="flex items-center space-x-1 shrink-0">
-                        <button type="button" title="Attach file" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer">
-                            <i data-lucide="paperclip" class="h-4.5 w-4.5"></i>
-                        </button>
-                        <button type="button" title="Voice prompt" class="p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition cursor-pointer">
+                        <button type="button" title="Voice prompt" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-full transition cursor-pointer shrink-0">
                             <i data-lucide="mic" class="h-4.5 w-4.5"></i>
                         </button>
                     </div>
 
-                    <!-- Circular Blue Send Button -->
-                    <button type="button" onclick="window.submitDashClaudePrompt()" title="Send prompt" class="h-11 w-11 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition shrink-0 cursor-pointer">
+                    <!-- Far Right Paperplane Circular Button -->
+                    <button type="button" onclick="window.submitDashClaudePrompt()" title="Send prompt" class="h-11 w-11 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25 hover:scale-105 active:scale-95 transition shrink-0 cursor-pointer">
                         <i data-lucide="send" class="h-5 w-5 text-white" style="color: #ffffff !important;"></i>
                     </button>
                 </div>
 
-                <!-- Quick Action Pills Row -->
-                <div id="dash-claude-pills-row" class="flex flex-wrap items-center justify-center gap-2 pt-1">
-                    <button type="button" onclick="window.submitDashClaudePrompt('Chat')" class="px-4 py-2 bg-blue-100/90 hover:bg-blue-200/90 text-blue-700 font-bold rounded-full border border-blue-200/80 shadow-2xs transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="message-square" class="h-3.5 w-3.5 text-blue-600"></i>
-                        <span>Chat</span>
-                    </button>
-                    <button type="button" onclick="window.submitDashClaudePrompt('Find my hottest leads')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="flame" class="h-3.5 w-3.5 text-amber-500"></i>
-                        <span>Hot Leads</span>
-                    </button>
-                    <button type="button" onclick="window.submitDashClaudePrompt('Analyze my sales pipeline')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="bar-chart-3" class="h-3.5 w-3.5 text-emerald-500"></i>
-                        <span>Pipeline</span>
-                    </button>
-                    <button type="button" onclick="window.submitDashClaudePrompt('Draft a sales outreach email')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="mail" class="h-3.5 w-3.5 text-purple-500"></i>
-                        <span>Draft Email</span>
-                    </button>
-                    <button type="button" onclick="window.submitDashClaudePrompt('Find contacts in tech industry')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="users" class="h-3.5 w-3.5 text-blue-500"></i>
-                        <span>Find Contacts</span>
-                    </button>
-                    <button type="button" onclick="window.submitDashClaudePrompt('Create an automation workflow')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="zap" class="h-3.5 w-3.5 text-amber-400"></i>
-                        <span>Automate</span>
-                    </button>
-                    <button type="button" onclick="window.submitDashClaudePrompt('Show me sales insights & CRM analytics')" class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all flex items-center space-x-2 text-xs cursor-pointer">
-                        <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-indigo-500"></i>
-                        <span>See Insights</span>
-                    </button>
-                </div>
-
-                <!-- Footer Metadata -->
-                <div id="dash-claude-footer-meta" class="flex items-center justify-center space-x-3 text-slate-400 text-[11px] font-medium pt-1">
-                    <span>Powered by LinkPilot AI 2.0 • Pro</span>
-                    <span>|</span>
-                    <span class="flex items-center space-x-1">
-                        <i data-lucide="shield-check" class="h-3.5 w-3.5 text-slate-400"></i>
                         <span>Secure & Private</span>
                     </span>
                 </div>
@@ -1557,19 +1511,42 @@ async function renderDashboard(container) {
             }
         };
 
+        const emptyCanvasStateHtml = `
+            <div class="flex flex-col items-center justify-center py-12 text-center space-y-4 my-auto animate-fade-in relative">
+                <!-- Center 3D Floating Robot Icon -->
+                <div class="h-16 w-16 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-blue-500 text-white flex items-center justify-center shadow-xl shadow-indigo-500/25 relative z-10">
+                    <i data-lucide="bot" class="h-8 w-8 text-white"></i>
+                </div>
+
+                <!-- Title & Subtitle -->
+                <div class="space-y-1.5 z-10 max-w-md mx-auto">
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">How can I help you today?</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium">Ask anything about your leads, contacts, tasks, or automations.</p>
+                </div>
+
+                <!-- Quick Action Pills Row -->
+                <div class="flex flex-wrap items-center justify-center gap-2.5 pt-3 z-10 max-w-2xl mx-auto">
+                    <button type="button" onclick="window.submitDashClaudePrompt('Show my new leads')" class="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-indigo-400 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 text-indigo-500"></i>
+                        <span>Show my new leads</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Draft a follow-up email')" class="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-indigo-400 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 text-indigo-500"></i>
+                        <span>Draft a follow-up email</span>
+                    </button>
+                    <button type="button" onclick="window.submitDashClaudePrompt('Check today\'s activity')" class="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-full border border-slate-200/90 shadow-2xs hover:border-indigo-400 transition-all flex items-center space-x-2 text-xs cursor-pointer">
+                        <i data-lucide="arrow-up-right" class="h-3.5 w-3.5 text-indigo-500"></i>
+                        <span>Check today's activity</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
         window.clearInpageChatSession = function() {
             window.inpageChatHistory = [];
             const msgContainer = document.getElementById('inpage-chat-messages-container');
             if (msgContainer) {
-                msgContainer.innerHTML = `
-                    <div class="text-center py-12 text-slate-400 space-y-2 animate-fade-in">
-                        <div class="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200/80 mx-auto flex items-center justify-center font-bold shadow-2xs">
-                            <i data-lucide="bot" class="h-6 w-6"></i>
-                        </div>
-                        <h4 class="text-xs font-bold text-slate-700">LinkPilot AI Session Cleared</h4>
-                        <p class="text-[11px] text-slate-500 max-w-sm mx-auto">Ask any question or use slash commands below to query leads, deals, email & workflow automations.</p>
-                    </div>
-                `;
+                msgContainer.innerHTML = emptyCanvasStateHtml;
                 if (window.lucide) window.lucide.createIcons();
             }
         };
@@ -1580,39 +1557,13 @@ async function renderDashboard(container) {
 
             window.inpageChatHistory = window.inpageChatHistory || [];
 
-            if (msgContainer.children.length === 1 && msgContainer.querySelector('.text-slate-400')) {
+            if (msgContainer.children.length === 1 && msgContainer.querySelector('.text-slate-400, .py-12')) {
                 msgContainer.innerHTML = '';
             }
 
             const query = (promptText || '').trim();
             if (!query) {
-                // Greeting default introduction message
-                const welcomeMsg = `
-                    <div class="flex items-start space-x-3 text-left animate-fade-in">
-                        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center font-bold shrink-0 shadow-sm">
-                            <i data-lucide="bot" class="h-5 w-5"></i>
-                        </div>
-                        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs max-w-2xl text-xs space-y-2.5">
-                            <div class="flex items-center space-x-2 border-b border-slate-100 pb-2">
-                                <span class="font-extrabold text-slate-900">LinkPilot AI 2.0 Co-Pilot</span>
-                                <span class="px-2 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 font-black">Connected & Ready</span>
-                            </div>
-                            <p class="text-slate-700 leading-relaxed font-medium">Hello! I am your autonomous CRM AI Co-Pilot. I can help you search contacts, analyze lead scores, draft emails, create automation workflows, and inspect your sales pipeline in real-time.</p>
-                            <div class="pt-1 text-[11px] text-slate-500 font-semibold">Try quick prompts:</div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                                <button type="button" onclick="window.submitDashClaudePrompt('Find my hottest leads')" class="p-2.5 bg-amber-50/60 hover:bg-amber-100/80 border border-amber-200 rounded-xl text-amber-900 text-left transition font-bold flex items-center space-x-2 cursor-pointer">
-                                    <i data-lucide="flame" class="h-4 w-4 text-amber-500 shrink-0"></i>
-                                    <span>🔥 Find hottest lead scores</span>
-                                </button>
-                                <button type="button" onclick="window.submitDashClaudePrompt('Analyze my sales pipeline')" class="p-2.5 bg-emerald-50/60 hover:bg-emerald-100/80 border border-emerald-200 rounded-xl text-emerald-900 text-left transition font-bold flex items-center space-x-2 cursor-pointer">
-                                    <i data-lucide="bar-chart-3" class="h-4 w-4 text-emerald-600 shrink-0"></i>
-                                    <span>📊 Pipeline conversion breakdown</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                msgContainer.insertAdjacentHTML('beforeend', welcomeMsg);
+                msgContainer.innerHTML = emptyCanvasStateHtml;
                 if (window.lucide) window.lucide.createIcons();
                 msgContainer.scrollTop = msgContainer.scrollHeight;
                 return;

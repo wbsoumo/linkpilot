@@ -72,6 +72,18 @@
 
       const urlSearchParams = new URLSearchParams(window.location.search);
 
+      // If user accesses hash routes from old mobile web build (e.g., #/dashboard, #/welcome, etc.)
+      if (window.location.hash) {
+        const hashRoute = window.location.hash;
+        if (hashRoute.startsWith('#/dashboard') || hashRoute.startsWith('#/leads') || hashRoute.startsWith('#/tasks') || hashRoute.startsWith('#/settings') || hashRoute.startsWith('#/mail') || hashRoute.startsWith('#/whatsapp')) {
+          window.location.replace('/dashboard/index.html' + hashRoute);
+          return;
+        } else if (hashRoute.startsWith('#/welcome') || hashRoute.startsWith('#/login') || hashRoute.startsWith('#/register')) {
+          window.location.replace('/dashboard/login.html');
+          return;
+        }
+      }
+
       if (urlSearchParams.has('hash') || urlSearchParams.has('login')) {
         window.sessionStorage.setItem('password_reset_hash', urlSearchParams.get('hash'));
         window.sessionStorage.setItem('password_reset_login', urlSearchParams.get('login'));

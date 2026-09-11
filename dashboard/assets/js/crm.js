@@ -698,8 +698,8 @@ async function renderDashboard(container) {
                     <p class="text-slate-500 font-medium text-sm sm:text-base">How can I help you with your CRM today?</p>
                 </div>
 
-                <!-- Pristine Floating Command Bar -->
-                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto ring-4 ring-slate-100/60 hover:shadow-2xl hover:border-indigo-300 transition-all duration-300 relative group">
+                <!-- Pristine Floating Command Bar (Border-Free) -->
+                <div class="bg-white/95 backdrop-blur-xl shadow-xl shadow-indigo-500/5 rounded-full p-2 sm:p-2.5 flex items-center space-x-3 w-full max-w-4xl mx-auto hover:shadow-2xl transition-all duration-300 relative group border-0">
                     <!-- Glowing 3D AI Robot Avatar -->
                     <div class="h-11 w-11 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-500 p-0.5 shadow-md flex items-center justify-center shrink-0">
                         <div class="w-full h-full rounded-full bg-slate-950/10 flex items-center justify-center">
@@ -708,7 +708,7 @@ async function renderDashboard(container) {
                     </div>
 
                     <!-- Input Box -->
-                    <input type="text" id="dash-claude-prompt-input" onkeydown="if(event.key==='Enter') window.submitDashClaudePrompt()" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none font-medium px-2 font-sans">
+                    <input type="text" id="dash-claude-prompt-input" onkeydown="if(event.key==='Enter') window.submitDashClaudePrompt()" placeholder="Type / for skills or tell LinkPilot what to do..." class="w-full bg-transparent text-slate-800 placeholder-slate-400 text-sm sm:text-base outline-none border-none focus:border-none focus:outline-none focus:ring-0 font-medium px-2 font-sans">
 
                     <!-- Inner Action Buttons (Paperclip & Mic) -->
                     <div class="flex items-center space-x-1 shrink-0">

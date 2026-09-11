@@ -54,8 +54,8 @@
                             <span class="text-slate-400 font-bold self-center mr-1">Quick Prompts:</span>
                             <button onclick="setCopilotPrompt('Add Rahul Sharma from ABC Ltd, rahul@abc.com as CEO.')" class="px-2.5 py-1 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">👤 Add Rahul Contact</button>
                             <button onclick="setCopilotPrompt('Find all contacts from ABC Ltd')" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">🔍 Find ABC Contacts</button>
-                            <button onclick="setCopilotPrompt('Add a note to Rahul saying he is interested in the premium package')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">📝 Add Note to Rahul</button>
-                            <button onclick="setCopilotPrompt('Tag Rahul as Hot Lead')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">🏷️ Tag Hot Lead</button>
+                            <button onclick="setCopilotPrompt('What is happening with my sales pipeline?')" class="px-2.5 py-1 bg-slate-100 hover:bg-purple-50 hover:text-purple-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">📊 Pipeline Analytics</button>
+                            <button onclick="setCopilotPrompt('Whenever a new lead comes in, assign to Amit and send welcome email')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-600 text-slate-600 rounded-lg border border-slate-200 transition font-medium">⚡ Lead Automation</button>
                         </div>
 
                         <!-- Loading State -->
@@ -253,6 +253,35 @@
             if (loader) loader.classList.add('hidden');
 
             if (data.status === 'success' && data.data) {
+                if (data.is_analytics_result) {
+                    const analytics = data.analytics || {};
+                    const leadsByStage = analytics.leads_by_stage || [];
+                    const dealsByStage = analytics.deals_by_stage || [];
+
+                    const searchList = document.getElementById('copilot-search-results-list');
+                    searchCard.classList.remove('hidden');
+                    
+                    let analyticsHTML = `<div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-4 space-y-3 text-xs">
+                        <div class="font-extrabold text-indigo-900 flex items-center">
+                            <i data-lucide="bar-chart-3" class="h-4 w-4 mr-1.5 text-indigo-600"></i>
+                            <span>Sales Pipeline Analytics & Summary:</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm space-y-1">
+                                <span class="text-[10px] font-bold text-slate-500 block">Lead Pipeline Stages:</span>
+                                ${leadsByStage.length > 0 ? leadsByStage.map(l => `<div class="flex justify-between text-[11px]"><span class="font-semibold text-slate-700">${l.stage}:</span> <span class="font-bold text-indigo-600">${l.total_leads} leads (₹${parseFloat(l.total_budget || 0).toLocaleString()})</span></div>`).join('') : '<span class="text-slate-400">No leads data</span>'}
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm space-y-1">
+                                <span class="text-[10px] font-bold text-slate-500 block">Deals Summary:</span>
+                                ${dealsByStage.length > 0 ? dealsByStage.map(d => `<div class="flex justify-between text-[11px]"><span class="font-semibold text-slate-700">${d.stage}:</span> <span class="font-bold text-emerald-600">${d.total_deals} deals (₹${parseFloat(d.total_revenue || 0).toLocaleString()})</span></div>`).join('') : '<span class="text-slate-400">No deals data</span>'}
+                            </div>
+                        </div>
+                    </div>`;
+                    searchList.innerHTML = analyticsHTML;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
                 if (data.data.is_search_result) {
                     renderSearchResults(data.data.search_results || []);
                 } else if (data.data.duplicate_found && data.data.duplicates) {

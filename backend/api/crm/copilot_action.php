@@ -8,6 +8,7 @@ require_once __DIR__ . '/../../smtp_helper.php';
 require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
 require_once __DIR__ . '/../../communication_provider_helper.php';
 require_once __DIR__ . '/../../wallet_helper.php';
+require_once __DIR__ . '/../../ai_tool_registry.php';
 
 header('Content-Type: application/json');
 ini_set('display_errors', 0);
@@ -23,7 +24,13 @@ $input = json_decode($rawInput, true) ?: [];
 $action = $input['action'] ?? ($_GET['action'] ?? 'parse');
 
 try {
-    if ($action === 'parse') {
+    if ($action === 'list_tools') {
+        sendJsonResponse('success', 'Registered AI Tools list retrieved.', [
+            'tools' => AIToolRegistry::listTools()
+        ]);
+    }
+
+    elseif ($action === 'parse') {
         $prompt = trim($input['prompt'] ?? '');
         if (empty($prompt)) {
             sendJsonResponse('error', 'Prompt text cannot be empty.', [], 400);
@@ -46,26 +53,28 @@ try {
         $senderName = $userProf['name'] ?? 'LinkPilot User';
         $companyName = $userProf['company_name'] ?? 'Our Company';
 
-        $systemPrompt = "You are the LinkPilot AI Omnichannel Action Parser. Your task is to analyze natural language command prompts from $senderName (representing $companyName) and extract the intended workspace action into a strict JSON payload.
+        $systemPrompt = "You are the LinkPilot AI Omnichannel Action Parser & AI Command Center Planner. Your task is to analyze natural language command prompts from $senderName (representing $companyName) and extract the intended workspace action into a strict JSON payload.
 
 Supported action_type options:
-1. 'SEND_EMAIL': Draft an email to a contact.
-2. 'SEND_WHATSAPP': Draft a WhatsApp message to a contact.
-3. 'CREATE_INVOICE': Draft an invoice for a contact/company.
-4. 'SCHEDULE_MEETING': Schedule a meeting call and create a task.
-5. 'CREATE_TASK': Create a task with due date/time and priority.
-6. 'MOVE_DEAL': Update a deal stage (e.g. Lead, Qualified, Proposal, Negotiation, Closed Won, Closed Lost).
-7. 'CREATE_CONTACT': Add a new contact to CRM.
-8. 'UPDATE_CONTACT': Update contact details (phone, email, company, designation, status, tag).
-9. 'SEARCH_CONTACTS': Search or filter contacts (e.g. by city, company, tag, last contacted days).
-10. 'ADD_NOTE': Add a note to a contact profile.
-11. 'ADD_TAG': Add a tag to a contact.
-12. 'MERGE_CONTACTS': Merge duplicate contacts.
-13. 'CREATE_AUTOMATION': Build an automation workflow from trigger, condition, wait delay, and actions.
-14. 'UPDATE_AUTOMATION': Modify an existing workflow definition or delay time.
-15. 'PAUSE_AUTOMATION': Pause an active automation workflow.
-16. 'RESUME_AUTOMATION': Resume/activate a paused or draft workflow.
-17. 'SEARCH_AUTOMATIONS': Find, inspect, or query user automations and execution history logs.
+1. 'SEND_EMAIL': Draft an email to a contact. (Risk: EXTERNAL)
+2. 'SEND_WHATSAPP': Draft a WhatsApp message to a contact. (Risk: EXTERNAL)
+3. 'CREATE_INVOICE': Draft an invoice for a contact/company. (Risk: WRITE)
+4. 'SCHEDULE_MEETING': Schedule a meeting call and create a task. (Risk: WRITE)
+5. 'CREATE_TASK': Create a task with due date/time and priority. (Risk: WRITE)
+6. 'MOVE_DEAL': Update a deal stage (e.g. Lead, Qualified, Proposal, Negotiation, Closed Won, Closed Lost). (Risk: WRITE)
+7. 'CREATE_CONTACT': Add a new contact to CRM. (Risk: WRITE)
+8. 'UPDATE_CONTACT': Update contact details. (Risk: WRITE)
+9. 'SEARCH_CONTACTS': Search or filter contacts. (Risk: READ)
+10. 'ADD_NOTE': Add a note to a contact profile. (Risk: WRITE)
+11. 'ADD_TAG': Add a tag to a contact. (Risk: WRITE)
+12. 'MERGE_CONTACTS': Merge duplicate contacts. (Risk: WRITE)
+13. 'CREATE_AUTOMATION': Build an automation workflow. (Risk: WRITE)
+14. 'UPDATE_AUTOMATION': Modify an existing workflow definition. (Risk: WRITE)
+15. 'PAUSE_AUTOMATION': Pause an active automation workflow. (Risk: WRITE)
+16. 'RESUME_AUTOMATION': Resume/activate a workflow. (Risk: WRITE)
+17. 'SEARCH_AUTOMATIONS': Find/query user automations. (Risk: READ)
+18. 'ANALYZE_PIPELINE': Fetch backend sales analytics, revenue metrics, and lead distribution. (Risk: READ)
+19. 'ARCHIVE_CONTACT': Archive contact record. (Risk: DESTRUCTIVE)
 
 Return your response as a valid JSON object ONLY (no markdown fences around it) with this structure:
 {
@@ -138,6 +147,16 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         // Audit Log AI Parsing Action
         $db->prepare("INSERT INTO ai_action_logs (user_id, prompt, intent, channel, action_status) VALUES (?, ?, ?, ?, 'parsed')")
            ->execute([$userId, $prompt, $aiData['action_type'], strtolower($aiData['action_type'])]);
+
+        // Handle ANALYZE_PIPELINE intent
+        if ($aiData['action_type'] === 'ANALYZE_PIPELINE') {
+            $analytics = AIToolRegistry::executeTool('get_pipeline_summary', $userId, [], $db);
+            sendJsonResponse('success', 'Pipeline analytics retrieved successfully.', [
+                'is_analytics_result' => true,
+                'analytics' => $analytics,
+                'parsed' => $aiData
+            ]);
+        }
 
         // Handle SEARCH_CONTACTS intent
         if ($aiData['action_type'] === 'SEARCH_CONTACTS') {

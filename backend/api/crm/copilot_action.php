@@ -53,7 +53,7 @@ try {
         $senderName = $userProf['name'] ?? 'LinkPilot User';
         $companyName = $userProf['company_name'] ?? 'Our Company';
 
-        $systemPrompt = "You are the LinkPilot AI Omnichannel Action Parser & AI Command Center Planner. Your task is to analyze natural language command prompts from $senderName (representing $companyName) and extract the intended workspace action into a strict JSON payload.
+        $systemPrompt = "You are the LinkPilot AI Omnichannel Action Parser & AI Command Center Planner. Your task is to analyze natural language command prompts and multi-turn chat history from $senderName (representing $companyName) and extract the intended workspace action or conversational response into a strict JSON payload.
 
 Supported action_type options:
 1. 'SEND_EMAIL': Draft an email to a contact. (Risk: EXTERNAL)
@@ -74,11 +74,13 @@ Supported action_type options:
 16. 'RESUME_AUTOMATION': Resume/activate a workflow. (Risk: WRITE)
 17. 'SEARCH_AUTOMATIONS': Find/query user automations. (Risk: READ)
 18. 'ANALYZE_PIPELINE': Fetch backend sales analytics, revenue metrics, and lead distribution. (Risk: READ)
-19. 'ARCHIVE_CONTACT': Archive contact record. (Risk: DESTRUCTIVE)
+19. 'GET_HOT_LEADS': Fetch highest scoring lead scores. (Risk: READ)
+20. 'ARCHIVE_CONTACT': Archive contact record. (Risk: DESTRUCTIVE)
+21. 'GENERAL_CHAT': Conversational dialogue, greetings, follow-ups, chitchat, or answering user questions contextually based on chat history.
 
 Return your response as a valid JSON object ONLY (no markdown fences around it) with this structure:
 {
-  \"action_type\": \"SEND_EMAIL|SEND_WHATSAPP|CREATE_INVOICE|SCHEDULE_MEETING|CREATE_TASK|MOVE_DEAL|CREATE_CONTACT|UPDATE_CONTACT|SEARCH_CONTACTS|ADD_NOTE|ADD_TAG|MERGE_CONTACTS\",
+  \"action_type\": \"GENERAL_CHAT|SEND_EMAIL|SEND_WHATSAPP|CREATE_INVOICE|SCHEDULE_MEETING|CREATE_TASK|MOVE_DEAL|CREATE_CONTACT|UPDATE_CONTACT|SEARCH_CONTACTS|ADD_NOTE|ADD_TAG|MERGE_CONTACTS|CREATE_AUTOMATION|ANALYZE_PIPELINE|GET_HOT_LEADS\",
   \"target_contact\": {
     \"name\": \"...\",
     \"email\": \"...\",
@@ -128,23 +130,28 @@ Return your response as a valid JSON object ONLY (no markdown fences around it) 
     \"scheduled_at\": \"YYYY-MM-DD HH:MM:SS\" or null
   },
   \"requested_attachments\": [\"proposal\", \"quotation\", \"invoice\"],
-  \"summary\": \"Brief human-readable summary of the action parsed\"
+  \"summary\": \"Human-readable chat response or action summary for the user\"
 }
 
 WORKSPACE CONTACTS LIST FOR MATCHING:
 " . ($contactsCtx ?: "No contacts found yet.") . "
 ";
 
-        $userPrompt = "User Command Prompt: \"$prompt\"";
-
-        $lowerPrompt = strtolower($prompt);
-        if (in_array($lowerPrompt, ['hello', 'hi', 'hey', 'greetings', 'help', 'who are you', 'what can you do', 'test', 'hi there', 'hello linkpilot'])) {
-            sendJsonResponse('success', "Hello! I am your autonomous LinkPilot AI CRM Co-Pilot. I can help you search contacts, analyze lead scores, draft outreach emails, build automation workflows, and inspect your sales pipeline. How can I help you today?", [
-                'is_chat_result' => true,
-                'parsed' => ['action_type' => 'GENERAL_CHAT'],
-                'message' => "Hello! I am your autonomous LinkPilot AI CRM Co-Pilot. I can help you search contacts, analyze lead scores, draft outreach emails, build automation workflows, and inspect your sales pipeline. How can I help you today?"
-            ]);
+        $historyCtx = "";
+        $rawHistory = $input['history'] ?? [];
+        if (is_array($rawHistory) && !empty($rawHistory)) {
+            $historyCtx .= "\n--- RECENT CHAT HISTORY ---\n";
+            foreach (array_slice($rawHistory, -10) as $hItem) {
+                $r = ucfirst($hItem['role'] ?? 'User');
+                $c = trim($hItem['content'] ?? '');
+                if ($c) {
+                    $historyCtx .= "[$r]: $c\n";
+                }
+            }
+            $historyCtx .= "--- END CHAT HISTORY ---\n";
         }
+
+        $userPrompt = $historyCtx . "\nUser Current Input: \"$prompt\"";
 
         $rawText = '';
         $aiData = null;
@@ -163,13 +170,13 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         }
 
         if (!$aiData || empty($aiData['action_type'])) {
-            $summaryText = (!empty($rawText) && !str_contains($rawText, '{')) 
+            $replyMsg = (!empty($rawText) && !str_contains($rawText, '{')) 
                 ? $rawText 
-                : "Hello! I received your prompt. I can assist you with lead scoring, contact searches, drafting emails, automation workflows, and sales analytics. What would you like me to do?";
+                : "I'm doing well, thank you! I can assist you with lead scoring, contact searches, drafting emails, automation workflows, and sales analytics. What would you like to do today?";
             
             $aiData = [
                 'action_type' => 'GENERAL_CHAT',
-                'summary' => $summaryText
+                'summary' => $replyMsg
             ];
         }
 

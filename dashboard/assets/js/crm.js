@@ -1519,6 +1519,7 @@ async function renderDashboard(container) {
         };
 
         window.clearInpageChatSession = function() {
+            window.inpageChatHistory = [];
             const msgContainer = document.getElementById('inpage-chat-messages-container');
             if (msgContainer) {
                 msgContainer.innerHTML = `
@@ -1537,6 +1538,8 @@ async function renderDashboard(container) {
         window.executeInpageCopilotPrompt = async function(promptText) {
             const msgContainer = document.getElementById('inpage-chat-messages-container');
             if (!msgContainer) return;
+
+            window.inpageChatHistory = window.inpageChatHistory || [];
 
             if (msgContainer.children.length === 1 && msgContainer.querySelector('.text-slate-400')) {
                 msgContainer.innerHTML = '';
@@ -1578,6 +1581,9 @@ async function renderDashboard(container) {
 
             const esc = (s) => (s ? String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '');
 
+            // Push to conversation history
+            window.inpageChatHistory.push({ role: 'user', content: query });
+
             // User Prompt Bubble
             const userMsgHtml = `
                 <div class="flex items-start justify-end space-x-3 text-right animate-fade-in">
@@ -1601,7 +1607,7 @@ async function renderDashboard(container) {
                     <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs text-xs space-y-2 text-slate-600">
                         <div class="flex items-center space-x-2 text-indigo-600 font-extrabold">
                             <i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>
-                            <span>Analyzing intent & querying LinkPilot backend...</span>
+                            <span>Thinking & analyzing context...</span>
                         </div>
                     </div>
                 </div>
@@ -1611,9 +1617,13 @@ async function renderDashboard(container) {
             msgContainer.scrollTop = msgContainer.scrollHeight;
 
             try {
-                const res = await apiCall('crm/copilot_action.php', 'POST', { prompt: query });
+                const res = await apiCall('crm/copilot_action.php', 'POST', { prompt: query, history: window.inpageChatHistory });
                 const loaderEl = document.getElementById(loaderId);
                 if (loaderEl) loaderEl.remove();
+
+                if (res && res.success) {
+                    window.inpageChatHistory.push({ role: 'assistant', content: res.message || 'Action executed.' });
+                }
 
                 let aiReplyHtml = '';
                 if (res && res.success) {

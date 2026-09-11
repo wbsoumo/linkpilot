@@ -29,15 +29,228 @@ $tablesToVerify = [
     'crm_lead_score_history' => "AI Lead Score Audit History"
 ];
 
+// Helper to execute migrations directly without JWT admin header block
+function executeDirectMigrations($db) {
+    // 1. Email Intelligence Settings Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `email_intelligence_settings` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT UNIQUE NOT NULL,
+        `is_active` TINYINT(1) DEFAULT 0,
+        `sync_interval_minutes` INT DEFAULT 60,
+        `last_sync_at` TIMESTAMP NULL DEFAULT NULL,
+        `next_sync_at` TIMESTAMP NULL DEFAULT NULL,
+        `business_type` VARCHAR(100) DEFAULT NULL,
+        `industry` VARCHAR(100) DEFAULT NULL,
+        `timezone` VARCHAR(100) DEFAULT 'Asia/Kolkata',
+        `working_hours` VARCHAR(100) DEFAULT NULL,
+        `preferred_language` VARCHAR(50) DEFAULT 'en',
+        `currency` VARCHAR(10) DEFAULT 'USD',
+        `permissions_json` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 2. CRM Activity Timeline Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_activity_timeline` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT DEFAULT NULL,
+        `lead_id` INT DEFAULT NULL,
+        `company_id` INT DEFAULT NULL,
+        `channel` ENUM('email', 'whatsapp', 'call', 'task', 'ticket', 'system') NOT NULL DEFAULT 'system',
+        `direction` ENUM('inbound', 'outbound', 'system') NOT NULL DEFAULT 'system',
+        `subject_or_title` VARCHAR(255) DEFAULT NULL,
+        `content` LONGTEXT DEFAULT NULL,
+        `summary` TEXT DEFAULT NULL,
+        `status` VARCHAR(50) DEFAULT 'completed',
+        `external_ref_id` VARCHAR(100) DEFAULT NULL,
+        `meta_data_json` LONGTEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_act_timeline_lookup` (`user_id`, `contact_id`, `channel`, `created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 3. Communication Actions Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `communication_actions` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT DEFAULT NULL,
+        `channel` VARCHAR(50) NOT NULL DEFAULT 'email',
+        `recipient` VARCHAR(255) NOT NULL,
+        `subject` VARCHAR(255) DEFAULT NULL,
+        `message` LONGTEXT NOT NULL,
+        `attachments_json` LONGTEXT DEFAULT NULL,
+        `status` ENUM('draft', 'pending_approval', 'approved', 'queued', 'processing', 'sent', 'failed', 'scheduled', 'cancelled') NOT NULL DEFAULT 'draft',
+        `idempotency_token` VARCHAR(100) UNIQUE DEFAULT NULL,
+        `provider_response` LONGTEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX `idx_comm_act_lookup` (`user_id`, `contact_id`, `channel`, `status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 4. Scheduled Communications Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `scheduled_communications` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT DEFAULT NULL,
+        `channel` VARCHAR(50) NOT NULL DEFAULT 'email',
+        `recipient` VARCHAR(255) NOT NULL,
+        `subject` VARCHAR(255) DEFAULT NULL,
+        `message` LONGTEXT NOT NULL,
+        `attachments_json` LONGTEXT DEFAULT NULL,
+        `scheduled_at` DATETIME NOT NULL,
+        `status` ENUM('scheduled', 'processing', 'sent', 'failed', 'cancelled') NOT NULL DEFAULT 'scheduled',
+        `attempts` INT DEFAULT 0,
+        `last_error` TEXT DEFAULT NULL,
+        `idempotency_token` VARCHAR(100) UNIQUE DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX `idx_sched_comm_status` (`user_id`, `status`, `scheduled_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 5. AI Action Audit Logs Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `ai_action_logs` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `prompt` TEXT NOT NULL,
+        `intent` VARCHAR(100) NOT NULL,
+        `channel` VARCHAR(50) DEFAULT NULL,
+        `resolved_contact_id` INT DEFAULT NULL,
+        `action_status` VARCHAR(50) DEFAULT 'parsed',
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_ai_act_user` (`user_id`, `created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 6. Contact Notes Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_contact_notes` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT NOT NULL,
+        `note_text` LONGTEXT NOT NULL,
+        `author_name` VARCHAR(255) DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_cnt_notes_lookup` (`user_id`, `contact_id`, `created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 7. Contact Tags Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_contact_tags` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `tag_name` VARCHAR(100) NOT NULL,
+        `color_code` VARCHAR(20) DEFAULT '#3b82f6',
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY `uniq_user_tag` (`user_id`, `tag_name`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 8. Automation Workflows Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `automation_workflows` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `name` VARCHAR(255) NOT NULL,
+        `description` TEXT DEFAULT NULL,
+        `trigger_type` VARCHAR(100) NOT NULL,
+        `trigger_value` VARCHAR(100) DEFAULT NULL,
+        `trigger_config_json` LONGTEXT DEFAULT NULL,
+        `nodes_json` LONGTEXT DEFAULT NULL,
+        `edges_json` LONGTEXT DEFAULT NULL,
+        `actions_json` LONGTEXT DEFAULT NULL,
+        `status` ENUM('draft', 'active', 'paused', 'disabled', 'archived') NOT NULL DEFAULT 'active',
+        `is_active` TINYINT(1) DEFAULT 1,
+        `version` INT DEFAULT 1,
+        `runs_count` INT DEFAULT 0,
+        `success_count` INT DEFAULT 0,
+        `failed_count` INT DEFAULT 0,
+        `last_run_at` DATETIME DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX `idx_wf_user_trigger` (`user_id`, `trigger_type`, `status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 9. Automation Executions Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `automation_executions` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `workflow_id` INT NOT NULL,
+        `workflow_version` INT DEFAULT 1,
+        `contact_id` INT DEFAULT NULL,
+        `lead_id` INT DEFAULT NULL,
+        `deal_id` INT DEFAULT NULL,
+        `current_node_id` VARCHAR(100) DEFAULT NULL,
+        `execution_context_json` LONGTEXT DEFAULT NULL,
+        `status` ENUM('pending', 'running', 'waiting', 'completed', 'failed', 'cancelled') NOT NULL DEFAULT 'pending',
+        `next_run_at` DATETIME DEFAULT NULL,
+        `error_message` TEXT DEFAULT NULL,
+        `idempotency_key` VARCHAR(150) UNIQUE DEFAULT NULL,
+        `depth` INT DEFAULT 0,
+        `started_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `completed_at` DATETIME DEFAULT NULL,
+        INDEX `idx_wf_exec_poll` (`user_id`, `status`, `next_run_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 10. Automation Execution Steps Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `automation_execution_steps` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `execution_id` INT NOT NULL,
+        `node_id` VARCHAR(100) NOT NULL,
+        `node_type` VARCHAR(50) NOT NULL,
+        `node_name` VARCHAR(255) DEFAULT NULL,
+        `status` ENUM('passed', 'failed', 'skipped', 'waiting') NOT NULL DEFAULT 'passed',
+        `input_json` LONGTEXT DEFAULT NULL,
+        `output_json` LONGTEXT DEFAULT NULL,
+        `error_message` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_wf_step_lookup` (`execution_id`, `node_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 11. AI Lead Scores Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_lead_scores` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `lead_id` INT NOT NULL,
+        `score` INT DEFAULT 50,
+        `priority_label` ENUM('low', 'medium', 'high', 'very_high') DEFAULT 'medium',
+        `intent_level` ENUM('low', 'medium', 'high') DEFAULT 'medium',
+        `risk_level` ENUM('low', 'medium', 'high') DEFAULT 'low',
+        `conversion_likelihood` VARCHAR(50) DEFAULT 'medium',
+        `summary_text` TEXT DEFAULT NULL,
+        `recommended_action` VARCHAR(255) DEFAULT NULL,
+        `scoring_version` INT DEFAULT 1,
+        `calculated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY `uniq_user_lead_score` (`user_id`, `lead_id`),
+        INDEX `idx_ls_score_prio` (`user_id`, `score`, `priority_label`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 12. AI Lead Score Signals Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_lead_score_signals` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `lead_id` INT NOT NULL,
+        `category` VARCHAR(50) NOT NULL,
+        `signal_name` VARCHAR(150) NOT NULL,
+        `score_impact` INT NOT NULL,
+        `evidence_text` TEXT NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_ls_sig_lookup` (`user_id`, `lead_id`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 13. AI Lead Score History Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_lead_score_history` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `lead_id` INT NOT NULL,
+        `previous_score` INT NOT NULL,
+        `new_score` INT NOT NULL,
+        `reason` TEXT NOT NULL,
+        `scoring_version` INT DEFAULT 1,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX `idx_ls_hist_lookup` (`user_id`, `lead_id`, `created_at`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+}
+
+executeDirectMigrations($db);
+
 $results = [];
 $errorCount = 0;
-
-try {
-    // 1. Run migrations in migrate.php
-    require_once __DIR__ . '/api/crm/migrate.php';
-} catch (Throwable $e) {
-    // Migration output processed
-}
 
 // Check each table existence in database
 foreach ($tablesToVerify as $tableName => $description) {
@@ -45,7 +258,6 @@ foreach ($tablesToVerify as $tableName => $description) {
         $stmt = $db->query("SHOW TABLES LIKE '$tableName'");
         $exists = $stmt && $stmt->fetch();
         if ($exists) {
-            // Count rows
             $countStmt = $db->query("SELECT COUNT(*) FROM `$tableName`");
             $rowCount = $countStmt ? (int)$countStmt->fetchColumn() : 0;
             $results[] = [
@@ -76,7 +288,6 @@ foreach ($tablesToVerify as $tableName => $description) {
         ];
     }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">

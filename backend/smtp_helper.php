@@ -10,6 +10,17 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 class SMTPHelper {
+
+    /**
+     * Fetch active SMTP configuration for a user.
+     */
+    public static function getSMTPConfig($userId) {
+        $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT id, host, port, username, sender_name, sender_email, is_default FROM smtp_accounts WHERE user_id = ? ORDER BY is_default DESC, id DESC LIMIT 1");
+        $stmt->execute([(int)$userId]);
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $res ?: null;
+    }
     
     /**
      * Send email using user's custom SMTP configuration

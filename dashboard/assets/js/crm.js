@@ -909,9 +909,9 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
-                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto h-[calc(100vh-130px)] flex flex-col justify-between space-y-3 transition-all duration-300 -mt-6">
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto h-[calc(100vh-90px)] flex flex-col justify-between space-y-2.5 transition-all duration-300 mt-0">
                     <!-- Top Header Card -->
-                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-6 py-3.5 shadow-2xs shrink-0" style="background-color: #ffffff !important; color: #0f172a !important;">
+                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-6 py-3 shadow-2xs shrink-0" style="background-color: #ffffff !important; color: #0f172a !important;">
                         <div class="flex items-center space-x-3.5">
                             <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20 shrink-0">
                                 <i data-lucide="bot" class="h-5.5 w-5.5 text-white" style="color: #ffffff !important;"></i>
@@ -945,7 +945,7 @@ async function renderDashboard(container) {
                     </div>
 
                     <!-- Bottom Input Box Slot inside Chat Container -->
-                    <div id="dash-inpage-chat-input-slot" class="w-full shrink-0 pb-1"></div>
+                    <div id="dash-inpage-chat-input-slot" class="w-full shrink-0 pb-0.5"></div>
                 </div>
 
                 <!-- Dashboard Stats View Container -->
@@ -1492,6 +1492,11 @@ async function renderDashboard(container) {
                     chatView.classList.remove('hidden');
                     chatView.style.opacity = '1';
 
+                    const mainViewport = document.getElementById('main-content-viewport');
+                    if (mainViewport) {
+                        mainViewport.style.padding = '8px 12px';
+                    }
+
                     const drawerBtn = document.getElementById('ai-chat-trigger-btn');
                     if (drawerBtn) drawerBtn.classList.add('hidden');
                     
@@ -1534,6 +1539,11 @@ async function renderDashboard(container) {
             const footerMeta = document.getElementById('dash-claude-footer-meta');
 
             if (heroEl && statsContainer && chatView) {
+                const mainViewport = document.getElementById('main-content-viewport');
+                if (mainViewport) {
+                    mainViewport.style.padding = '';
+                }
+
                 // Restore banner header, pills, and footer
                 if (bannerHeader) bannerHeader.classList.remove('hidden');
                 if (pillsRow) pillsRow.classList.remove('hidden');

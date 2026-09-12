@@ -1785,35 +1785,35 @@ async function renderDashboard(container) {
 
                         const pendingClients = parsed.pending_clients || [];
                         const clientChips = pendingClients.map(c => `
-                            <div class="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/80 text-slate-200 rounded-xl text-[11px] font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/20 hover:scale-[1.02] cursor-default">
-                                <div class="h-5 w-5 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-blue-500 flex items-center justify-center text-[9px] font-black text-white shrink-0 shadow-xs">
+                            <div class="inline-flex items-center space-x-2 px-3 py-1.5 bg-white border border-slate-200/90 hover:border-indigo-400 text-slate-800 rounded-xl text-[11px] font-semibold transition-all duration-300 shadow-2xs hover:shadow-md hover:scale-[1.02] cursor-default">
+                                <div class="h-5 w-5 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-[9px] font-black text-white shrink-0 shadow-xs">
                                     ${c.name ? esc(c.name.charAt(0).toUpperCase()) : 'C'}
                                 </div>
-                                <span class="font-extrabold text-slate-100">${esc(c.name)}</span>
-                                <span class="text-[10px] text-slate-400 font-mono">(${esc(c.email)})</span>
+                                <span class="font-extrabold text-slate-850">${esc(c.name)}</span>
+                                <span class="text-[10px] text-slate-500 font-mono">(${esc(c.email)})</span>
                             </div>
                         `).join('');
 
                         aiReplyHtml = `
-                            <!-- 21st.dev Inspired Advanced AI Glassmorphism Card -->
-                            <div class="relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-slate-950/95 text-slate-100 p-5 shadow-2xl shadow-indigo-950/50 backdrop-blur-2xl transition-all duration-500 space-y-4 ring-1 ring-indigo-500/20 group">
-                                <!-- Glowing Ambient Glow Gradients -->
-                                <div class="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-indigo-600/25 blur-3xl pointer-events-none group-hover:bg-indigo-500/35 transition-all duration-700"></div>
-                                <div class="absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-blue-600/25 blur-3xl pointer-events-none group-hover:bg-blue-500/35 transition-all duration-700"></div>
+                            <!-- 21st.dev Inspired Advanced Light Mode AI Glassmorphism Card -->
+                            <div class="relative overflow-hidden rounded-2xl border border-indigo-150 bg-white/95 text-slate-900 p-5 shadow-xl shadow-indigo-500/5 backdrop-blur-xl transition-all duration-500 space-y-4 ring-1 ring-slate-100/80 group">
+                                <!-- Ambient Gradient Accents -->
+                                <div class="absolute -top-20 -right-20 h-40 w-40 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none group-hover:bg-indigo-500/15 transition-all duration-700"></div>
+                                <div class="absolute -bottom-20 -left-20 h-40 w-40 rounded-full bg-blue-500/10 blur-3xl pointer-events-none group-hover:bg-blue-500/15 transition-all duration-700"></div>
 
                                 <!-- Card Header -->
-                                <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 relative z-10">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-3 relative z-10">
                                     <div class="flex items-center space-x-2.5">
-                                        <div class="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/30 ring-2 ring-indigo-400/20">
-                                            <i data-lucide="mail" class="h-4.5 w-4.5 text-white"></i>
+                                        <div class="h-8 w-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold shadow-sm shadow-indigo-500/20">
+                                            <i data-lucide="mail" class="h-4.5 w-4.5 text-white" style="color: #ffffff !important;"></i>
                                         </div>
                                         <div>
-                                            <h4 class="font-black text-xs text-white tracking-wide">Bulk Follow-up Campaign</h4>
-                                            <p class="text-[10px] text-slate-400 font-mono">AI Outreach Orchestrator Engine</p>
+                                            <h4 class="font-black text-xs text-slate-900 tracking-wide">Bulk Follow-up Campaign</h4>
+                                            <p class="text-[10px] text-slate-500 font-medium">AI Outreach Orchestrator Engine</p>
                                         </div>
                                     </div>
-                                    <span id="${taskId}-badge" class="px-3 py-1 rounded-full text-[10px] bg-indigo-950/90 text-indigo-300 border border-indigo-500/40 font-mono font-black flex items-center space-x-1.5 shadow-lg shadow-indigo-900/40">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                    <span id="${taskId}-badge" class="px-3 py-1 rounded-full text-[10px] bg-indigo-50 text-indigo-700 border border-indigo-200/80 font-mono font-bold flex items-center space-x-1.5 shadow-2xs">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping"></span>
                                         <span>${pendingClients.length} Pending Clients</span>
                                     </span>
                                 </div>
@@ -1821,46 +1821,46 @@ async function renderDashboard(container) {
                                 <!-- Target Recipients Chips Grid -->
                                 <div class="space-y-2 relative z-10">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-indigo-300 flex items-center space-x-1.5">
-                                            <i data-lucide="users" class="h-3.5 w-3.5 text-indigo-400"></i>
+                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-700 flex items-center space-x-1.5">
+                                            <i data-lucide="users" class="h-3.5 w-3.5 text-indigo-600"></i>
                                             <span>Pending Target Clients (${pendingClients.length})</span>
                                         </span>
-                                        <span class="text-[10px] text-slate-500 font-mono">Auto-indexed from LinkPilot CRM</span>
+                                        <span class="text-[10px] text-slate-400 font-medium">Auto-indexed from LinkPilot CRM</span>
                                     </div>
-                                    <div class="flex flex-wrap gap-2 p-3 bg-slate-900/80 border border-slate-800/90 rounded-2xl max-h-32 overflow-y-auto custom-scrollbar shadow-inner">
-                                        ${clientChips || '<span class="text-slate-500 text-xs italic">No pending clients found</span>'}
+                                    <div class="flex flex-wrap gap-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl max-h-36 overflow-y-auto custom-scrollbar shadow-inner">
+                                        ${clientChips || '<span class="text-slate-400 text-xs italic">No pending clients found</span>'}
                                     </div>
                                 </div>
 
                                 <!-- Variable Guidance Info -->
-                                <div class="p-3 bg-indigo-950/40 border border-indigo-500/20 rounded-xl flex items-center justify-between text-xs relative z-10">
-                                    <div class="flex items-center space-x-2 text-slate-300 font-medium text-[11px]">
-                                        <i data-lucide="sparkles" class="h-4 w-4 text-amber-400 shrink-0 animate-pulse"></i>
+                                <div class="p-3 bg-blue-50/60 border border-blue-150 rounded-xl flex items-center justify-between text-xs relative z-10">
+                                    <div class="flex items-center space-x-2 text-slate-700 font-semibold text-[11px]">
+                                        <i data-lucide="sparkles" class="h-4 w-4 text-amber-500 shrink-0 animate-pulse"></i>
                                         <span>Personalized template ready with dynamic tags:</span>
                                     </div>
                                     <div class="flex items-center space-x-1 font-mono text-[10px]">
-                                        <span class="px-2 py-0.5 rounded bg-slate-900 border border-indigo-500/40 text-indigo-300 font-extrabold">{{name}}</span>
-                                        <span class="px-2 py-0.5 rounded bg-slate-900 border border-indigo-500/40 text-indigo-300 font-extrabold">{{company}}</span>
+                                        <span class="px-2 py-0.5 rounded bg-white border border-blue-200 text-indigo-700 font-extrabold shadow-2xs">{{name}}</span>
+                                        <span class="px-2 py-0.5 rounded bg-white border border-blue-200 text-indigo-700 font-extrabold shadow-2xs">{{company}}</span>
                                     </div>
                                 </div>
 
                                 <!-- Real-Time Progress Bar Slot inside Chat Bubble -->
-                                <div id="${taskId}-progress-container" class="hidden space-y-2 pt-2 border-t border-slate-800/90 relative z-10">
-                                    <div class="flex justify-between items-center text-xs font-bold font-mono">
-                                        <span id="${taskId}-progress-status" class="flex items-center space-x-2 text-indigo-300">
-                                            <i data-lucide="loader-2" class="h-3.5 w-3.5 text-indigo-400 animate-spin"></i>
+                                <div id="${taskId}-progress-container" class="hidden space-y-2 pt-2 border-t border-slate-100 relative z-10">
+                                    <div class="flex justify-between items-center text-xs font-bold">
+                                        <span id="${taskId}-progress-status" class="flex items-center space-x-2 text-slate-700">
+                                            <i data-lucide="loader-2" class="h-3.5 w-3.5 text-indigo-600 animate-spin"></i>
                                             <span>Dispatching emails...</span>
                                         </span>
-                                        <span id="${taskId}-progress-text" class="text-emerald-400 font-black text-sm">0%</span>
+                                        <span id="${taskId}-progress-text" class="text-indigo-600 font-mono font-black text-sm">0%</span>
                                     </div>
-                                    <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-800 shadow-inner p-0.5">
-                                        <div id="${taskId}-progress-fill" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 h-full w-0 transition-all duration-300 rounded-full shadow-lg shadow-indigo-500/50"></div>
+                                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200 shadow-inner p-0.5">
+                                        <div id="${taskId}-progress-fill" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full w-0 transition-all duration-300 rounded-full shadow-sm"></div>
                                     </div>
                                 </div>
 
                                 <!-- Action Buttons Row -->
                                 <div class="pt-1 flex items-center justify-end relative z-10">
-                                    <button id="${taskId}-btn" type="button" onclick="window.launchCopilotTaskExecution('${taskId}')" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-black rounded-xl text-xs shadow-xl shadow-indigo-600/30 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center space-x-2.5 cursor-pointer ring-2 ring-indigo-400/20" style="color: #ffffff !important;">
+                                    <button id="${taskId}-btn" type="button" onclick="window.launchCopilotTaskExecution('${taskId}')" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-indigo-700 hover:from-blue-500 hover:to-indigo-600 text-white font-black rounded-xl text-xs shadow-md shadow-indigo-500/20 hover:scale-[1.03] active:scale-[0.97] transition-all duration-300 flex items-center space-x-2.5 cursor-pointer" style="color: #ffffff !important;">
                                         <i data-lucide="send" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
                                         <span style="color: #ffffff !important;">Execute Bulk Follow-up</span>
                                     </button>

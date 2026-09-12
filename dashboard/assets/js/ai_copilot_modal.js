@@ -84,35 +84,35 @@
                             <div id="copilot-search-results-list" class="space-y-2"></div>
                         </div>
 
-                        <!-- Dynamic Interactive Action Preview Card (21st.dev Futuristic AI Glassmorphism Theme) -->
-                        <div id="copilot-action-preview-card" class="hidden relative overflow-hidden rounded-2xl border border-indigo-500/30 bg-slate-950/95 text-slate-100 p-5 shadow-2xl shadow-indigo-950/50 backdrop-blur-2xl transition-all duration-500 space-y-4 ring-1 ring-indigo-500/20 group">
-                            <!-- Subtle Ambient Glowing Grid Background -->
-                            <div class="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-indigo-600/20 blur-3xl pointer-events-none"></div>
-                            <div class="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-blue-600/20 blur-3xl pointer-events-none"></div>
+                        <!-- Dynamic Interactive Action Preview Card (21st.dev Inspired Light Mode AI Theme) -->
+                        <div id="copilot-action-preview-card" class="hidden relative overflow-hidden rounded-2xl border border-blue-200/80 bg-gradient-to-b from-blue-50/50 via-white to-indigo-50/30 text-slate-900 p-5 shadow-xl shadow-indigo-500/5 transition-all duration-500 space-y-4 ring-1 ring-blue-100/60 group">
+                            <!-- Soft Ambient Background Glows -->
+                            <div class="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-blue-400/10 blur-3xl pointer-events-none"></div>
+                            <div class="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none"></div>
                             
                             <!-- Card Header -->
-                            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 relative z-10">
+                            <div class="flex items-center justify-between border-b border-slate-200/80 pb-3 relative z-10">
                                 <div class="flex items-center space-x-2.5">
-                                    <span id="copilot-badge-action-type" class="px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-black text-[10px] rounded-full uppercase tracking-wider shadow-lg shadow-indigo-600/30 flex items-center space-x-1">
+                                    <span id="copilot-badge-action-type" class="px-3 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-black text-[10px] rounded-full uppercase tracking-wider shadow-sm flex items-center space-x-1">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping mr-1"></span>
                                         <span>BULK EMAIL</span>
                                     </span>
-                                    <span class="text-[10px] text-slate-400 font-mono flex items-center space-x-1">
-                                        <i data-lucide="sparkles" class="h-3 w-3 text-indigo-400 animate-pulse"></i>
+                                    <span class="text-[10px] text-slate-500 font-semibold flex items-center space-x-1">
+                                        <i data-lucide="sparkles" class="h-3 w-3 text-indigo-600 animate-pulse"></i>
                                         <span>AI Autonomous Flow</span>
                                     </span>
                                 </div>
-                                <span id="copilot-matched-contact-info" class="text-xs font-semibold text-slate-300 font-mono"></span>
+                                <span id="copilot-matched-contact-info" class="text-xs font-bold text-slate-700 font-mono"></span>
                             </div>
 
-                            <p id="copilot-action-summary" class="text-xs text-slate-300 font-medium leading-relaxed italic relative z-10"></p>
+                            <p id="copilot-action-summary" class="text-xs text-slate-700 font-medium leading-relaxed italic relative z-10"></p>
 
                             <!-- Dynamic Action Input Fields Container -->
                             <div id="copilot-action-fields-container" class="space-y-3 text-xs relative z-10"></div>
 
                             <!-- Resolved Attachments Chips -->
-                            <div id="copilot-attachments-wrapper" class="hidden pt-2 border-t border-slate-800/80 relative z-10">
-                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">Attached Files:</span>
+                            <div id="copilot-attachments-wrapper" class="hidden pt-2 border-t border-slate-200/80 relative z-10">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 block mb-1.5">Attached Files:</span>
                                 <div id="copilot-attachments-chips" class="flex flex-wrap gap-1.5"></div>
                             </div>
                         </div>
@@ -610,63 +610,63 @@
             const draft = parsed.email_draft || {};
             const pendingClients = parsed.pending_clients || [];
             const clientChips = pendingClients.map(c => `
-                <div class="inline-flex items-center space-x-2 px-3 py-1.5 bg-slate-900/90 border border-slate-700/80 hover:border-indigo-500/80 text-slate-200 rounded-xl text-[11px] font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/20 hover:scale-[1.02] cursor-default">
-                    <div class="h-5 w-5 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-[9px] font-black text-white shrink-0 shadow-xs">
+                <div class="inline-flex items-center space-x-2 px-3 py-1.5 bg-white border border-slate-200 hover:border-indigo-400 text-slate-800 rounded-xl text-[11px] font-semibold transition-all duration-300 shadow-2xs hover:shadow-md hover:scale-[1.02] cursor-default">
+                    <div class="h-5 w-5 rounded-full bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-[9px] font-black text-white shrink-0 shadow-xs">
                         ${c.name ? c.name.charAt(0).toUpperCase() : 'C'}
                     </div>
-                    <span class="font-extrabold text-slate-100">${c.name}</span>
-                    <span class="text-[10px] text-slate-400 font-mono">(${c.email})</span>
+                    <span class="font-extrabold text-slate-850">${c.name}</span>
+                    <span class="text-[10px] text-slate-500 font-mono">(${c.email})</span>
                 </div>
             `).join('');
 
             fieldsHTML = `
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
-                        <label class="font-extrabold text-xs text-slate-200 tracking-wide flex items-center space-x-1.5">
-                            <i data-lucide="users" class="h-3.5 w-3.5 text-indigo-400"></i>
+                        <label class="font-extrabold text-xs text-slate-800 tracking-wide flex items-center space-x-1.5">
+                            <i data-lucide="users" class="h-3.5 w-3.5 text-indigo-600"></i>
                             <span>Target Recipients</span>
                         </label>
-                        <span class="px-2 py-0.5 rounded-full bg-indigo-950/80 border border-indigo-500/40 text-[10px] font-mono font-bold text-indigo-300">${pendingClients.length} Pending Clients</span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-[10px] font-mono font-bold text-indigo-700 shadow-2xs">${pendingClients.length} Pending Clients</span>
                     </div>
-                    <div id="copilot-bulk-clients-list" class="flex flex-wrap gap-2 p-3 bg-slate-900/80 border border-slate-800/90 rounded-2xl max-h-32 overflow-y-auto custom-scrollbar shadow-inner">
-                        ${clientChips || '<span class="text-slate-500 text-xs italic">No pending clients found</span>'}
+                    <div id="copilot-bulk-clients-list" class="flex flex-wrap gap-2 p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl max-h-32 overflow-y-auto custom-scrollbar shadow-inner">
+                        ${clientChips || '<span class="text-slate-400 text-xs italic">No pending clients found</span>'}
                     </div>
                 </div>
 
                 <div class="space-y-1.5">
-                    <label class="font-extrabold text-xs text-slate-200 tracking-wide flex items-center space-x-1.5">
-                        <i data-lucide="heading" class="h-3.5 w-3.5 text-blue-400"></i>
+                    <label class="font-extrabold text-xs text-slate-800 tracking-wide flex items-center space-x-1.5">
+                        <i data-lucide="heading" class="h-3.5 w-3.5 text-blue-600"></i>
                         <span>Email Subject</span>
                     </label>
-                    <input type="text" id="copilot-field-bulk-subject" value="${draft.subject || 'Following Up: LinkPilot CRM Project'}" class="w-full bg-slate-900/90 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 placeholder-slate-500 rounded-xl p-3 text-xs font-semibold outline-none transition-all duration-300">
+                    <input type="text" id="copilot-field-bulk-subject" value="${draft.subject || 'Following Up: LinkPilot CRM Project'}" class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-800 placeholder-slate-400 rounded-xl p-3 text-xs font-semibold outline-none transition-all duration-300 shadow-2xs">
                 </div>
 
                 <div class="space-y-1.5">
                     <div class="flex items-center justify-between">
-                        <label class="font-extrabold text-xs text-slate-200 tracking-wide flex items-center space-x-1.5">
-                            <i data-lucide="file-text" class="h-3.5 w-3.5 text-purple-400"></i>
+                        <label class="font-extrabold text-xs text-slate-800 tracking-wide flex items-center space-x-1.5">
+                            <i data-lucide="file-text" class="h-3.5 w-3.5 text-purple-600"></i>
                             <span>Personalized Message Template</span>
                         </label>
                         <div class="flex items-center space-x-1 text-[10px] font-mono">
-                            <span class="text-slate-400">Variables:</span>
-                            <span class="px-1.5 py-0.5 rounded bg-indigo-950 border border-indigo-700/60 text-indigo-300 font-extrabold font-mono hover:scale-105 transition cursor-pointer" title="Recipient Name">{{name}}</span>
-                            <span class="px-1.5 py-0.5 rounded bg-indigo-950 border border-indigo-700/60 text-indigo-300 font-extrabold font-mono hover:scale-105 transition cursor-pointer" title="Company Name">{{company}}</span>
+                            <span class="text-slate-500 font-medium">Variables:</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-indigo-700 font-extrabold shadow-2xs font-mono hover:scale-105 transition cursor-pointer" title="Recipient Name">{{name}}</span>
+                            <span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 text-indigo-700 font-extrabold shadow-2xs font-mono hover:scale-105 transition cursor-pointer" title="Company Name">{{company}}</span>
                         </div>
                     </div>
-                    <textarea id="copilot-field-bulk-template" rows="5" class="w-full bg-slate-900/90 border border-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-100 placeholder-slate-500 rounded-xl p-3.5 text-xs font-medium font-sans leading-relaxed outline-none resize-none transition-all duration-300">${draft.body || "Dear {{name}},\n\nI hope you are having a productive week! I am reaching out to follow up on our recent conversation regarding your CRM project.\n\nPlease let us know if you have any questions.\n\nBest regards,\nLinkPilot Sales Team"}</textarea>
+                    <textarea id="copilot-field-bulk-template" rows="5" class="w-full bg-white border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 text-slate-800 placeholder-slate-400 rounded-xl p-3.5 text-xs font-medium font-sans leading-relaxed outline-none resize-none transition-all duration-300 shadow-2xs">${draft.body || "Dear {{name}},\n\nI hope you are having a productive week! I am reaching out to follow up on our recent conversation regarding your CRM project.\n\nPlease let us know if you have any questions.\n\nBest regards,\nLinkPilot Sales Team"}</textarea>
                 </div>
 
-                <!-- Futuristic Neon Modal Live Progress Bar -->
-                <div id="copilot-bulk-progress-container" class="hidden space-y-2 pt-3 border-t border-slate-800/90">
+                <!-- Clean Light Mode Live Progress Bar -->
+                <div id="copilot-bulk-progress-container" class="hidden space-y-2 pt-3 border-t border-slate-200/80">
                     <div class="flex justify-between items-center text-xs font-bold">
-                        <span id="copilot-bulk-progress-status" class="flex items-center space-x-2 text-indigo-300 font-mono">
-                            <i data-lucide="loader-2" class="h-4 w-4 text-indigo-400 animate-spin"></i>
+                        <span id="copilot-bulk-progress-status" class="flex items-center space-x-2 text-slate-700">
+                            <i data-lucide="loader-2" class="h-4 w-4 text-indigo-600 animate-spin"></i>
                             <span>Dispatching personalized emails...</span>
                         </span>
-                        <span id="copilot-bulk-progress-text" class="font-mono text-emerald-400 text-sm font-black">0%</span>
+                        <span id="copilot-bulk-progress-text" class="font-mono text-indigo-600 text-sm font-black">0%</span>
                     </div>
-                    <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden border border-slate-800 shadow-inner p-0.5">
-                        <div id="copilot-bulk-progress-fill" class="bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 h-full w-0 transition-all duration-300 rounded-full shadow-lg shadow-indigo-500/50"></div>
+                    <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden border border-slate-200 shadow-inner p-0.5">
+                        <div id="copilot-bulk-progress-fill" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full w-0 transition-all duration-300 rounded-full shadow-2xs"></div>
                     </div>
                 </div>
             `;

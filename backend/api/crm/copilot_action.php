@@ -662,5 +662,5 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
         sendJsonResponse('error', 'Invalid action mode.', [], 400);
     }
 } catch (Exception $e) {
-    sendJsonResponse('error', 'Co-Pilot execution failed: ' . $e->getMessage(), [], 500);
+    sendJsonResponse('error', 'Co-Pilot execution failed: ' . $e->getMessage(), [], 400);
 }

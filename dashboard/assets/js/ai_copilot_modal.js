@@ -900,7 +900,14 @@
                 if (scheduleBtn) scheduleBtn.disabled = false;
             }
         } catch (err) {
-            if (window.showNotification) showNotification('error', 'Execution error: ' + err.message);
+            const errBanner = document.getElementById('copilot-error-banner');
+            const errText = document.getElementById('copilot-error-text');
+            const errStr = err.message || 'Execution error occurred.';
+            if (errBanner && errText) {
+                errText.textContent = errStr;
+                errBanner.classList.remove('hidden');
+            }
+            if (window.showNotification) showNotification('error', errStr);
             if (executeBtn) executeBtn.disabled = false;
             if (scheduleBtn) scheduleBtn.disabled = false;
         }

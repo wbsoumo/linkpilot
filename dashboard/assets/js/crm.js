@@ -444,6 +444,12 @@ async function navigateTo(view, params = {}) {
         const contentArea = document.getElementById('main-content-viewport');
         if (!contentArea) return;
         
+        // Reset any inline layout overrides set by in-page copilot chat stream
+        contentArea.style.overflow = '';
+        contentArea.style.padding = '';
+        contentArea.style.display = '';
+        contentArea.style.flexDirection = '';
+        
         // Hide/Show sidebar and header for visual builder
         const sidebar = document.getElementById('sidebar-panel');
         const header = document.getElementById('dashboard-header');

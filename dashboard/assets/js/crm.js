@@ -1748,14 +1748,99 @@ async function renderDashboard(container) {
                                 </div>
                             </div>
                         `;
-                    } else {
+                    } else if (intent === 'GENERAL_CHAT') {
                         aiReplyHtml = `
                             <div class="space-y-2">
                                 <div class="flex items-center space-x-2 text-indigo-600 font-extrabold border-b border-slate-100 pb-2">
                                     <i data-lucide="sparkles" class="h-4 w-4 text-indigo-600"></i>
-                                    <span>AI Co-Pilot Execution Result</span>
+                                    <span>LinkPilot AI Assistant</span>
                                 </div>
-                                <p class="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">${esc(res.message || 'Action executed successfully in LinkPilot CRM.')}</p>
+                                <p class="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">${esc(res.message || 'How else can I assist you with your LinkPilot workspace today?')}</p>
+                            </div>
+                        `;
+                    } else {
+                        const taskId = 'task-bubble-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                        window['TASK_DATA_' + taskId] = parsed;
+
+                        let actionTitle = 'Actionable Workspace Task';
+                        let actionIcon = 'zap';
+                        let targetText = parsed.summary || 'Task prepared for execution';
+                        let summaryText = 'Review details and click Execute Task to run action in LinkPilot CRM.';
+
+                        if (intent === 'SEND_EMAIL') {
+                            actionTitle = 'Email Outreach Draft';
+                            actionIcon = 'mail';
+                            const emailAddr = parsed.matched_contact?.email || parsed.target_contact?.email || '';
+                            const subject = parsed.email_draft?.subject || 'Meeting Outreach';
+                            targetText = `To: ${emailAddr || 'Selected Contact'} • Subject: "${subject}"`;
+                            summaryText = parsed.summary || parsed.email_draft?.body || 'Draft email prepared for sending.';
+                        } else if (intent === 'SEND_WHATSAPP') {
+                            actionTitle = 'WhatsApp Message Draft';
+                            actionIcon = 'message-square';
+                            const phone = parsed.matched_contact?.phone || parsed.target_contact?.phone || '';
+                            targetText = `To: ${phone || 'Selected Contact'}`;
+                            summaryText = parsed.summary || parsed.whatsapp_draft?.message || 'WhatsApp message prepared.';
+                        } else if (intent === 'CREATE_TASK' || intent === 'SCHEDULE_MEETING') {
+                            actionTitle = 'Task & Meeting Creation';
+                            actionIcon = 'check-square';
+                            const draft = parsed.task_draft || {};
+                            targetText = `Task: ${draft.title || 'New CRM Task'} ${draft.due_date ? '• Due: ' + draft.due_date : ''}`;
+                            summaryText = parsed.summary || draft.description || 'Task scheduled for creation.';
+                        } else if (intent === 'CREATE_INVOICE') {
+                            actionTitle = 'Client Invoice Draft';
+                            actionIcon = 'file-text';
+                            const draft = parsed.invoice_draft || {};
+                            targetText = `Client: ${draft.client_name || 'Prospect'} • Amount: ${draft.currency || 'INR'} ${draft.amount || 0}`;
+                            summaryText = parsed.summary || draft.description || 'Invoice draft prepared.';
+                        } else if (intent === 'MOVE_DEAL') {
+                            actionTitle = 'Deal Pipeline Movement';
+                            actionIcon = 'dollar-sign';
+                            const draft = parsed.deal_draft || {};
+                            targetText = `Deal: ${draft.deal_title || 'Deal'} → Target Stage: ${draft.target_stage || 'Qualified'}`;
+                            summaryText = parsed.summary || 'Pipeline deal stage update prepared.';
+                        } else if (intent === 'CREATE_CONTACT' || intent === 'UPDATE_CONTACT') {
+                            actionTitle = 'CRM Contact Record';
+                            actionIcon = 'user-plus';
+                            const target = parsed.target_contact || {};
+                            targetText = `Contact Name: ${target.name || 'New Lead'} ${target.email ? '• ' + target.email : ''}`;
+                            summaryText = parsed.summary || 'Contact details prepared for saving.';
+                        } else if (intent === 'ADD_NOTE') {
+                            actionTitle = 'Contact Note';
+                            actionIcon = 'sticky-note';
+                            const target = parsed.target_contact || {};
+                            targetText = `Target Contact: ${parsed.matched_contact?.name || target.name || 'Selected Contact'}`;
+                            summaryText = parsed.summary || target.note_text || 'Note content prepared.';
+                        } else if (intent === 'CREATE_AUTOMATION') {
+                            actionTitle = 'Workflow Automation';
+                            actionIcon = 'workflow';
+                            targetText = `Automation: ${parsed.summary || 'New Workflow'}`;
+                            summaryText = 'Automated triggers and multi-channel actions mapped.';
+                        }
+
+                        aiReplyHtml = `
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                    <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-xs">
+                                        <i data-lucide="${actionIcon}" class="h-4 w-4 text-indigo-600"></i>
+                                        <span>${actionTitle}</span>
+                                    </div>
+                                    <span id="${taskId}-badge" class="px-2.5 py-0.5 rounded-full text-[9px] bg-indigo-100 text-indigo-800 border border-indigo-200/80 font-black flex items-center space-x-1">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-ping"></span>
+                                        <span>Ready to Execute</span>
+                                    </span>
+                                </div>
+                                
+                                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5 text-xs">
+                                    <div class="font-bold text-slate-900">${esc(targetText)}</div>
+                                    <p class="text-[11px] text-slate-600 font-medium leading-relaxed">${esc(summaryText)}</p>
+                                </div>
+
+                                <div class="pt-1 flex items-center justify-end">
+                                    <button id="${taskId}-btn" type="button" onclick="window.openCopilotTaskExecutionModal(window['TASK_DATA_${taskId}'], '${taskId}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs shadow-md hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                        <i data-lucide="play-circle" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                                        <span style="color: #ffffff !important;">Execute Task</span>
+                                    </button>
+                                </div>
                             </div>
                         `;
                     }

@@ -171,7 +171,36 @@
         card.classList.add('scale-95');
         setTimeout(() => {
             backdrop.classList.add('hidden');
+            const promptInputWrap = document.getElementById('copilot-prompt-input')?.parentElement?.parentElement;
+            if (promptInputWrap) promptInputWrap.classList.remove('hidden');
+            const quickPromptsWrap = document.getElementById('copilot-modal-card')?.querySelector('.flex.flex-wrap.gap-1\\.5');
+            if (quickPromptsWrap) quickPromptsWrap.classList.remove('hidden');
         }, 250);
+    };
+
+    window.openCopilotTaskExecutionModal = function (parsedData, bubbleId) {
+        if (!parsedData) return;
+        window.openCopilotModal();
+
+        const promptInputWrap = document.getElementById('copilot-prompt-input')?.parentElement?.parentElement;
+        if (promptInputWrap) promptInputWrap.classList.add('hidden');
+
+        const quickPromptsWrap = document.getElementById('copilot-modal-card')?.querySelector('.flex.flex-wrap.gap-1\\.5');
+        if (quickPromptsWrap) quickPromptsWrap.classList.add('hidden');
+
+        const searchCard = document.getElementById('copilot-search-results-card');
+        if (searchCard) searchCard.classList.add('hidden');
+
+        const ambCard = document.getElementById('copilot-ambiguous-card');
+        if (ambCard) ambCard.classList.add('hidden');
+
+        const dupCard = document.getElementById('copilot-duplicate-card');
+        if (dupCard) dupCard.classList.add('hidden');
+
+        currentParsedData = parsedData;
+        window.activeTaskBubbleId = bubbleId;
+
+        renderActionPreview(parsedData);
     };
 
     window.setCopilotPrompt = function (txt) {
@@ -782,6 +811,40 @@
             const data = await res.json();
             if (data.status === 'success') {
                 if (window.showNotification) showNotification('success', data.message || 'Action executed successfully!');
+
+                if (window.activeTaskBubbleId) {
+                    const bubbleBtn = document.getElementById(window.activeTaskBubbleId + '-btn');
+                    const bubbleBadge = document.getElementById(window.activeTaskBubbleId + '-badge');
+                    if (bubbleBadge) {
+                        bubbleBadge.className = "px-2.5 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold flex items-center space-x-1";
+                        bubbleBadge.innerHTML = `<i data-lucide="check-circle-2" class="h-3 w-3 text-emerald-600"></i><span>Executed</span>`;
+                    }
+                    if (bubbleBtn) {
+                        bubbleBtn.disabled = true;
+                        bubbleBtn.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center space-x-1.5 opacity-90 cursor-default";
+                        bubbleBtn.innerHTML = `<i data-lucide="check" class="h-3.5 w-3.5 text-white"></i><span style="color: #ffffff !important;">Completed</span>`;
+                    }
+                    const msgContainer = document.getElementById('inpage-chat-messages-container');
+                    if (msgContainer) {
+                        const esc = (s) => (s ? String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '');
+                        const confirmMsgHtml = `
+                            <div class="flex items-start space-x-3.5 text-left animate-fade-in">
+                                <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md">
+                                    <i data-lucide="check-circle-2" class="h-5 w-5 text-white"></i>
+                                </div>
+                                <div class="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 shadow-2xs max-w-xl text-xs space-y-1 text-emerald-950">
+                                    <span class="font-black text-emerald-900 block">Task Execution Successful</span>
+                                    <p class="text-[11px] font-medium text-emerald-800">${esc(data.message || 'Action executed and updated in LinkPilot CRM.')}</p>
+                                </div>
+                            </div>
+                        `;
+                        msgContainer.insertAdjacentHTML('beforeend', confirmMsgHtml);
+                        if (window.lucide) window.lucide.createIcons();
+                        msgContainer.scrollTop = msgContainer.scrollHeight;
+                    }
+                    window.activeTaskBubbleId = null;
+                }
+
                 window.closeCopilotModal();
 
                 // Auto refresh active workspace views

@@ -909,17 +909,17 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
-                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto flex-1 flex flex-col space-y-3.5 transition-all duration-300 -mt-2">
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto h-[calc(100vh-130px)] flex flex-col justify-between space-y-3 transition-all duration-300 -mt-6">
                     <!-- Top Header Card -->
-                    <div class="flex items-center justify-between bg-white/90 backdrop-blur-md border border-slate-200/90 rounded-2xl px-6 py-3.5 shadow-xs shrink-0">
+                    <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-6 py-3.5 shadow-2xs shrink-0" style="background-color: #ffffff !important; color: #0f172a !important;">
                         <div class="flex items-center space-x-3.5">
-                            <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20 ring-2 ring-indigo-400/20">
-                                <i data-lucide="bot" class="h-5 w-5 text-white"></i>
+                            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-blue-600 text-white flex items-center justify-center font-bold shadow-md shadow-indigo-500/20 shrink-0">
+                                <i data-lucide="bot" class="h-5.5 w-5.5 text-white" style="color: #ffffff !important;"></i>
                             </div>
                             <div>
                                 <div class="flex items-center space-x-2.5">
-                                    <h3 class="text-xs font-black text-slate-900 tracking-tight">LinkPilot AI Co-Pilot Stream</h3>
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-xs flex items-center space-x-1.5" style="color: #ffffff !important;">
+                                    <h3 class="text-xs sm:text-sm font-black text-slate-900 tracking-tight" style="color: #0f172a !important;">LinkPilot AI Co-Pilot Stream</h3>
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-600 text-white shadow-xs flex items-center space-x-1.5" style="color: #ffffff !important; background-color: #4f46e5 !important;">
                                         <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                                         <span style="color: #ffffff !important;">Active Session</span>
                                     </span>
@@ -928,11 +928,11 @@ async function renderDashboard(container) {
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button type="button" onclick="window.clearInpageChatSession()" class="text-xs font-bold text-slate-500 hover:text-slate-800 px-3.5 py-2 rounded-xl hover:bg-slate-100 transition flex items-center space-x-1.5 cursor-pointer">
-                                <i data-lucide="trash-2" class="h-3.5 w-3.5 text-slate-400"></i>
+                            <button type="button" onclick="window.clearInpageChatSession()" class="text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl transition flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="trash-2" class="h-3.5 w-3.5 text-slate-500"></i>
                                 <span>Clear Chat</span>
                             </button>
-                            <button type="button" onclick="window.returnToDashStatsView()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200/80 px-4 py-2 rounded-xl transition flex items-center space-x-2 shadow-2xs cursor-pointer">
+                            <button type="button" onclick="window.returnToDashStatsView()" class="text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-4 py-2 rounded-xl transition flex items-center space-x-2 shadow-2xs cursor-pointer">
                                 <i data-lucide="layout-dashboard" class="h-3.5 w-3.5 text-indigo-600"></i>
                                 <span>Show Stats</span>
                             </button>
@@ -940,12 +940,12 @@ async function renderDashboard(container) {
                     </div>
 
                     <!-- Chat Message Bubbles Stream Canvas Container -->
-                    <div id="inpage-chat-messages-container" class="space-y-6 h-[calc(100vh-320px)] min-h-[300px] max-h-[calc(100vh-320px)] overflow-y-auto pr-3 custom-scrollbar p-5 rounded-3xl bg-slate-50/70 border border-slate-200/80 shadow-inner">
+                    <div id="inpage-chat-messages-container" class="space-y-4 flex-1 min-h-0 overflow-y-auto pr-3 custom-scrollbar p-5 rounded-3xl bg-slate-50/80 border border-slate-200/80 shadow-inner">
                         <!-- Dynamic Messages Appended Here -->
                     </div>
 
                     <!-- Bottom Input Box Slot inside Chat Container -->
-                    <div id="dash-inpage-chat-input-slot" class="w-full shrink-0 pt-1"></div>
+                    <div id="dash-inpage-chat-input-slot" class="w-full shrink-0 pb-1"></div>
                 </div>
 
                 <!-- Dashboard Stats View Container -->
@@ -1491,6 +1491,9 @@ async function renderDashboard(container) {
                     statsContainer.classList.add('hidden');
                     chatView.classList.remove('hidden');
                     chatView.style.opacity = '1';
+
+                    const drawerBtn = document.getElementById('ai-chat-trigger-btn');
+                    if (drawerBtn) drawerBtn.classList.add('hidden');
                     
                     const chatInputSlot = document.getElementById('dash-inpage-chat-input-slot');
                     if (chatInputSlot && heroEl.parentElement !== chatInputSlot) {
@@ -1535,6 +1538,9 @@ async function renderDashboard(container) {
                 if (bannerHeader) bannerHeader.classList.remove('hidden');
                 if (pillsRow) pillsRow.classList.remove('hidden');
                 if (footerMeta) footerMeta.classList.remove('hidden');
+
+                const drawerBtn = document.getElementById('ai-chat-trigger-btn');
+                if (drawerBtn) drawerBtn.classList.remove('hidden');
 
                 const heroTopSlot = document.getElementById('dash-hero-top-slot');
                 if (heroTopSlot && heroEl.parentElement !== heroTopSlot) {

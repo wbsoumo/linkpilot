@@ -422,9 +422,10 @@
                         </div>
                     </div>`;
                     searchList.innerHTML = html;
-                    if (window.lucide) lucide.createIcons();
                     return;
                 }
+
+                if (data.data.is_search_result) {
                     renderSearchResults(data.data.search_results || []);
                 } else if (data.data.duplicate_found && data.data.duplicates) {
                     currentParsedData = data.data.parsed;

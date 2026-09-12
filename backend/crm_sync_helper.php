@@ -431,47 +431,56 @@ class CRMSyncHelper {
         if (!$db) $db = Database::getConnection();
 
         $query = "SELECT c.*, comp.name AS company_name FROM crm_contacts c LEFT JOIN crm_companies comp ON c.company_id = comp.id WHERE c.user_id = :user_id AND c.is_archived = 0";
-        $params = ['user_id' => $userId];
+        $params = [':user_id' => $userId];
 
-        if (!empty($filters['q'])) {
-            $searchTerm = '%' . trim($filters['q']) . '%';
-            $query .= " AND (c.name LIKE :q OR c.email LIKE :q OR c.phone LIKE :q OR comp.name LIKE :q OR c.designation LIKE :q OR c.tags LIKE :q)";
-            $params['q'] = $searchTerm;
+        $qVal = trim(!empty($filters['q']) ? $filters['q'] : ($filters['query'] ?? ''));
+        if (!empty($qVal)) {
+            $searchTerm = '%' . $qVal . '%';
+            $query .= " AND (c.name LIKE :q1 OR c.email LIKE :q2 OR c.phone LIKE :q3 OR comp.name LIKE :q4 OR c.designation LIKE :q5 OR c.tags LIKE :q6)";
+            $params[':q1'] = $searchTerm;
+            $params[':q2'] = $searchTerm;
+            $params[':q3'] = $searchTerm;
+            $params[':q4'] = $searchTerm;
+            $params[':q5'] = $searchTerm;
+            $params[':q6'] = $searchTerm;
         }
 
         if (!empty($filters['city'])) {
-            $query .= " AND (c.city LIKE :city OR c.location LIKE :city)";
-            $params['city'] = '%' . trim($filters['city']) . '%';
+            $searchTerm = '%' . trim($filters['city']) . '%';
+            $query .= " AND (c.city LIKE :city1 OR c.location LIKE :city2)";
+            $params[':city1'] = $searchTerm;
+            $params[':city2'] = $searchTerm;
         }
 
         if (!empty($filters['contact_type'])) {
             $query .= " AND c.contact_type = :contact_type";
-            $params['contact_type'] = trim($filters['contact_type']);
+            $params[':contact_type'] = trim($filters['contact_type']);
         }
 
         if (!empty($filters['tag'])) {
             $query .= " AND c.tags LIKE :tag";
-            $params['tag'] = '%' . trim($filters['tag']) . '%';
+            $params[':tag'] = '%' . trim($filters['tag']) . '%';
         }
 
         if (!empty($filters['not_contacted_days'])) {
             $days = (int)$filters['not_contacted_days'];
             $query .= " AND (c.last_contacted_at IS NULL OR c.last_contacted_at <= DATE_SUB(NOW(), INTERVAL :days DAY))";
-            $params['days'] = $days;
+            $params[':days'] = $days;
         }
 
         $query .= " ORDER BY c.created_at DESC LIMIT :limit OFFSET :offset";
 
         $stmt = $db->prepare($query);
+        $stmt->bindValue(':limit', (int)$limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
+
         foreach ($params as $key => $val) {
-            if ($key === 'days' || $key === 'limit' || $key === 'offset') {
+            if ($key === ':days') {
                 $stmt->bindValue($key, (int)$val, PDO::PARAM_INT);
             } else {
                 $stmt->bindValue($key, $val, PDO::PARAM_STR);
             }
         }
-        $stmt->bindValue('limit', (int)$limit, PDO::PARAM_INT);
-        $stmt->bindValue('offset', (int)$offset, PDO::PARAM_INT);
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

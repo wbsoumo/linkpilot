@@ -798,19 +798,28 @@
         }
 
         try {
-            const token = localStorage.getItem('linkpilot_token');
-            const res = await fetch('../backend/api/crm/copilot_action.php?action=execute', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
+            let res;
+            if (typeof window.apiCall === 'function') {
+                res = await apiCall('crm/copilot_action.php?action=execute', 'POST', payload);
+            } else {
+                const token = localStorage.getItem('linkpilot_token');
+                const fetchRes = await fetch('../backend/api/crm/copilot_action.php?action=execute', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                res = await fetchRes.json();
+            }
 
-            const data = await res.json();
-            if (data.status === 'success') {
-                if (window.showNotification) showNotification('success', data.message || 'Action executed successfully!');
+            const data = (res && res.data) ? res.data : res;
+            const isSuccess = (res && (res.status === 'success' || res.success)) || (data && data.success);
+
+            if (isSuccess) {
+                const msgText = res.message || (data && data.message) || 'Action executed successfully!';
+                if (window.showNotification) showNotification('success', msgText);
 
                 if (window.activeTaskBubbleId) {
                     const bubbleBtn = document.getElementById(window.activeTaskBubbleId + '-btn');
@@ -834,7 +843,7 @@
                                 </div>
                                 <div class="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 shadow-2xs max-w-xl text-xs space-y-1 text-emerald-950">
                                     <span class="font-black text-emerald-900 block">Task Execution Successful</span>
-                                    <p class="text-[11px] font-medium text-emerald-800">${esc(data.message || 'Action executed and updated in LinkPilot CRM.')}</p>
+                                    <p class="text-[11px] font-medium text-emerald-800">${esc(msgText)}</p>
                                 </div>
                             </div>
                         `;
@@ -851,17 +860,18 @@
                 if (typeof window.updateGlobalTaskBadges === 'function') window.updateGlobalTaskBadges();
                 if (window.currentView && typeof window.navigateTo === 'function') window.navigateTo(window.currentView);
             } else {
+                const errStr = (res && res.message) || (data && data.message) || 'Execution failed.';
                 if (errBanner && errText) {
-                    errText.textContent = data.message || 'Execution failed.';
+                    errText.textContent = errStr;
                     errBanner.classList.remove('hidden');
                 } else if (window.showNotification) {
-                    showNotification('error', data.message || 'Execution failed.');
+                    showNotification('error', errStr);
                 }
                 if (executeBtn) executeBtn.disabled = false;
                 if (scheduleBtn) scheduleBtn.disabled = false;
             }
         } catch (err) {
-            if (window.showNotification) showNotification('error', 'Network error: ' + err.message);
+            if (window.showNotification) showNotification('error', 'Execution error: ' + err.message);
             if (executeBtn) executeBtn.disabled = false;
             if (scheduleBtn) scheduleBtn.disabled = false;
         }
@@ -870,6 +880,19 @@
     function escapeQuotes(str) {
         return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
+
+    // Delegated click listener for Execute Task buttons in chat
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-copilot-task-id], button[id$="-btn"]');
+        if (btn && !btn.disabled) {
+            const taskId = btn.getAttribute('data-copilot-task-id') || btn.id.replace('-btn', '');
+            if (taskId && window.launchCopilotTaskExecution) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.launchCopilotTaskExecution(taskId);
+            }
+        }
+    });
 
     // Auto initialize on DOM ready
     if (document.readyState === 'loading') {

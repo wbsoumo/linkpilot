@@ -198,6 +198,7 @@
         if (dupCard) dupCard.classList.add('hidden');
 
         currentParsedData = parsedData;
+        window.activeTaskData = parsedData;
         window.activeTaskBubbleId = bubbleId;
 
         renderActionPreview(parsedData);
@@ -726,7 +727,13 @@
     };
 
     window.executeCopilotAction = async function (forceSchedule = false) {
-        if (!currentParsedData) return;
+        if (!currentParsedData) {
+            currentParsedData = window.activeTaskData || (window.COPILOT_TASKS && window.activeTaskBubbleId ? window.COPILOT_TASKS[window.activeTaskBubbleId] : null) || window.COPILOT_LAST_PARSED;
+        }
+        if (!currentParsedData) {
+            if (window.showNotification) showNotification('warning', 'Task execution data missing.');
+            return;
+        }
 
         const executeBtn = document.getElementById('copilot-execute-btn');
         const scheduleBtn = document.getElementById('copilot-schedule-btn');
@@ -904,10 +911,10 @@
 
     // Delegated click listener for Execute Task buttons in chat
     document.addEventListener('click', function(e) {
-        const btn = e.target.closest('[data-copilot-task-id], button[id$="-btn"]');
-        if (btn && !btn.disabled) {
+        const btn = e.target.closest('[data-copilot-task-id], button[id^="task-bubble-"][id$="-btn"]');
+        if (btn && !btn.disabled && btn.id !== 'copilot-execute-btn' && btn.id !== 'copilot-schedule-btn') {
             const taskId = btn.getAttribute('data-copilot-task-id') || btn.id.replace('-btn', '');
-            if (taskId && window.launchCopilotTaskExecution) {
+            if (taskId && taskId !== 'copilot-execute' && taskId !== 'copilot-schedule' && window.launchCopilotTaskExecution) {
                 e.preventDefault();
                 e.stopPropagation();
                 window.launchCopilotTaskExecution(taskId);

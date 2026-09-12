@@ -701,6 +701,6 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
     } else {
         sendJsonResponse('error', 'Invalid action mode.', [], 400);
     }
-} catch (Exception $e) {
+} catch (Throwable $e) {
     sendJsonResponse('error', 'Co-Pilot execution failed: ' . $e->getMessage(), [], 400);
 }

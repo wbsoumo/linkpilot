@@ -9,6 +9,9 @@ require_once __DIR__ . '/../../providers/whatsapp_meta_service.php';
 require_once __DIR__ . '/../../communication_provider_helper.php';
 require_once __DIR__ . '/../../wallet_helper.php';
 require_once __DIR__ . '/../../ai_tool_registry.php';
+require_once __DIR__ . '/../../agent_context_engine.php';
+require_once __DIR__ . '/../../agent_execution_engine.php';
+require_once __DIR__ . '/../../ai_agent_planner.php';
 
 header('Content-Type: application/json');
 ini_set('display_errors', 0);
@@ -28,6 +31,34 @@ try {
         sendJsonResponse('success', 'Registered AI Tools list retrieved.', [
             'tools' => AIToolRegistry::listTools()
         ]);
+    }
+
+    elseif ($action === 'agent_plan') {
+        $goal = trim($input['goal'] ?? ($input['prompt'] ?? ''));
+        if (empty($goal)) {
+            sendJsonResponse('error', 'Goal text is required for planning.', [], 400);
+        }
+
+        $meta = [
+            'current_page' => $input['current_page'] ?? 'dashboard',
+            'active_entity' => $input['active_entity'] ?? null
+        ];
+
+        $planResult = AIAgentPlanner::createPlan($userId, $goal, $meta, $db);
+        sendJsonResponse('success', 'AI Agent planning evaluation completed.', $planResult);
+    }
+
+    elseif ($action === 'agent_execute_step') {
+        $toolId = trim($input['tool_id'] ?? '');
+        $stepInput = $input['input'] ?? [];
+        $token = $input['idempotency_token'] ?? ('idem_' . uniqid());
+
+        if (empty($toolId)) {
+            sendJsonResponse('error', 'Tool ID is required for step execution.', [], 400);
+        }
+
+        $res = AgentExecutionEngine::executeStep($userId, $toolId, $stepInput, $token, $db);
+        sendJsonResponse('success', 'Step executed successfully.', $res);
     }
 
     elseif ($action === 'parse') {

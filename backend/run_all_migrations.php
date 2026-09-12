@@ -280,6 +280,86 @@ function executeDirectMigrations($db) {
             }
         } catch (Exception $e) {}
     }
+    // 17. CRM Documents Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_documents` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT DEFAULT NULL,
+        `lead_id` INT DEFAULT NULL,
+        `deal_id` INT DEFAULT NULL,
+        `title` VARCHAR(255) NOT NULL,
+        `file_path` VARCHAR(500) NOT NULL,
+        `file_type` VARCHAR(50) DEFAULT NULL,
+        `summary` TEXT DEFAULT NULL,
+        `extracted_info_json` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 18. CRM Invoices Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_invoices` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `contact_id` INT DEFAULT NULL,
+        `deal_id` INT DEFAULT NULL,
+        `invoice_number` VARCHAR(50) NOT NULL,
+        `amount` DECIMAL(12,2) DEFAULT '0.00',
+        `status` ENUM('draft', 'sent', 'paid', 'overdue', 'cancelled') DEFAULT 'draft',
+        `due_date` DATE DEFAULT NULL,
+        `items_json` TEXT DEFAULT NULL,
+        `notes` TEXT DEFAULT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 19. CRM Custom Dashboards Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_custom_dashboards` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `name` VARCHAR(150) NOT NULL,
+        `description` TEXT DEFAULT NULL,
+        `config_json` LONGTEXT NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 20. CRM Competitors Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_competitors` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `name` VARCHAR(150) NOT NULL,
+        `products` TEXT DEFAULT NULL,
+        `pricing_info` TEXT DEFAULT NULL,
+        `positioning` TEXT DEFAULT NULL,
+        `strengths` TEXT DEFAULT NULL,
+        `weaknesses` TEXT DEFAULT NULL,
+        `relevant_links` TEXT DEFAULT NULL,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 21. CRM AI Memory Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_ai_memory` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `category` VARCHAR(50) NOT NULL DEFAULT 'general',
+        `memory_key` VARCHAR(100) NOT NULL,
+        `memory_value` TEXT NOT NULL,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY `user_cat_key` (`user_id`, `category`, `memory_key`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    // 22. CRM AI Action History Table
+    $db->exec("CREATE TABLE IF NOT EXISTS `crm_ai_action_history` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `user_id` INT NOT NULL,
+        `tool_id` VARCHAR(100) NOT NULL,
+        `intent` VARCHAR(255) DEFAULT NULL,
+        `params_json` TEXT DEFAULT NULL,
+        `result_summary` TEXT DEFAULT NULL,
+        `approval_status` ENUM('auto', 'approved', 'rejected', 'pending') DEFAULT 'auto',
+        `approved_by` INT DEFAULT NULL,
+        `status` ENUM('success', 'failed', 'pending') DEFAULT 'success',
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 }
 
 executeDirectMigrations($db);

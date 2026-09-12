@@ -6,6 +6,8 @@ require_once __DIR__ . '/crm_sync_helper.php';
 require_once __DIR__ . '/communication_provider_helper.php';
 require_once __DIR__ . '/workflow_runner.php';
 require_once __DIR__ . '/lead_scoring_engine.php';
+require_once __DIR__ . '/email_intelligence_service.php';
+require_once __DIR__ . '/sales_copilot_engine.php';
 
 class AIToolRegistry {
     private static $tools = [];
@@ -145,6 +147,61 @@ class AIToolRegistry {
                     'leads_by_stage' => $leadsByStage,
                     'deals_by_stage' => $dealsByStage
                 ];
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'get_unreplied_emails',
+            'name' => 'Get Unreplied Emails',
+            'description' => 'Fetch emails that need a response, classified by urgency and sales intent.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return EmailIntelligenceService::getUnrepliedEmails($userId, $db, (int)($params['limit'] ?? 15));
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'summarize_email_conversation',
+            'name' => 'Summarize Conversation',
+            'description' => 'Summarize recent email communication thread with a contact.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return EmailIntelligenceService::summarizeConversation($userId, $params['contact_name'] ?? $params['query'] ?? '', $db);
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'get_risk_deals',
+            'name' => 'Get At-Risk Deals',
+            'description' => 'Identify stalled or at-risk deals with inactive days and evidence.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return SalesCopilotEngine::getRiskDeals($userId, $db);
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'get_daily_briefing',
+            'name' => 'Get Daily Briefing',
+            'description' => 'Generate an AI daily briefing of today priorities, hot leads, meetings, and overdue tasks.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return SalesCopilotEngine::getDailyBriefing($userId, $db);
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'global_search',
+            'name' => 'Unified AI Search',
+            'description' => 'Natural language search across contacts, leads, deals, tasks, and communications.',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'handler' => function($userId, array $params, PDO $db) {
+                return CRMSyncHelper::searchContacts($userId, ['query' => $params['query'] ?? ''], 20, 0, $db);
             }
         ]);
 

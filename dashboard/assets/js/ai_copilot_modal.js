@@ -309,7 +309,92 @@
                     return;
                 }
 
-                if (data.data.is_search_result) {
+                if (data.data.is_email_intelligence) {
+                    const emails = (data.data.unreplied_emails || {}).emails || [];
+                    const searchList = document.getElementById('copilot-search-results-list');
+                    searchCard.classList.remove('hidden');
+
+                    let html = `<div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4 space-y-3 text-xs">
+                        <div class="font-extrabold text-blue-900 flex items-center justify-between">
+                            <span class="flex items-center"><i data-lucide="mail" class="h-4 w-4 mr-1.5 text-blue-600"></i> 📬 Emails Requiring Reply:</span>
+                            <span class="text-[10px] text-blue-700 font-mono">${emails.length} emails</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${emails.length > 0 ? emails.map(e => `
+                                <div class="bg-white p-3 rounded-lg border border-blue-200/80 shadow-2xs space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-slate-800">${e.contact_name} &lt;${e.from_email}&gt;</span>
+                                        <span class="px-2 py-0.5 ${e.urgency.includes('Urgent') ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'} font-black rounded text-[9px]">${e.urgency}</span>
+                                    </div>
+                                    <div class="font-semibold text-slate-700 text-[11px]">${e.subject}</div>
+                                    <p class="text-[11px] text-slate-500 line-clamp-2">${e.snippet}</p>
+                                    <div class="pt-1 text-right">
+                                        <button onclick="setCopilotPrompt('Reply to ${e.from_email} saying we will follow up')" class="text-xs font-bold text-blue-600 hover:underline">Draft Reply →</button>
+                                    </div>
+                                </div>
+                            `).join('') : '<span class="text-slate-500">No pending emails needing reply.</span>'}
+                        </div>
+                    </div>`;
+                    searchList.innerHTML = html;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
+                if (data.data.is_risk_deals) {
+                    const deals = (data.data.risk_deals || {}).risk_deals || [];
+                    const searchList = document.getElementById('copilot-search-results-list');
+                    searchCard.classList.remove('hidden');
+
+                    let html = `<div class="bg-rose-50/70 border border-rose-200 rounded-xl p-4 space-y-3 text-xs">
+                        <div class="font-extrabold text-rose-900 flex items-center justify-between">
+                            <span class="flex items-center"><i data-lucide="alert-triangle" class="h-4 w-4 mr-1.5 text-rose-600"></i> ⚠️ At-Risk & Stalled Deals:</span>
+                            <span class="text-[10px] text-rose-700 font-mono">${deals.length} deals</span>
+                        </div>
+                        <div class="space-y-2">
+                            ${deals.length > 0 ? deals.map(d => `
+                                <div class="bg-white p-3 rounded-lg border border-rose-200/80 shadow-2xs space-y-1">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-extrabold text-slate-800">${d.title} (₹${parseFloat(d.value || 0).toLocaleString()})</span>
+                                        <span class="px-2 py-0.5 bg-rose-100 text-rose-800 font-black rounded text-[9px]">${d.status}</span>
+                                    </div>
+                                    <div class="text-[11px] font-bold text-slate-600">Contact: ${d.contact_name} (${d.contact_company}) • Inactive: ${d.days_inactive} days</div>
+                                    <ul class="list-disc list-inside text-[11px] text-rose-700 font-medium">
+                                        ${(d.reasons || []).map(r => `<li>${r}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            `).join('') : '<span class="text-slate-500">All deals are healthy! No stalled deals detected.</span>'}
+                        </div>
+                    </div>`;
+                    searchList.innerHTML = html;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
+                if (data.data.is_daily_briefing) {
+                    const briefing = data.data.daily_briefing || {};
+                    const searchList = document.getElementById('copilot-search-results-list');
+                    searchCard.classList.remove('hidden');
+
+                    let html = `<div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 space-y-3 text-xs">
+                        <div class="font-extrabold text-emerald-900 flex items-center justify-between">
+                            <span class="flex items-center"><i data-lucide="sun" class="h-4 w-4 mr-1.5 text-amber-500"></i> ☀️ LinkPilot AI Daily Briefing:</span>
+                        </div>
+                        <div class="bg-white p-3.5 rounded-lg border border-emerald-200/80 shadow-2xs space-y-2">
+                            <p class="font-bold text-slate-800 text-xs">${briefing.greeting}</p>
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <div class="bg-slate-50 p-2 rounded border border-slate-200"><strong>Meetings Today:</strong> ${briefing.todays_meetings}</div>
+                                <div class="bg-slate-50 p-2 rounded border border-slate-200"><strong>Overdue Tasks:</strong> ${briefing.overdue_tasks}</div>
+                            </div>
+                            <div class="font-bold text-slate-700 text-[11px] pt-1">Recommended Action Priorities:</div>
+                            <ul class="space-y-1 text-[11px]">
+                                ${(briefing.priorities || []).map(p => `<li class="p-1.5 bg-emerald-50 text-emerald-900 font-semibold rounded border border-emerald-100">${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>`;
+                    searchList.innerHTML = html;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
                     renderSearchResults(data.data.search_results || []);
                 } else if (data.data.duplicate_found && data.data.duplicates) {
                     currentParsedData = data.data.parsed;

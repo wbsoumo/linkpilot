@@ -216,6 +216,47 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
             ]);
         }
 
+        // Handle GET_UNREPLIED_EMAILS intent
+        if ($aiData['action_type'] === 'GET_UNREPLIED_EMAILS' || preg_match('/(unreplied|need.*reply|unanswered.*email)/i', $promptText)) {
+            $emails = AIToolRegistry::executeTool('get_unreplied_emails', $userId, [], $db);
+            sendJsonResponse('success', 'Unreplied emails retrieved.', [
+                'is_email_intelligence' => true,
+                'unreplied_emails' => $emails,
+                'parsed' => $aiData
+            ]);
+        }
+
+        // Handle SUMMARIZE_CONVERSATION intent
+        if ($aiData['action_type'] === 'SUMMARIZE_CONVERSATION' || preg_match('/summarize.*(conversation|email|thread|with)/i', $promptText)) {
+            $queryName = $aiData['target_contact']['name'] ?? $promptText;
+            $summary = AIToolRegistry::executeTool('summarize_email_conversation', $userId, ['contact_name' => $queryName], $db);
+            sendJsonResponse('success', 'Conversation summary generated.', [
+                'is_conversation_summary' => true,
+                'conversation_summary' => $summary,
+                'parsed' => $aiData
+            ]);
+        }
+
+        // Handle GET_RISK_DEALS intent
+        if ($aiData['action_type'] === 'GET_RISK_DEALS' || preg_match('/(deals.*risk|stalled.*deal|why.*deal.*stalled)/i', $promptText)) {
+            $riskDeals = AIToolRegistry::executeTool('get_risk_deals', $userId, [], $db);
+            sendJsonResponse('success', 'At-risk deals retrieved.', [
+                'is_risk_deals' => true,
+                'risk_deals' => $riskDeals,
+                'parsed' => $aiData
+            ]);
+        }
+
+        // Handle GET_DAILY_BRIEFING intent
+        if ($aiData['action_type'] === 'GET_DAILY_BRIEFING' || preg_match('/(daily briefing|today.*priorit|focus.*today)/i', $promptText)) {
+            $briefing = AIToolRegistry::executeTool('get_daily_briefing', $userId, [], $db);
+            sendJsonResponse('success', 'Daily briefing generated.', [
+                'is_daily_briefing' => true,
+                'daily_briefing' => $briefing,
+                'parsed' => $aiData
+            ]);
+        }
+
         // Handle SEARCH_CONTACTS intent
         if ($aiData['action_type'] === 'SEARCH_CONTACTS') {
             $filters = $aiData['search_filters'] ?? [];

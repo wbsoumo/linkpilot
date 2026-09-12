@@ -1760,7 +1760,22 @@ async function renderDashboard(container) {
                         `;
                     } else {
                         const taskId = 'task-bubble-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                        window.COPILOT_TASKS = window.COPILOT_TASKS || {};
+                        window.COPILOT_TASKS[taskId] = parsed;
                         window['TASK_DATA_' + taskId] = parsed;
+
+                        if (!window.launchCopilotTaskExecution) {
+                            window.launchCopilotTaskExecution = function(id) {
+                                const taskData = (window.COPILOT_TASKS && window.COPILOT_TASKS[id]) || window['TASK_DATA_' + id];
+                                if (!taskData) {
+                                    if (window.showNotification) showNotification('warning', 'Task data not found or expired.');
+                                    return;
+                                }
+                                if (typeof window.openCopilotTaskExecutionModal === 'function') {
+                                    window.openCopilotTaskExecutionModal(taskData, id);
+                                }
+                            };
+                        }
 
                         let actionTitle = 'Actionable Workspace Task';
                         let actionIcon = 'zap';
@@ -1836,7 +1851,7 @@ async function renderDashboard(container) {
                                 </div>
 
                                 <div class="pt-1 flex items-center justify-end">
-                                    <button id="${taskId}-btn" type="button" onclick="window.openCopilotTaskExecutionModal(window['TASK_DATA_${taskId}'], '${taskId}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs shadow-md hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                    <button id="${taskId}-btn" type="button" onclick="window.launchCopilotTaskExecution('${taskId}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs shadow-md hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
                                         <i data-lucide="play-circle" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
                                         <span style="color: #ffffff !important;">Execute Task</span>
                                     </button>

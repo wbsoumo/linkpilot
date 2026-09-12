@@ -319,11 +319,13 @@ class AIToolRegistry {
                 return CommunicationProviderHelper::sendCommunication(
                     $userId,
                     'email',
-                    $params['recipient'],
-                    $params['subject'],
-                    $params['message'],
+                    $params['recipient'] ?? ($params['email'] ?? ''),
+                    $params['subject'] ?? 'Message from LinkPilot AI',
+                    $params['message'] ?? ($params['body'] ?? ''),
+                    $params['attachments'] ?? [],
+                    $params['idempotency_token'] ?? null,
                     $params['contact_id'] ?? null,
-                    $params['attachments'] ?? []
+                    $db
                 );
             }
         ]);
@@ -338,11 +340,13 @@ class AIToolRegistry {
                 return CommunicationProviderHelper::sendCommunication(
                     $userId,
                     'whatsapp',
-                    $params['recipient'],
+                    $params['recipient'] ?? ($params['phone'] ?? ''),
                     '',
-                    $params['message'],
+                    $params['message'] ?? '',
+                    $params['attachments'] ?? [],
+                    $params['idempotency_token'] ?? null,
                     $params['contact_id'] ?? null,
-                    $params['attachments'] ?? []
+                    $db
                 );
             }
         ]);

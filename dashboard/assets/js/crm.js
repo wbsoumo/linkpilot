@@ -909,7 +909,7 @@ async function renderDashboard(container) {
                 </div>
 
                 <!-- In-Page Full Screen Chat Stream View (Hidden by default) -->
-                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto h-[calc(100vh-90px)] flex flex-col justify-between space-y-2.5 transition-all duration-300 mt-0">
+                <div id="dash-inpage-chat-view" class="hidden w-full max-w-5xl mx-auto h-full flex-1 min-h-0 flex flex-col space-y-2.5 transition-all duration-300 mt-0">
                     <!-- Top Header Card -->
                     <div class="flex items-center justify-between bg-white border border-slate-200/90 rounded-2xl px-6 py-3 shadow-2xs shrink-0" style="background-color: #ffffff !important; color: #0f172a !important;">
                         <div class="flex items-center space-x-3.5">
@@ -1466,6 +1466,8 @@ async function renderDashboard(container) {
             const bannerHeader = document.getElementById('dash-banner-header');
             const pillsRow = document.getElementById('dash-claude-pills-row');
             const footerMeta = document.getElementById('dash-claude-footer-meta');
+            const heroTopSlot = document.getElementById('dash-hero-top-slot');
+            const mainWrapper = document.getElementById('dashboard-main-wrapper');
 
             if (input) input.value = '';
 
@@ -1474,6 +1476,7 @@ async function renderDashboard(container) {
                 if (bannerHeader) bannerHeader.classList.add('hidden');
                 if (pillsRow) pillsRow.classList.add('hidden');
                 if (footerMeta) footerMeta.classList.add('hidden');
+                if (heroTopSlot) heroTopSlot.classList.add('hidden');
 
                 if (heroTitleEl) {
                     heroTitleEl.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
@@ -1494,7 +1497,15 @@ async function renderDashboard(container) {
 
                     const mainViewport = document.getElementById('main-content-viewport');
                     if (mainViewport) {
-                        mainViewport.style.padding = '8px 12px';
+                        mainViewport.style.padding = '8px 12px 12px 12px';
+                        mainViewport.style.overflow = 'hidden';
+                        mainViewport.style.display = 'flex';
+                        mainViewport.style.flexDirection = 'column';
+                    }
+
+                    if (mainWrapper) {
+                        mainWrapper.classList.remove('space-y-6', 'min-h-[85vh]');
+                        mainWrapper.classList.add('h-full', 'flex-1', 'min-h-0', 'space-y-0');
                     }
 
                     const drawerBtn = document.getElementById('ai-chat-trigger-btn');
@@ -1537,22 +1548,31 @@ async function renderDashboard(container) {
             const bannerHeader = document.getElementById('dash-banner-header');
             const pillsRow = document.getElementById('dash-claude-pills-row');
             const footerMeta = document.getElementById('dash-claude-footer-meta');
+            const mainWrapper = document.getElementById('dashboard-main-wrapper');
 
             if (heroEl && statsContainer && chatView) {
                 const mainViewport = document.getElementById('main-content-viewport');
                 if (mainViewport) {
                     mainViewport.style.padding = '';
+                    mainViewport.style.overflow = '';
+                    mainViewport.style.display = '';
+                    mainViewport.style.flexDirection = '';
                 }
 
-                // Restore banner header, pills, and footer
+                if (mainWrapper) {
+                    mainWrapper.classList.add('space-y-6', 'min-h-[85vh]');
+                    mainWrapper.classList.remove('h-full', 'flex-1', 'min-h-0', 'space-y-0');
+                }
+
+                // Restore banner header, pills, footer, and top slot
                 if (bannerHeader) bannerHeader.classList.remove('hidden');
                 if (pillsRow) pillsRow.classList.remove('hidden');
                 if (footerMeta) footerMeta.classList.remove('hidden');
+                if (heroTopSlot) heroTopSlot.classList.remove('hidden');
 
                 const drawerBtn = document.getElementById('ai-chat-trigger-btn');
                 if (drawerBtn) drawerBtn.classList.remove('hidden');
 
-                const heroTopSlot = document.getElementById('dash-hero-top-slot');
                 if (heroTopSlot && heroEl.parentElement !== heroTopSlot) {
                     heroEl.classList.remove('fixed', 'bottom-4', 'bottom-6', 'md:bottom-8', 'left-1/2', '-translate-x-1/2', 'z-50');
                     heroEl.classList.add('my-4', 'w-full', 'shrink-0');

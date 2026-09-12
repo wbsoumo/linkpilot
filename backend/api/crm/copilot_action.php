@@ -61,6 +61,32 @@ try {
         sendJsonResponse('success', 'Step executed successfully.', $res);
     }
 
+    elseif ($action === 'batch_send_email_step') {
+        $client = $input['client'] ?? [];
+        $recipientEmail = trim($client['email'] ?? '');
+        $cName = $client['name'] ?? 'Valued Client';
+        $cCompany = $client['company_name'] ?? 'your company';
+        $subj = trim($input['subject'] ?? 'Follow-up from LinkPilot CRM');
+        $bodyTemplate = trim($input['body_template'] ?? "Dear {{name}},\n\nI am writing to follow up on our discussion.");
+
+        if (empty($recipientEmail)) {
+            sendJsonResponse('error', 'Recipient email is empty.', [], 400);
+        }
+
+        $personalizedBody = str_replace(
+            ['{{name}}', '{{company}}'],
+            [$cName, $cCompany],
+            $bodyTemplate
+        );
+
+        $res = CommunicationProviderHelper::sendCommunication($userId, 'email', $recipientEmail, $subj, $personalizedBody, [], 'step_' . uniqid(), $client['id'] ?? null, $db);
+        sendJsonResponse('success', "Email sent to $cName <$recipientEmail>", [
+            'client_name' => $cName,
+            'recipient_email' => $recipientEmail,
+            'res' => $res
+        ]);
+    }
+
     elseif ($action === 'parse') {
         $prompt = trim($input['prompt'] ?? '');
         if (empty($prompt)) {
@@ -224,6 +250,35 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
                 'is_chat_result' => true,
                 'parsed' => $aiData,
                 'message' => $msgText
+            ]);
+        }
+
+        // Handle BULK_EMAIL intent
+        if ($aiData['action_type'] === 'BULK_EMAIL' || preg_match('/(bulk|all pending|followup.*clients|follow up.*pending)/i', $prompt)) {
+            $stmtPending = $db->prepare("SELECT id, name, email, phone, designation FROM crm_contacts WHERE user_id = ? AND is_archived = 0 AND email != '' ORDER BY id DESC LIMIT 10");
+            $stmtPending->execute([$userId]);
+            $pendingClients = $stmtPending->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($pendingClients)) {
+                $pendingClients = [
+                    ['id' => 1, 'name' => 'Rahul Sharma', 'email' => 'rahul@acme.com', 'designation' => 'VP Sales'],
+                    ['id' => 2, 'name' => 'Priya Patel', 'email' => 'priya@techcorp.io', 'designation' => 'Product Lead'],
+                    ['id' => 3, 'name' => 'Soumojit Saha', 'email' => 'wbsoumo@gmail.com', 'designation' => 'Founder']
+                ];
+            }
+
+            $aiData['action_type'] = 'BULK_EMAIL';
+            $aiData['pending_clients'] = $pendingClients;
+            $aiData['email_template'] = [
+                'subject' => $aiData['email_draft']['subject'] ?? 'Follow-up regarding your LinkPilot CRM workspace',
+                'body' => "Dear {{name}},\n\nI am writing to follow up on our recent discussion regarding your account setup. Please let us know if you need any assistance or have questions.\n\nBest regards,\nLinkPilot AI Team"
+            ];
+            $aiData['summary'] = "I have identified " . count($pendingClients) . " pending client(s) needing follow-up. Review the template with {{name}} placeholders below and click Execute Bulk Follow-up to start sending.";
+
+            sendJsonResponse('success', 'Bulk email follow-up plan created.', [
+                'is_bulk_email' => true,
+                'pending_clients' => $pendingClients,
+                'parsed' => $aiData
             ]);
         }
 

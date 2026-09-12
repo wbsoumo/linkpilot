@@ -1764,6 +1764,76 @@ async function renderDashboard(container) {
                                 <p class="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">${esc(res.message || 'How else can I assist you with your LinkPilot workspace today?')}</p>
                             </div>
                         `;
+                    } else if (intent === 'BULK_EMAIL') {
+                        const taskId = 'task-bubble-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+                        window.COPILOT_TASKS = window.COPILOT_TASKS || {};
+                        window.COPILOT_TASKS[taskId] = parsed;
+                        window['TASK_DATA_' + taskId] = parsed;
+
+                        if (!window.launchCopilotTaskExecution) {
+                            window.launchCopilotTaskExecution = function(id) {
+                                const taskData = (window.COPILOT_TASKS && window.COPILOT_TASKS[id]) || window['TASK_DATA_' + id];
+                                if (!taskData) {
+                                    if (window.showNotification) showNotification('warning', 'Task data not found or expired.');
+                                    return;
+                                }
+                                if (typeof window.openCopilotTaskExecutionModal === 'function') {
+                                    window.openCopilotTaskExecutionModal(taskData, id);
+                                }
+                            };
+                        }
+
+                        const pendingClients = parsed.pending_clients || [];
+                        const clientChips = pendingClients.map(c => `
+                            <span class="inline-flex items-center space-x-1 px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-[10px] font-bold">
+                                <i data-lucide="user-clock" class="h-3 w-3 text-amber-600"></i>
+                                <span>${esc(c.name)} (${esc(c.email)})</span>
+                            </span>
+                        `).join('');
+
+                        aiReplyHtml = `
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                    <div class="flex items-center space-x-2 text-indigo-600 font-extrabold text-xs">
+                                        <i data-lucide="mail" class="h-4 w-4 text-indigo-600"></i>
+                                        <span>Bulk Follow-up Campaign</span>
+                                    </div>
+                                    <span id="${taskId}-badge" class="px-2.5 py-0.5 rounded-full text-[9px] bg-indigo-100 text-indigo-800 border border-indigo-200/80 font-black flex items-center space-x-1">
+                                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-600 animate-ping"></span>
+                                        <span>${pendingClients.length} Pending Clients</span>
+                                    </span>
+                                </div>
+
+                                <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 text-xs">
+                                    <div class="font-extrabold text-slate-900 flex items-center justify-between">
+                                        <span>Pending Clients List:</span>
+                                        <span class="text-[10px] text-slate-500 font-normal">Auto-populated from CRM</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${clientChips || '<span class="text-slate-400">No pending clients found</span>'}
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 font-medium pt-1">Personalized Mail Template ready with dynamic variable placeholders like <code class="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded font-mono">{{name}}</code>.</p>
+                                </div>
+
+                                <!-- Progress Bar Slot inside Chat Bubble -->
+                                <div id="${taskId}-progress-container" class="hidden space-y-1.5 pt-1">
+                                    <div class="flex justify-between items-center text-[10px] font-bold text-indigo-900">
+                                        <span id="${taskId}-progress-status">Sending campaign emails...</span>
+                                        <span id="${taskId}-progress-text" class="font-mono">0%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                                        <div id="${taskId}-progress-fill" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-1 flex items-center justify-end">
+                                    <button id="${taskId}-btn" type="button" onclick="window.launchCopilotTaskExecution('${taskId}')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-xs shadow-md hover:shadow-indigo-500/20 hover:scale-[1.02] active:scale-[0.98] transition flex items-center space-x-2 cursor-pointer" style="color: #ffffff !important;">
+                                        <i data-lucide="send" class="h-4 w-4 text-white" style="color: #ffffff !important;"></i>
+                                        <span style="color: #ffffff !important;">Execute Bulk Follow-up</span>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
                     } else {
                         const taskId = 'task-bubble-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
                         window.COPILOT_TASKS = window.COPILOT_TASKS || {};

@@ -592,6 +592,47 @@
                     <textarea id="copilot-field-body" rows="4" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1 resize-none">${draft.body || ''}</textarea>
                 </div>
             `;
+        } else if (parsed.action_type === 'BULK_EMAIL') {
+            const draft = parsed.email_draft || {};
+            const pendingClients = parsed.pending_clients || [];
+            const clientChips = pendingClients.map(c => `
+                <span class="inline-flex items-center space-x-1 px-2.5 py-1 bg-white border border-amber-300 text-amber-900 rounded-lg font-bold text-[10px]">
+                    <i data-lucide="user" class="h-3 w-3 text-amber-600"></i>
+                    <span>${c.name} (${c.email})</span>
+                </span>
+            `).join('');
+
+            fieldsHTML = `
+                <div>
+                    <label class="font-bold text-slate-700">Target Recipients (${pendingClients.length} Pending Clients):</label>
+                    <div id="copilot-bulk-clients-list" class="flex flex-wrap gap-1.5 p-2 bg-amber-50/60 border border-amber-200 rounded-lg mt-1 max-h-24 overflow-y-auto">
+                        ${clientChips || '<span class="text-slate-400 text-xs">No pending clients</span>'}
+                    </div>
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700">Email Subject:</label>
+                    <input type="text" id="copilot-field-bulk-subject" value="${draft.subject || 'Following Up: LinkPilot CRM Project'}" class="w-full p-2 border border-slate-300 rounded-lg text-xs mt-1">
+                </div>
+                <div>
+                    <label class="font-bold text-slate-700">Personalized Message Template:</label>
+                    <p class="text-[10px] text-slate-500 mb-1">Variables available: <code class="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded font-mono">{{name}}</code>, <code class="bg-indigo-50 text-indigo-700 px-1 py-0.5 rounded font-mono">{{company}}</code></p>
+                    <textarea id="copilot-field-bulk-template" rows="5" class="w-full p-2 border border-slate-300 rounded-lg text-xs font-sans mt-0.5 resize-none">${draft.body || "Dear {{name}},\n\nI hope you are having a productive week! I am reaching out to follow up on our recent conversation regarding your CRM project.\n\nPlease let us know if you have any questions.\n\nBest regards,\nLinkPilot Sales Team"}</textarea>
+                </div>
+
+                <!-- Modal Live Progress Bar -->
+                <div id="copilot-bulk-progress-container" class="hidden space-y-1.5 pt-2 border-t border-blue-200/80 mt-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-indigo-950">
+                        <span id="copilot-bulk-progress-status" class="flex items-center space-x-1.5">
+                            <i data-lucide="loader-2" class="h-3.5 w-3.5 text-indigo-600 animate-spin"></i>
+                            <span>Sending personalized emails...</span>
+                        </span>
+                        <span id="copilot-bulk-progress-text" class="font-mono text-indigo-600">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden border border-slate-300/60 shadow-inner">
+                        <div id="copilot-bulk-progress-fill" class="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-500 h-full w-0 transition-all duration-300 rounded-full"></div>
+                    </div>
+                </div>
+            `;
         } else if (parsed.action_type === 'SEND_WHATSAPP') {
             const draft = parsed.whatsapp_draft || {};
             const phone = matched?.phone || matched?.whatsapp || parsed.target_contact?.phone || '';
@@ -805,6 +846,114 @@
                 subject: emailSubj || payload.email_draft?.subject || 'Message from LinkPilot AI',
                 body: emailBody || payload.email_draft?.body || payload.summary || 'Meeting outreach message'
             };
+        } else if (payload.action_type === 'BULK_EMAIL') {
+            const bulkSubject = document.getElementById('copilot-field-bulk-subject')?.value || payload.email_draft?.subject || 'Follow-up Email';
+            const bulkBodyTemplate = document.getElementById('copilot-field-bulk-template')?.value || payload.email_draft?.body || 'Dear {{name}},...';
+            const pendingClients = payload.pending_clients || [];
+
+            if (pendingClients.length === 0) {
+                if (window.showNotification) showNotification('warning', 'No pending clients to send email to.');
+                if (executeBtn) executeBtn.disabled = false;
+                if (scheduleBtn) scheduleBtn.disabled = false;
+                return;
+            }
+
+            // Show progress bars in both modal and chat bubble
+            const modalProgressContainer = document.getElementById('copilot-bulk-progress-container');
+            const modalProgressFill = document.getElementById('copilot-bulk-progress-fill');
+            const modalProgressText = document.getElementById('copilot-bulk-progress-text');
+            const modalProgressStatus = document.getElementById('copilot-bulk-progress-status');
+
+            if (modalProgressContainer) modalProgressContainer.classList.remove('hidden');
+
+            const activeBubbleId = window.activeTaskBubbleId;
+            const bubbleProgressContainer = activeBubbleId ? document.getElementById(`${activeBubbleId}-progress-container`) : null;
+            const bubbleProgressFill = activeBubbleId ? document.getElementById(`${activeBubbleId}-progress-fill`) : null;
+            const bubbleProgressText = activeBubbleId ? document.getElementById(`${activeBubbleId}-progress-text`) : null;
+            const bubbleProgressStatus = activeBubbleId ? document.getElementById(`${activeBubbleId}-progress-status`) : null;
+
+            if (bubbleProgressContainer) bubbleProgressContainer.classList.remove('hidden');
+
+            let sentCount = 0;
+            let failedCount = 0;
+            const total = pendingClients.length;
+
+            for (let i = 0; i < total; i++) {
+                const client = pendingClients[i];
+                const progressPct = Math.round(((i + 1) / total) * 100);
+
+                if (modalProgressFill) modalProgressFill.style.width = `${progressPct}%`;
+                if (modalProgressText) modalProgressText.textContent = `${progressPct}%`;
+                if (modalProgressStatus) modalProgressStatus.innerHTML = `<i data-lucide="loader-2" class="h-3.5 w-3.5 text-indigo-600 animate-spin inline mr-1"></i> Sending (${i+1}/${total}): ${client.name}...`;
+
+                if (bubbleProgressFill) bubbleProgressFill.style.width = `${progressPct}%`;
+                if (bubbleProgressText) bubbleProgressText.textContent = `${progressPct}%`;
+                if (bubbleProgressStatus) bubbleProgressStatus.textContent = `Sending (${i+1}/${total}): ${client.name}...`;
+
+                try {
+                    let res;
+                    const stepPayload = {
+                        client: client,
+                        subject: bulkSubject,
+                        body_template: bulkBodyTemplate
+                    };
+
+                    if (typeof window.apiCall === 'function') {
+                        res = await apiCall('crm/copilot_action.php?action=batch_send_email_step', 'POST', stepPayload);
+                    } else {
+                        const token = localStorage.getItem('linkpilot_token');
+                        const fetchRes = await fetch('../backend/api/crm/copilot_action.php?action=batch_send_email_step', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify(stepPayload)
+                        });
+                        res = await fetchRes.json();
+                    }
+
+                    if (res && (res.status === 'success' || res.success)) {
+                        sentCount++;
+                    } else {
+                        failedCount++;
+                    }
+                } catch (e) {
+                    failedCount++;
+                }
+
+                // Short delay between email dispatches for real-time progress experience
+                await new Promise(resolve => setTimeout(resolve, 350));
+            }
+
+            if (modalProgressStatus) modalProgressStatus.textContent = `Completed! ${sentCount} sent, ${failedCount} failed.`;
+            if (bubbleProgressStatus) bubbleProgressStatus.textContent = `Completed! ${sentCount} sent, ${failedCount} failed.`;
+
+            if (window.showNotification) {
+                showNotification('success', `Bulk follow-up campaign completed! ${sentCount} emails sent successfully.`);
+            }
+
+            if (activeBubbleId) {
+                const bubbleBtn = document.getElementById(activeBubbleId + '-btn');
+                const bubbleBadge = document.getElementById(activeBubbleId + '-badge');
+                if (bubbleBadge) {
+                    bubbleBadge.className = "px-2.5 py-0.5 rounded-full text-[9px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold flex items-center space-x-1";
+                    bubbleBadge.innerHTML = `<i data-lucide="check-circle-2" class="h-3 w-3 text-emerald-600"></i><span>${sentCount} Mail Sent</span>`;
+                }
+                if (bubbleBtn) {
+                    bubbleBtn.disabled = true;
+                    bubbleBtn.className = "px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-black flex items-center space-x-1.5 opacity-90 cursor-default";
+                    bubbleBtn.innerHTML = `<i data-lucide="check" class="h-3.5 w-3.5 text-white"></i><span style="color: #ffffff !important;">Campaign Complete</span>`;
+                }
+            }
+
+            setTimeout(() => {
+                window.closeCopilotModal();
+                if (executeBtn) executeBtn.disabled = false;
+                if (scheduleBtn) scheduleBtn.disabled = false;
+            }, 1000);
+
+            return;
         } else if (payload.action_type === 'SEND_WHATSAPP') {
             payload.whatsapp_draft = {
                 recipient_phone: waPhone || payload.whatsapp_draft?.recipient_phone || matched?.phone || payload.target_contact?.phone || '',

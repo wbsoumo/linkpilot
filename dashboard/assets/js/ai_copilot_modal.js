@@ -847,8 +847,14 @@
             const isSuccess = (res && (res.status === 'success' || res.success)) || (data && data.success);
 
             if (isSuccess) {
-                const msgText = res.message || (data && data.message) || 'Action executed successfully!';
+                const msgText = (data && data.message) || res.message || 'Action executed successfully!';
                 if (window.showNotification) showNotification('success', msgText);
+
+                if (data && data.contacts) {
+                    const previewCard = document.getElementById('copilot-action-preview-card');
+                    if (previewCard) previewCard.classList.add('hidden');
+                    renderSearchResults(data.contacts);
+                }
 
                 if (window.activeTaskBubbleId) {
                     const bubbleBtn = document.getElementById(window.activeTaskBubbleId + '-btn');
@@ -865,6 +871,22 @@
                     const msgContainer = document.getElementById('inpage-chat-messages-container');
                     if (msgContainer) {
                         const esc = (s) => (s ? String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : '');
+                        let confirmContent = `<p class="text-[11px] font-medium text-emerald-800">${esc(msgText)}</p>`;
+                        if (data && data.contacts && data.contacts.length > 0) {
+                            confirmContent += `
+                                <div class="mt-2 space-y-1.5 pt-2 border-t border-emerald-200/60">
+                                    ${data.contacts.map(c => `
+                                        <div class="p-2 bg-white rounded-lg border border-emerald-200 text-slate-800 flex items-center justify-between">
+                                            <div>
+                                                <span class="font-bold text-xs">${esc(c.name)}</span>
+                                                <span class="text-[10px] text-slate-500 block">${esc(c.company_name ? c.company_name + ' • ' : '')}${esc(c.email || c.phone || 'No details')}</span>
+                                            </div>
+                                            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">Contact Found</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
                         const confirmMsgHtml = `
                             <div class="flex items-start space-x-3.5 text-left animate-fade-in">
                                 <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center font-bold shrink-0 shadow-md">
@@ -872,7 +894,7 @@
                                 </div>
                                 <div class="bg-emerald-50 border border-emerald-200/90 rounded-2xl p-4 shadow-2xs max-w-xl text-xs space-y-1 text-emerald-950">
                                     <span class="font-black text-emerald-900 block">Task Execution Successful</span>
-                                    <p class="text-[11px] font-medium text-emerald-800">${esc(msgText)}</p>
+                                    ${confirmContent}
                                 </div>
                             </div>
                         `;
@@ -883,7 +905,12 @@
                     window.activeTaskBubbleId = null;
                 }
 
-                window.closeCopilotModal();
+                if (!data || !data.contacts) {
+                    window.closeCopilotModal();
+                }
+
+                if (executeBtn) executeBtn.disabled = false;
+                if (scheduleBtn) scheduleBtn.disabled = false;
 
                 // Auto refresh active workspace views
                 if (typeof window.updateGlobalTaskBadges === 'function') window.updateGlobalTaskBadges();

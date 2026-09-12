@@ -457,9 +457,9 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
 
             case 'SEND_EMAIL':
                 $emailData = $input['email_draft'] ?? [];
-                $recipientEmail = strtolower(trim($emailData['recipient_email'] ?? $input['target_contact']['email'] ?? ''));
-                $subject = trim($emailData['subject'] ?? 'Message from LinkPilot AI');
-                $body = trim($emailData['body'] ?? '');
+                $recipientEmail = strtolower(trim(!empty($emailData['recipient_email']) ? $emailData['recipient_email'] : (!empty($input['target_contact']['email']) ? $input['target_contact']['email'] : ($input['matched_contact']['email'] ?? ''))));
+                $subject = trim(!empty($emailData['subject']) ? $emailData['subject'] : ($input['email_draft']['subject'] ?? 'Message from LinkPilot AI'));
+                $body = trim(!empty($emailData['body']) ? $emailData['body'] : ($input['summary'] ?? 'Outreach message from LinkPilot CRM'));
                 $attachments = $input['resolved_attachments'] ?? [];
 
                 if (empty($recipientEmail) || empty($body)) {
@@ -477,8 +477,8 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
 
             case 'SEND_WHATSAPP':
                 $waData = $input['whatsapp_draft'] ?? [];
-                $recipientPhone = trim($waData['recipient_phone'] ?? $input['target_contact']['phone'] ?? '');
-                $waMessage = trim($waData['message'] ?? '');
+                $recipientPhone = trim(!empty($waData['recipient_phone']) ? $waData['recipient_phone'] : (!empty($input['target_contact']['phone']) ? $input['target_contact']['phone'] : ($input['matched_contact']['phone'] ?? '')));
+                $waMessage = trim(!empty($waData['message']) ? $waData['message'] : ($input['summary'] ?? 'Hello from LinkPilot CRM'));
                 $attachments = $input['resolved_attachments'] ?? [];
 
                 if (empty($recipientPhone) || empty($waMessage)) {
@@ -497,11 +497,11 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
             case 'CREATE_TASK':
             case 'SCHEDULE_MEETING':
                 $taskData = $input['task_draft'] ?? [];
-                $title = trim($taskData['title'] ?? 'New Co-Pilot Task');
-                $desc = trim($taskData['description'] ?? '');
+                $title = trim(!empty($taskData['title']) ? $taskData['title'] : ($input['summary'] ?? 'New Co-Pilot Task'));
+                $desc = trim(!empty($taskData['description']) ? $taskData['description'] : ($input['summary'] ?? ''));
                 $dueDate = !empty($taskData['due_date']) ? $taskData['due_date'] : date('Y-m-d');
                 $dueTime = !empty($taskData['due_time']) ? $taskData['due_time'] : null;
-                $priority = trim($taskData['priority'] ?? 'medium');
+                $priority = trim(!empty($taskData['priority']) ? $taskData['priority'] : 'medium');
 
                 $stmtTask = $db->prepare("INSERT INTO crm_tasks (user_id, contact_id, title, description, due_date, due_time, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')");
                 $stmtTask->execute([$userId, $contactId ?: null, $title, $desc, $dueDate, $dueTime, $priority]);

@@ -759,41 +759,62 @@
         };
 
         // Extract updated form values from preview card
+        const cntName = document.getElementById('copilot-field-cnt-name')?.value;
+        const cntComp = document.getElementById('copilot-field-cnt-comp')?.value;
+        const cntEmail = document.getElementById('copilot-field-cnt-email')?.value;
+        const cntPhone = document.getElementById('copilot-field-cnt-phone')?.value;
+
+        const emailTo = document.getElementById('copilot-field-email')?.value;
+        const emailSubj = document.getElementById('copilot-field-subject')?.value;
+        const emailBody = document.getElementById('copilot-field-body')?.value;
+
+        const waPhone = document.getElementById('copilot-field-phone')?.value;
+        const waMsg = document.getElementById('copilot-field-wamsg')?.value;
+
+        const taskTitle = document.getElementById('copilot-field-task-title')?.value;
+        const taskDate = document.getElementById('copilot-field-task-date')?.value;
+        const taskPriority = document.getElementById('copilot-field-task-priority')?.value;
+
+        const noteText = document.getElementById('copilot-field-note-text')?.value;
+        const tagName = document.getElementById('copilot-field-tag-name')?.value;
+
         if (payload.action_type === 'CREATE_CONTACT') {
             payload.target_contact = {
-                name: document.getElementById('copilot-field-cnt-name')?.value || '',
-                company: document.getElementById('copilot-field-cnt-comp')?.value || '',
-                email: document.getElementById('copilot-field-cnt-email')?.value || '',
-                phone: document.getElementById('copilot-field-cnt-phone')?.value || ''
+                name: cntName || payload.target_contact?.name || '',
+                company: cntComp || payload.target_contact?.company || '',
+                email: cntEmail || payload.target_contact?.email || '',
+                phone: cntPhone || payload.target_contact?.phone || ''
             };
         } else if (payload.action_type === 'ADD_NOTE') {
             if (!payload.target_contact) payload.target_contact = {};
-            payload.target_contact.note_text = document.getElementById('copilot-field-note-text')?.value || '';
+            if (noteText) payload.target_contact.note_text = noteText;
         } else if (payload.action_type === 'ADD_TAG') {
             if (!payload.target_contact) payload.target_contact = {};
-            payload.target_contact.tag = document.getElementById('copilot-field-tag-name')?.value || '';
+            if (tagName) payload.target_contact.tag = tagName;
         } else if (payload.action_type === 'SEND_EMAIL') {
             payload.email_draft = {
-                recipient_email: document.getElementById('copilot-field-email')?.value || '',
-                subject: document.getElementById('copilot-field-subject')?.value || '',
-                body: document.getElementById('copilot-field-body')?.value || ''
+                recipient_email: emailTo || payload.email_draft?.recipient_email || matched?.email || payload.target_contact?.email || '',
+                subject: emailSubj || payload.email_draft?.subject || 'Message from LinkPilot AI',
+                body: emailBody || payload.email_draft?.body || payload.summary || 'Meeting outreach message'
             };
         } else if (payload.action_type === 'SEND_WHATSAPP') {
             payload.whatsapp_draft = {
-                recipient_phone: document.getElementById('copilot-field-phone')?.value || '',
-                message: document.getElementById('copilot-field-wamsg')?.value || ''
+                recipient_phone: waPhone || payload.whatsapp_draft?.recipient_phone || matched?.phone || payload.target_contact?.phone || '',
+                message: waMsg || payload.whatsapp_draft?.message || payload.summary || 'Hello from LinkPilot CRM'
             };
         } else if (payload.action_type === 'CREATE_INVOICE') {
-            payload.invoice_draft = {
-                client_name: document.getElementById('copilot-field-inv-client')?.value || '',
-                amount: parseFloat(document.getElementById('copilot-field-inv-amount')?.value || 0),
-                description: document.getElementById('copilot-field-inv-desc')?.value || ''
-            };
-        } else {
+            const invClient = document.getElementById('copilot-field-inv-client')?.value;
+            const invAmount = document.getElementById('copilot-field-inv-amount')?.value;
+            const invDesc = document.getElementById('copilot-field-inv-desc')?.value;
+            if (!payload.invoice_draft) payload.invoice_draft = {};
+            if (invClient) payload.invoice_draft.client_name = invClient;
+            if (invAmount) payload.invoice_draft.amount = parseFloat(invAmount);
+            if (invDesc) payload.invoice_draft.description = invDesc;
+        } else if (payload.action_type === 'CREATE_TASK' || payload.action_type === 'SCHEDULE_MEETING') {
             payload.task_draft = {
-                title: document.getElementById('copilot-field-task-title')?.value || '',
-                due_date: document.getElementById('copilot-field-task-date')?.value || '',
-                priority: document.getElementById('copilot-field-task-priority')?.value || 'medium'
+                title: taskTitle || payload.task_draft?.title || payload.summary || 'New Co-Pilot Task',
+                due_date: taskDate || payload.task_draft?.due_date || new Date().toISOString().split('T')[0],
+                priority: taskPriority || payload.task_draft?.priority || 'medium'
             };
         }
 

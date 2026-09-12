@@ -486,6 +486,15 @@ WORKSPACE CONTACTS LIST FOR MATCHING:
                 $resultData = ['message' => "Tag '$tagName' added to contact successfully."];
                 break;
 
+            case 'SEARCH_CONTACTS':
+                $searchName = trim($input['target_contact']['name'] ?? $input['target_contact']['query'] ?? $input['summary'] ?? '');
+                $searchResults = CRMSyncHelper::searchContacts($userId, ['q' => $searchName], 25, 0, $db);
+                $resultData = [
+                    'message' => "Found " . count($searchResults) . " matching contact(s).",
+                    'contacts' => $searchResults
+                ];
+                break;
+
             case 'SEND_EMAIL':
                 $emailData = $input['email_draft'] ?? [];
                 $recipientEmail = strtolower(trim(!empty($emailData['recipient_email']) ? $emailData['recipient_email'] : (!empty($input['target_contact']['email']) ? $input['target_contact']['email'] : ($input['matched_contact']['email'] ?? ''))));

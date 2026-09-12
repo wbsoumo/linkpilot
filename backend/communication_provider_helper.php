@@ -146,8 +146,9 @@ class CommunicationProviderHelper {
 
         // 4. Provider Dispatch Execution
         if ($channel === 'email') {
-            $sentRes = SMTPHelper::sendEmail($userId, $recipient, $subject, $message, true);
-            if (!$sentRes['success']) {
+            $sentRes = SMTPHelper::sendEmail($userId, $recipient, $subject, $message, $attachments);
+            $isSuccess = !empty($sentRes['status']) || !empty($sentRes['success']);
+            if (!$isSuccess) {
                 $err = $sentRes['message'] ?? 'SMTP Dispatch Failed';
                 $db->prepare("UPDATE communication_actions SET status = 'failed', provider_response = ? WHERE idempotency_token = ?")
                    ->execute([json_encode(['error' => $err]), $idempotencyToken]);

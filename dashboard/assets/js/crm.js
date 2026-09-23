@@ -958,138 +958,122 @@ async function renderDashboard(container) {
                 <div id="dash-stats-view-container" class="space-y-8 transition-all duration-300">
                     ${warningBannerHtml}
 
-                    <!-- 12 Top Statistics Cards Grid -->
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <!-- Received Emails -->
-                    <div onclick="window.location.hash = '#/inbox'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Emails Recd</span>
-                            <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="mail" class="h-4 w-4"></i></span>
+                    <!-- CoreUI Style Featured 4 Main Metric Header Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <!-- Widget 1: Primary Indigo (Users / Leads) -->
+                        <div onclick="window.location.hash = '#/leads'" class="bg-[#321fdb] text-white rounded-lg p-4 relative overflow-hidden shadow-sm cursor-pointer card-hover">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-2xl font-black tracking-tight" id="stat-total-leads">0</div>
+                                    <div class="text-xs font-semibold uppercase tracking-wider text-white/80 mt-0.5">Total Leads</div>
+                                </div>
+                                <div class="p-2 bg-white/10 rounded">
+                                    <i data-lucide="users" class="h-5 w-5 text-white"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-[11px] text-white/90">
+                                <span><i data-lucide="trending-up" class="h-3 w-3 inline mr-1"></i>+12.4% this month</span>
+                                <span class="font-bold">Pipeline Active</span>
+                            </div>
+                            <div class="h-8 mt-2 w-full opacity-40">
+                                <canvas id="sparkline-leads" class="w-full h-full"></canvas>
+                            </div>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-emails-recd">0</span>
-                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +12% today</span>
+
+                        <!-- Widget 2: Info Cyan (AI Processed / Income) -->
+                        <div onclick="window.location.hash = '#/inbox'" class="bg-[#39f] text-white rounded-lg p-4 relative overflow-hidden shadow-sm cursor-pointer card-hover">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-2xl font-black tracking-tight" id="stat-emails-ai">0</div>
+                                    <div class="text-xs font-semibold uppercase tracking-wider text-white/80 mt-0.5">AI Processed Emails</div>
+                                </div>
+                                <div class="p-2 bg-white/10 rounded">
+                                    <i data-lucide="cpu" class="h-5 w-5 text-white"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-[11px] text-white/90">
+                                <span><i data-lucide="zap" class="h-3 w-3 inline mr-1"></i>Auto-pilot 98.4%</span>
+                                <span class="font-bold">Real-time</span>
+                            </div>
+                            <div class="h-8 mt-2 w-full opacity-40">
+                                <canvas id="sparkline-ai" class="w-full h-full"></canvas>
+                            </div>
                         </div>
-                    </div>
-                    <!-- Emails Processed by AI -->
-                    <div onclick="window.location.hash = '#/inbox'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">AI Processed</span>
-                            <span class="p-1.5 bg-teal-50 text-teal-600 rounded-lg"><i data-lucide="cpu" class="h-4 w-4"></i></span>
+
+                        <!-- Widget 3: Warning Yellow (Conversion Rate) -->
+                        <div onclick="window.location.hash = '#/deals'" class="bg-[#f9b115] text-white rounded-lg p-4 relative overflow-hidden shadow-sm cursor-pointer card-hover">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-2xl font-black tracking-tight" id="stat-conv-rate">0%</div>
+                                    <div class="text-xs font-semibold uppercase tracking-wider text-white/90 mt-0.5">Conversion Rate</div>
+                                </div>
+                                <div class="p-2 bg-white/10 rounded">
+                                    <i data-lucide="target" class="h-5 w-5 text-white"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-[11px] text-white/90">
+                                <span><i data-lucide="award" class="h-3 w-3 inline mr-1"></i>Target Reached</span>
+                                <span class="font-bold">Deals Won</span>
+                            </div>
+                            <div class="h-8 mt-2 w-full opacity-40">
+                                <canvas id="sparkline-conv" class="w-full h-full"></canvas>
+                            </div>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-emails-ai">0</span>
-                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +8% today</span>
-                        </div>
-                    </div>
-                    <!-- Total Leads -->
-                    <div onclick="window.location.hash = '#/leads'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Total Leads</span>
-                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="users" class="h-4 w-4"></i></span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-total-leads">0</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Pipeline Leads</span>
-                        </div>
-                    </div>
-                    <!-- Total Companies -->
-                    <div onclick="window.location.hash = '#/companies'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Companies</span>
-                            <span class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="building" class="h-4 w-4"></i></span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-total-companies">0</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Client Accounts</span>
-                        </div>
-                    </div>
-                    <!-- Active Clients -->
-                    <div onclick="window.location.hash = '#/contacts'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Active Clients</span>
-                            <span class="p-1.5 bg-green-50 text-green-600 rounded-lg"><i data-lucide="shield-check" class="h-4 w-4"></i></span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-active-clients">0</span>
-                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5">Retained Accounts</span>
-                        </div>
-                    </div>
-                    <!-- Open Opportunities -->
-                    <div onclick="window.location.hash = '#/deals'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Open Deals</span>
-                            <span class="p-1.5 bg-amber-50 text-amber-600 rounded-lg"><i data-lucide="zap" class="h-4 w-4"></i></span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-open-deals">0</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Sales Opportunities</span>
-                        </div>
-                    </div>
-                    <!-- Follow-ups Due -->
-                    <div onclick="window.location.hash = '#/tasks'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Follow-ups</span>
-                            <span class="p-1.5 bg-purple-50 text-purple-600 rounded-lg"><i data-lucide="bell" class="h-4 w-4"></i></span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-followups-due">0</span>
-                            <span class="text-[10px] text-amber-600 font-extrabold block mt-0.5">Reminders Pending</span>
-                        </div>
-                    </div>
-                    <!-- Tasks Due Today -->
-                    <div onclick="window.location.hash = '#/tasks'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Tasks Today</span>
-                            <span class="p-1.5 bg-pink-50 text-pink-600 rounded-lg"><i data-lucide="check-square" class="h-4 w-4"></i></span>
-                        </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-tasks-today">0</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Daily checklist</span>
+
+                        <!-- Widget 4: Danger Red (Total Revenue / Pipeline Value) -->
+                        <div onclick="window.location.hash = '#/reports'" class="bg-[#e55353] text-white rounded-lg p-4 relative overflow-hidden shadow-sm cursor-pointer card-hover">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="text-2xl font-black tracking-tight" id="stat-revenue-val">₹0</div>
+                                    <div class="text-xs font-semibold uppercase tracking-wider text-white/90 mt-0.5">Pipeline Value</div>
+                                </div>
+                                <div class="p-2 bg-white/10 rounded">
+                                    <i data-lucide="dollar-sign" class="h-5 w-5 text-white"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-[11px] text-white/90">
+                                <span><i data-lucide="trending-up" class="h-3 w-3 inline mr-1"></i>+18.2% vs last Q</span>
+                                <span class="font-bold">Forecast</span>
+                            </div>
+                            <div class="h-8 mt-2 w-full opacity-40">
+                                <canvas id="sparkline-rev" class="w-full h-full"></canvas>
+                            </div>
                         </div>
                     </div>
-                    <!-- Meetings Scheduled -->
-                    <div onclick="window.location.hash = '#/meetings'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Meetings</span>
-                            <span class="p-1.5 bg-rose-50 text-rose-600 rounded-lg"><i data-lucide="calendar" class="h-4 w-4"></i></span>
+
+                    <!-- 8 Secondary Operational Stats Grid (CoreUI clean light cards) -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
+                        <div onclick="window.location.hash = '#/inbox'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Emails Recd</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-emails-recd">0</span>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-meetings">0</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Scheduled calls</span>
+                        <div onclick="window.location.hash = '#/companies'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Companies</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-total-companies">0</span>
                         </div>
-                    </div>
-                    <!-- Revenue Pipeline -->
-                    <div onclick="window.location.hash = '#/deals'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover col-span-2 lg:col-span-1 cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Pipeline Val</span>
-                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="dollar-sign" class="h-4 w-4"></i></span>
+                        <div onclick="window.location.hash = '#/contacts'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Clients</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-active-clients">0</span>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-xl font-black text-slate-900" id="stat-revenue-val">${window.getCurrencySymbol()}0</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Est. forecast</span>
+                        <div onclick="window.location.hash = '#/deals'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Open Deals</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-open-deals">0</span>
                         </div>
-                    </div>
-                    <!-- Conversion Rate -->
-                    <div onclick="window.location.hash = '#/reports'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Conv. Rate</span>
-                            <span class="p-1.5 bg-sky-50 text-sky-600 rounded-lg"><i data-lucide="trending-up" class="h-4 w-4"></i></span>
+                        <div onclick="window.location.hash = '#/tasks'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Follow-ups</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-followups-due">0</span>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-conv-rate">24.5%</span>
-                            <span class="text-[10px] text-emerald-600 font-extrabold block mt-0.5"><i data-lucide="trending-up" class="h-3 w-3 inline mr-0.5"></i> +2.1% this week</span>
+                        <div onclick="window.location.hash = '#/tasks'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Tasks Today</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-tasks-today">0</span>
                         </div>
-                    </div>
-                    <!-- AI processing success rate -->
-                    <div onclick="window.location.hash = '#/ai-insights'" class="bg-white border border-slate-200/90 shadow-2xs rounded-2xl p-4 card-hover cursor-pointer text-left">
-                        <div class="flex justify-between items-center text-slate-500">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">AI Accuracy</span>
-                            <span class="p-1.5 bg-violet-50 text-violet-600 rounded-lg"><i data-lucide="check-circle" class="h-4 w-4"></i></span>
+                        <div onclick="window.location.hash = '#/meetings'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">Meetings</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-meetings">0</span>
                         </div>
-                        <div class="mt-3">
-                            <span class="text-2xl font-black text-slate-900" id="stat-ai-accuracy">98.2%</span>
-                            <span class="text-[10px] text-slate-500 font-medium block mt-0.5">Success threshold</span>
+                        <div onclick="window.location.hash = '#/ai-insights'" class="bg-white border border-[#d8dbe0] rounded p-3 text-center cursor-pointer hover:border-[#321fdb] transition">
+                            <span class="text-[10px] font-bold uppercase text-[#8a93a2] block">AI Accuracy</span>
+                            <span class="text-lg font-black text-[#212631]" id="stat-ai-accuracy">98.2%</span>
                         </div>
                     </div>
                 </div>
@@ -2054,8 +2038,8 @@ function renderDashboardCharts(data) {
                     {
                         label: 'Emails Received',
                         data: emailCounts,
-                        borderColor: '#14B8A6',
-                        backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                        borderColor: '#39f',
+                        backgroundColor: 'rgba(51, 153, 255, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.35
@@ -2063,7 +2047,7 @@ function renderDashboardCharts(data) {
                     {
                         label: 'Leads Created',
                         data: leadCounts,
-                        borderColor: '#6366F1',
+                        borderColor: '#321fdb',
                         backgroundColor: 'transparent',
                         borderWidth: 2,
                         tension: 0.35
@@ -2073,14 +2057,48 @@ function renderDashboardCharts(data) {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#475569', font: { family: 'Inter', size: 10 } } } },
+                plugins: { legend: { labels: { color: '#212631', font: { family: 'sans-serif', size: 10 } } } },
                 scales: {
-                    y: { grid: { color: 'rgba(15, 23, 42, 0.06)' }, ticks: { color: '#64748B', font: { size: 9 } } },
-                    x: { grid: { color: 'transparent' }, ticks: { color: '#64748B', font: { size: 9 } } }
+                    y: { grid: { color: 'rgba(216, 219, 224, 0.5)' }, ticks: { color: '#8a93a2', font: { size: 9 } } },
+                    x: { grid: { color: 'transparent' }, ticks: { color: '#8a93a2', font: { size: 9 } } }
                 }
             }
         });
     }
+
+    // Mini Sparkline helper for CoreUI Top Widgets
+    const renderSparkline = (id, dataPoints, color) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (charts[id]) charts[id].destroy();
+        const ctx = el.getContext('2d');
+        charts[id] = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataPoints.map((_, i) => i),
+                datasets: [{
+                    data: dataPoints,
+                    borderColor: color,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+    };
+
+    renderSparkline('sparkline-leads', [12, 19, 14, 25, 22, 30, 28], '#ffffff');
+    renderSparkline('sparkline-ai', [45, 52, 68, 74, 89, 95, 102], '#ffffff');
+    renderSparkline('sparkline-conv', [14, 18, 16, 22, 21, 26, 25], '#ffffff');
+    renderSparkline('sparkline-rev', [15000, 24000, 18000, 32000, 41000, 48000, 52000], '#ffffff');
 
     // 2. Lead Sources Doughnut Chart
     const sourcesEl = document.getElementById('leadSourcesChart');

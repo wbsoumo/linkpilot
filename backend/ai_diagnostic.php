@@ -56,14 +56,20 @@ $adminId = 1;
 // Live Agent Orchestrator Test
 echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('hello') ---\n";
 require_once __DIR__ . '/agent_orchestrator.php';
-$t0 = microtime(true);
-$orchRes = AgentOrchestrator::sendMessage($adminId, 'test_diag_conv', 'hello', false);
-$orchTook = round(microtime(true) - $t0, 2);
-echo "Orchestrator responded in {$orchTook}s:\n";
-echo "Status: " . ($orchRes['status'] ?? 'unknown') . "\n";
-echo "Reply: " . ($orchRes['message']['content'] ?? 'NO CONTENT') . "\n";
-if (!empty($orchRes['steps'])) {
-    echo "Steps executed: " . count($orchRes['steps']) . "\n";
+try {
+    $conv = AgentOrchestrator::createConversation($adminId, 'Diag Test', $db);
+    $convId = $conv['id'] ?? uniqid('conv_');
+    $t0 = microtime(true);
+    $orchRes = AgentOrchestrator::processChat($adminId, $convId, 'hello', [], null, $db);
+    $orchTook = round(microtime(true) - $t0, 2);
+    echo "Orchestrator responded in {$orchTook}s:\n";
+    echo "Status: " . ($orchRes['status'] ?? 'unknown') . "\n";
+    echo "Reply: " . ($orchRes['message']['content'] ?? 'NO CONTENT') . "\n";
+    if (!empty($orchRes['steps'])) {
+        echo "Steps executed: " . count($orchRes['steps']) . "\n";
+    }
+} catch (Throwable $e) {
+    echo "Orchestrator Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
 }
 echo "Date: " . date('Y-m-d H:i:s') . "\n\n";
 

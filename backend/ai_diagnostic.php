@@ -41,58 +41,51 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// 4. Test Chat Call directly
-echo "\n--- TESTING DIRECT CHAT CALL ---\n";
-$messages = [
-    ['role' => 'user', 'content' => 'hello, reply with one word test']
-];
-
-$tools = AIToolRegistry::getToolsForMessage('hello');
-echo "Filtered Tools for 'hello': " . count($tools) . " tools\n";
+// 4. Test Model Queries
+echo "\n--- TESTING MODEL QUERIES ---\n";
 
 foreach ($candidates as $c) {
     $prov = $c['provider'];
-    $model = $c['model'];
     $key = $c['api_key'];
-    echo "\nTesting Candidate {$prov} ({$model})...\n";
 
-    $endpoint = "https://openrouter.ai/api/v1/chat/completions";
-    $headers = [
-        "Authorization: Bearer " . $key,
-        "Content-Type: application/json"
-    ];
-
-    if ($prov === 'github_models') {
-        $endpoint = "https://models.inference.ai.azure.com/chat/completions";
-        $headers[] = "User-Agent: LinkPilot-AI";
-    } elseif ($prov === 'google_ai_studio') {
-        $endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-    } elseif ($prov === 'groq') {
-        $endpoint = "https://api.groq.com/openai/v1/chat/completions";
-    } else {
-        $headers[] = "HTTP-Referer: https://linkpilot.work";
-        $headers[] = "X-Title: LinkPilot AI Agent";
+    if ($prov === 'google_ai_studio') {
+        echo "\nListing models for Google AI Studio...\n";
+        $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models?key=" . urlencode($key));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $res = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        echo "Google models HTTP Code: $httpCode\n";
+        $data = json_decode($res, true);
+        if (!empty($data['models'])) {
+            $modelNames = array_map(function($m) { return str_replace('models/', '', $m['name']); }, $data['models']);
+            echo "Available Google models: " . implode(', ', array_slice($modelNames, 0, 15)) . "\n";
+        } else {
+            echo "Google response: " . substr($res, 0, 300) . "\n";
+        }
     }
 
-    $ch = curl_init($endpoint);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-        'model' => $model,
-        'messages' => $messages,
-        'max_tokens' => 50
-    ]));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
-
-    $res = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $err = curl_error($ch);
-
-    echo "HTTP Code: {$httpCode}\n";
-    if ($err) echo "cURL Error: {$err}\n";
-    echo "Response: " . substr($res, 0, 500) . "\n";
+    if ($prov === 'groq') {
+        echo "\nListing models for Groq...\n";
+        $ch = curl_init("https://api.groq.com/openai/v1/models");
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $key"]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $res = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        echo "Groq models HTTP Code: $httpCode\n";
+        $data = json_decode($res, true);
+        if (!empty($data['data'])) {
+            $modelNames = array_map(function($m) { return $m['id']; }, $data['data']);
+            echo "Available Groq models: " . implode(', ', array_slice($modelNames, 0, 15)) . "\n";
+        } else {
+            echo "Groq response: " . substr($res, 0, 300) . "\n";
+        }
+    }
 }
 
 echo "\n=== END DIAGNOSTIC ===\n";

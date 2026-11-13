@@ -10,6 +10,46 @@ if ($token !== 'LP_DIAGNOSTIC_9823') {
 }
 
 require_once __DIR__ . '/config.php';
+
+// Direct GitHub Sync handler with cache-busting
+if (isset($_GET['sync'])) {
+    echo "=== DIRECT GITHUB SYNC ===\n";
+    $syncFiles = [
+        'backend/agent_ai_client.php',
+        'backend/agent_orchestrator.php',
+        'backend/ai_tool_registry.php',
+        'backend/web_search_helper.php',
+        'backend/config.php',
+        'backend/git_pull.php',
+        'backend/ai_diagnostic.php'
+    ];
+    $root = dirname(__DIR__);
+    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
+    $synced = 0;
+    foreach ($syncFiles as $f) {
+        $ch = curl_init($baseUrl . $f . '?t=' . time());
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $c = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code === 200 && !empty($c)) {
+            $dest = $root . '/' . $f;
+            if (!is_dir(dirname($dest))) @mkdir(dirname($dest), 0755, true);
+            if (@file_put_contents($dest, $c) !== false) {
+                echo "Synced: $f (" . strlen($c) . " bytes)\n";
+                $synced++;
+            }
+        } else {
+            echo "Failed $f (HTTP $code)\n";
+        }
+    }
+    if (file_exists($root . '/.htaccess')) @touch($root . '/.htaccess');
+    echo "Sync finished. $synced files updated.\n\n";
+}
+
 require_once __DIR__ . '/agent_ai_client.php';
 require_once __DIR__ . '/ai_tool_registry.php';
 
@@ -119,42 +159,6 @@ foreach ($allKeys as $kRow) {
     $finalKey = ($dec !== false) ? $dec : $kRow['api_key'];
     $mKey = substr($finalKey, 0, 8) . '...' . substr($finalKey, -4);
     echo "ID: {$kRow['id']} | Provider: {$kRow['provider']} | Status: {$kRow['status']} | Key: {$mKey}\n";
-}
-
-// 5. Optional file sync trigger
-if (isset($_GET['sync'])) {
-    echo "\n--- DIRECT GITHUB SYNC ---\n";
-    $syncFiles = [
-        'backend/agent_ai_client.php',
-        'backend/agent_orchestrator.php',
-        'backend/ai_tool_registry.php',
-        'backend/web_search_helper.php',
-        'backend/config.php',
-        'backend/git_pull.php',
-        'backend/ai_diagnostic.php'
-    ];
-    $root = dirname(__DIR__);
-    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
-    $synced = 0;
-    foreach ($syncFiles as $f) {
-        $ch = curl_init($baseUrl . $f);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-        $c = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        if ($code === 200 && !empty($c)) {
-            $dest = $root . '/' . $f;
-            if (!is_dir(dirname($dest))) @mkdir(dirname($dest), 0755, true);
-            if (@file_put_contents($dest, $c) !== false) {
-                echo "Synced: $f (" . strlen($c) . " bytes)\n";
-                $synced++;
-            }
-        }
-    }
-    if (file_exists($root . '/.htaccess')) @touch($root . '/.htaccess');
-    echo "Sync finished. $synced files updated.\n";
 }
 
 echo "\n=== END DIAGNOSTIC ===\n";

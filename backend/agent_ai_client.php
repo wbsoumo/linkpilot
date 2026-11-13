@@ -92,9 +92,9 @@ class AgentAIClient {
 
         // 5. Default model mappings with guaranteed active model IDs
         $modelMap = [
+            'google_ai_studio' => 'gemini-1.5-flash-latest',
+            'openrouter' => 'meta-llama/llama-3.1-8b-instruct',
             'groq' => 'llama-3.1-8b-instant',
-            'openrouter' => 'meta-llama/llama-3.1-8b-instruct:free',
-            'google_ai_studio' => 'gemini-1.5-flash',
             'github_models' => 'gpt-4o-mini'
         ];
 
@@ -102,17 +102,17 @@ class AgentAIClient {
         $safeActiveModel = $activeModel;
         if (!empty($safeActiveModel)) {
             if (strpos($safeActiveModel, '3.1') !== false || strpos($safeActiveModel, '2.0-flash') !== false || strpos($safeActiveModel, '2.5-flash:free') !== false) {
-                $safeActiveModel = $modelMap[$activeProvider] ?? 'gemini-1.5-flash';
+                $safeActiveModel = $modelMap[$activeProvider] ?? 'gemini-1.5-flash-latest';
             }
         }
 
         // Ensure active provider is tested first, followed by fast, authenticated providers
-        $providerOrder = array_unique(array_merge([$activeProvider], ['groq', 'openrouter', 'google_ai_studio', 'github_models']));
+        $providerOrder = array_unique(array_merge([$activeProvider], ['google_ai_studio', 'openrouter', 'groq', 'github_models']));
         $candidates = [];
 
         foreach ($providerOrder as $prov) {
             if (!empty($dbKeys[$prov])) {
-                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'llama-3.1-8b-instant');
+                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-1.5-flash-latest');
                 $candidates[] = [
                     'provider' => $prov,
                     'model' => $provModel,
@@ -125,7 +125,7 @@ class AgentAIClient {
         if (empty($candidates)) {
             $candidates[] = [
                 'provider' => 'openrouter',
-                'model' => 'meta-llama/llama-3.1-8b-instruct:free',
+                'model' => 'meta-llama/llama-3.1-8b-instruct',
                 'api_key' => defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : ''
             ];
         }
@@ -150,9 +150,9 @@ class AgentAIClient {
         $lastError = null;
 
         $modelCatalog = [
+            'google_ai_studio' => ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-pro'],
+            'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5', 'openrouter/auto', 'meta-llama/llama-3.3-70b-instruct'],
             'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192', 'llama3-8b-8192'],
-            'openrouter' => ['meta-llama/llama-3.1-8b-instruct:free', 'meta-llama/llama-3.3-70b-instruct:free', 'google/gemini-2.0-flash-exp:free', 'mistralai/mistral-7b-instruct:free', 'openrouter/auto'],
-            'google_ai_studio' => ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-flash-latest'],
             'github_models' => ['gpt-4o-mini', 'gpt-4o']
         ];
 
@@ -214,7 +214,7 @@ class AgentAIClient {
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
                     $response = curl_exec($ch);
                     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -228,6 +228,15 @@ class AgentAIClient {
                     $data = json_decode($response, true);
                     if ($httpCode !== 200) {
                         $errMsg = $data['error']['message'] ?? ($data['message'] ?? "HTTP {$httpCode} Error");
+
+                        // If Google OpenAI endpoint returned 404, try Google's native generateContent endpoint
+                        if ($provider === 'google_ai_studio') {
+                            $nativeRes = self::callGoogleNative($apiKey, $model, $messages);
+                            if (!empty($nativeRes['content'])) {
+                                return $nativeRes;
+                            }
+                        }
+
                         // If tools parameter caused error on certain models, retry without tools
                         if (!empty($tools) && (stripos($errMsg, 'tool') !== false || stripos($errMsg, 'function') !== false)) {
                             unset($postFields['tools']);
@@ -280,6 +289,50 @@ class AgentAIClient {
         curl_close($ch);
         $data = json_decode($response, true);
         return self::extractChoice($data);
+    }
+
+    /**
+     * Native v1beta generateContent fallback for Google Gemini
+     */
+    private static function callGoogleNative($apiKey, $model, array $messages) {
+        $cleanModel = str_replace('models/', '', $model);
+        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$cleanModel}:generateContent?key=" . urlencode($apiKey);
+
+        $contents = [];
+        foreach ($messages as $msg) {
+            $role = ($msg['role'] === 'assistant') ? 'model' : 'user';
+            $text = is_string($msg['content']) ? $msg['content'] : json_encode($msg['content']);
+            $contents[] = [
+                'role' => $role,
+                'parts' => [['text' => $text]]
+            ];
+        }
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['contents' => $contents]));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200) {
+            $data = json_decode($response, true);
+            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            if (!empty($text)) {
+                return [
+                    'content' => trim($text),
+                    'tool_calls' => [],
+                    'tokens_used' => $data['usageMetadata']['totalTokenCount'] ?? 0
+                ];
+            }
+        }
+        return ['content' => '', 'tool_calls' => [], 'tokens_used' => 0];
     }
 
     /**

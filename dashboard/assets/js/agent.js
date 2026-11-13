@@ -12,30 +12,30 @@
      */
     window.renderAgentView = async function (container, params = {}) {
         container.innerHTML = `
-            <div class="flex h-full w-full overflow-hidden bg-[#f8fafc] text-slate-800 relative">
+            <div id="agent-view-root" class="flex h-full w-full overflow-hidden bg-[#f8fafc] text-slate-800 relative">
                 <!-- 1. LEFT CONVERSATION HISTORY PANEL -->
-                <aside id="agent-history-sidebar" class="w-72 bg-white border-r border-slate-200/90 flex flex-col shrink-0 transition-all duration-300 z-30 fixed lg:relative inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 h-full">
+                <div id="agent-history-sidebar" class="w-72 bg-white border-r border-slate-200/90 flex flex-col shrink-0 transition-all duration-300 z-30 fixed lg:relative inset-y-0 left-0 transform -translate-x-full lg:translate-x-0 h-full">
                     <!-- Sidebar Top Header -->
-                    <div class="p-3.5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div class="p-3.5 border-b border-slate-200/90 flex items-center justify-between bg-slate-50/80">
                         <div class="flex items-center space-x-2">
                             <div class="h-7 w-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-xs">
-                                <i data-lucide="bot" class="h-4 w-4"></i>
+                                <i data-lucide="bot" class="h-4 w-4 text-white"></i>
                             </div>
-                            <span class="text-xs font-bold text-slate-800 tracking-tight">Agent History</span>
+                            <span class="text-xs font-bold text-slate-900 tracking-tight">Agent History</span>
                         </div>
-                        <button onclick="toggleAgentHistorySidebar()" class="lg:hidden text-slate-400 hover:text-slate-600 p-1">
+                        <button onclick="toggleAgentHistorySidebar()" class="lg:hidden text-slate-500 hover:text-slate-800 p-1">
                             <i data-lucide="x" class="h-4 w-4"></i>
                         </button>
                     </div>
 
                     <!-- New Chat Button & Search -->
-                    <div class="p-3 space-y-2 border-b border-slate-100">
+                    <div class="p-3 space-y-2 border-b border-slate-200/90 bg-white">
                         <button onclick="createNewAgentChat()" class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center space-x-2 cursor-pointer">
-                            <i data-lucide="plus" class="h-4 w-4"></i>
-                            <span>New Conversation</span>
+                            <i data-lucide="plus" class="h-4 w-4 text-white"></i>
+                            <span class="text-white">New Conversation</span>
                         </button>
                         <div class="relative">
-                            <input type="text" id="agent-chat-search-input" oninput="filterAgentConversations(this.value)" placeholder="Search conversations..." class="w-full pl-8 pr-3 py-1.5 bg-slate-100/80 border border-transparent focus:border-indigo-400 focus:bg-white rounded-lg text-xs outline-none transition placeholder-slate-400 text-slate-700">
+                            <input type="text" id="agent-chat-search-input" oninput="filterAgentConversations(this.value)" placeholder="Search conversations..." class="w-full pl-8 pr-3 py-1.5 bg-slate-100/90 border border-slate-200/80 focus:border-indigo-500 focus:bg-white rounded-lg text-xs outline-none transition placeholder-slate-400 text-slate-800">
                             <i data-lucide="search" class="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-2"></i>
                         </div>
                     </div>
@@ -48,16 +48,16 @@
                     </div>
 
                     <!-- Sidebar Footer -->
-                    <div class="p-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-[11px] text-slate-500">
-                        <span class="font-medium flex items-center">
+                    <div class="p-3 border-t border-slate-200/90 bg-slate-50/80 flex items-center justify-between text-[11px] text-slate-600">
+                        <span class="font-medium flex items-center text-slate-600">
                             <span class="h-2 w-2 rounded-full bg-emerald-500 mr-1.5"></span>
                             AI Co-Pilot 2.0
                         </span>
-                        <button onclick="openAgentCapabilitiesModal()" class="text-indigo-600 hover:underline font-bold cursor-pointer">
+                        <button onclick="openAgentCapabilitiesModal()" class="text-indigo-600 hover:text-indigo-800 hover:underline font-bold cursor-pointer">
                             Capabilities
                         </button>
                     </div>
-                </aside>
+                </div>
 
                 <!-- Sidebar Backdrop on Mobile -->
                 <div id="agent-history-backdrop" onclick="toggleAgentHistorySidebar()" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-20 lg:hidden"></div>
@@ -65,17 +65,17 @@
                 <!-- 2. RIGHT MAIN CHAT AREA -->
                 <main class="flex-grow flex flex-col h-full min-w-0 bg-[#f8fafc] relative">
                     <!-- Top Bar Header -->
-                    <header class="h-14 px-4 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between shrink-0 sticky top-0 z-10 shadow-xs">
+                    <header id="agent-chat-header" class="h-14 px-4 bg-white border-b border-slate-200 flex items-center justify-between shrink-0 sticky top-0 z-10 shadow-2xs">
                         <div class="flex items-center space-x-3 truncate">
-                            <button onclick="toggleAgentHistorySidebar()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition cursor-pointer" title="Toggle Chat History">
+                            <button onclick="toggleAgentHistorySidebar()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition cursor-pointer" title="Toggle Chat History">
                                 <i data-lucide="menu" class="h-4.5 w-4.5"></i>
                             </button>
                             <div class="truncate">
                                 <div class="flex items-center space-x-2">
-                                    <h2 id="agent-active-title" class="text-xs md:text-sm font-extrabold text-slate-800 truncate">LinkPilot Autonomous Agent</h2>
-                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200/60 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-flex">Central Intelligence</span>
+                                    <h2 id="agent-active-title" class="text-xs md:text-sm font-extrabold text-slate-900 truncate">LinkPilot Autonomous Agent</h2>
+                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-flex">Central Intelligence</span>
                                 </div>
-                                <div class="text-[10px] text-slate-400 flex items-center space-x-1.5 mt-0.5">
+                                <div class="text-[10px] text-slate-500 flex items-center space-x-1.5 mt-0.5">
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
                                     <span>Online • Unified Controller (CRM, WhatsApp, Email, Deals, Tasks, Automations)</span>
                                 </div>
@@ -83,11 +83,11 @@
                         </div>
 
                         <div class="flex items-center space-x-2 shrink-0">
-                            <button onclick="openAgentCapabilitiesModal()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 cursor-pointer" title="What can Agent do?">
+                            <button onclick="openAgentCapabilitiesModal()" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 cursor-pointer shadow-2xs" title="What can Agent do?">
                                 <i data-lucide="help-circle" class="h-3.5 w-3.5 text-indigo-600"></i>
-                                <span class="hidden md:inline">What can I do?</span>
+                                <span class="hidden md:inline text-slate-700 font-semibold">What can I do?</span>
                             </button>
-                            <button onclick="createNewAgentChat()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 transition cursor-pointer" title="New Chat">
+                            <button onclick="createNewAgentChat()" class="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer shadow-2xs" title="New Chat">
                                 <i data-lucide="plus-circle" class="h-4.5 w-4.5 text-indigo-600"></i>
                             </button>
                         </div>
@@ -99,36 +99,36 @@
                     </div>
 
                     <!-- Bottom Fixed Composer Area -->
-                    <div class="p-3 md:p-4 bg-white/90 backdrop-blur-md border-t border-slate-200/80 shrink-0">
+                    <div id="agent-composer-bar" class="p-3 md:p-4 bg-white border-t border-slate-200 shrink-0 shadow-2xs">
                         <div class="max-w-4xl mx-auto space-y-2">
                             <!-- Attachment preview pill -->
                             <div id="agent-attachment-preview" class="hidden flex items-center space-x-2 p-1.5 bg-indigo-50 border border-indigo-200 rounded-lg w-max text-xs text-indigo-800">
-                                <i data-lucide="paperclip" class="h-3.5 w-3.5"></i>
-                                <span id="agent-attachment-name" class="font-medium truncate max-w-xs">file.pdf</span>
+                                <i data-lucide="paperclip" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                <span id="agent-attachment-name" class="font-medium truncate max-w-xs text-indigo-900">file.pdf</span>
                                 <button onclick="clearAgentAttachment()" class="hover:text-red-600 p-0.5"><i data-lucide="x" class="h-3 w-3"></i></button>
                             </div>
 
                             <!-- Input Box -->
-                            <form onsubmit="handleAgentSendMessage(event)" class="relative flex items-end bg-white border border-slate-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 rounded-2xl shadow-sm transition-all duration-200 p-1.5">
+                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="relative flex items-end bg-white border border-slate-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-100 rounded-2xl shadow-xs transition-all duration-200 p-1.5">
                                 <input type="file" id="agent-file-picker" class="hidden" onchange="handleAgentFileSelected(event)">
                                 <button type="button" onclick="document.getElementById('agent-file-picker').click()" class="p-2 text-slate-400 hover:text-slate-600 transition rounded-xl hover:bg-slate-100 cursor-pointer" title="Attach file or screenshot">
                                     <i data-lucide="paperclip" class="h-4 w-4"></i>
                                 </button>
                                 <button type="button" onclick="openAgentCapabilitiesModal()" class="p-2 text-slate-400 hover:text-indigo-600 transition rounded-xl hover:bg-slate-100 mr-1 cursor-pointer" title="Quick capabilities">
-                                    <i data-lucide="sparkles" class="h-4 w-4"></i>
+                                    <i data-lucide="sparkles" class="h-4 w-4 text-indigo-500"></i>
                                 </button>
 
                                 <textarea id="agent-user-prompt-input" rows="1" placeholder="Message LinkPilot Agent (e.g. 'Show stalled deals', 'Summarize unreplied WhatsApp chats', 'Create follow-up task for Rahul')..." onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" class="flex-grow bg-transparent border-0 focus:outline-none focus:ring-0 text-xs md:text-sm text-slate-800 placeholder-slate-400 font-medium py-2 px-1 max-h-36 resize-none leading-relaxed"></textarea>
 
                                 <button type="submit" id="agent-send-button" class="h-8 w-8 md:h-9 md:w-9 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl transition shadow flex items-center justify-center shrink-0 ml-1 cursor-pointer">
-                                    <i data-lucide="arrow-up" class="h-4 w-4"></i>
+                                    <i data-lucide="arrow-up" class="h-4 w-4 text-white"></i>
                                 </button>
                             </form>
 
                             <!-- Proactive footer hint -->
-                            <div class="flex items-center justify-between text-[10px] text-slate-400 px-1">
-                                <span>LinkPilot Agent executes real actions across your business. External & destructive tasks require confirmation.</span>
-                                <span class="hidden sm:inline">Press Enter ↵ to send, Shift+Enter for new line</span>
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 px-1 font-normal">
+                                <span class="text-slate-500">LinkPilot Agent executes real actions across your business. External & destructive tasks require confirmation.</span>
+                                <span class="hidden sm:inline text-slate-400">Press Enter ↵ to send, Shift+Enter for new line</span>
                             </div>
                         </div>
                     </div>
@@ -260,21 +260,21 @@
 
             html += `
                 <div>
-                    <h6 class="px-2 mb-1 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">${groupName}</h6>
+                    <h6 class="px-2 mb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">${groupName}</h6>
                     <div class="space-y-0.5">
             `;
 
             items.forEach(c => {
                 const isActive = (c.id === activeConversationId);
                 const activeClasses = isActive
-                    ? 'bg-slate-200/70 text-slate-900 font-bold border-l-2 border-indigo-600 pl-2.5 shadow-2xs'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900';
+                    ? 'bg-indigo-50/90 text-indigo-950 font-bold border-l-4 border-indigo-600 pl-2.5 shadow-2xs agent-conv-active'
+                    : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950 border-l-4 border-transparent pl-2.5 agent-conv-item';
 
                 html += `
                     <div onclick="selectAgentConversation('${c.id}')" class="group flex items-center justify-between p-2 rounded-xl text-xs transition cursor-pointer ${activeClasses}">
                         <div class="flex items-center space-x-2 truncate">
-                            <i data-lucide="message-square" class="h-3.5 w-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}"></i>
-                            <span class="truncate max-w-[150px]">${escapeHtml(c.title)}</span>
+                            <i data-lucide="message-square" class="h-3.5 w-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}"></i>
+                            <span class="truncate max-w-[155px] ${isActive ? 'text-indigo-950 font-bold' : 'text-slate-800 font-medium'}">${escapeHtml(c.title)}</span>
                         </div>
                         <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition">
                             <button onclick="promptRenameAgentConversation(event, '${c.id}', '${escapeHtml(c.title)}')" class="p-1 hover:text-indigo-600 text-slate-400" title="Rename"><i data-lucide="edit-2" class="h-3 w-3"></i></button>
@@ -435,44 +435,44 @@
                     </p>
                 </div>
 
-                <!-- 6 Core Capability Cards -->
+                <!-- 4 Core Capability Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div onclick="setAgentComposerPrompt('Find all customers who haven\'t responded to our WhatsApp messages in the last 7 days and create follow-up tasks for them.')" class="p-4 bg-white border border-slate-200/90 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
+                    <div onclick="setAgentComposerPrompt('Find all customers who haven\'t responded to our WhatsApp messages in the last 7 days and create follow-up tasks for them.')" class="agent-welcome-card p-4 bg-white border border-slate-200 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
                         <div class="h-9 w-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 group-hover:scale-105 transition">
                             <i data-lucide="message-square" class="h-4.5 w-4.5"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition">WhatsApp Follow-Up Automation</h4>
+                            <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition">WhatsApp Follow-Up Automation</h4>
                             <p class="text-[11px] text-slate-500 mt-0.5">Find unreplied chats in the last 7 days & create tasks.</p>
                         </div>
                     </div>
 
-                    <div onclick="setAgentComposerPrompt('Show me my pending deals and identify any deals that haven\'t received follow-ups in the last 14 days.')" class="p-4 bg-white border border-slate-200/90 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
+                    <div onclick="setAgentComposerPrompt('Show me my pending deals and identify any deals that haven\'t received follow-ups in the last 14 days.')" class="agent-welcome-card p-4 bg-white border border-slate-200 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
                         <div class="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 group-hover:scale-105 transition">
                             <i data-lucide="dollar-sign" class="h-4.5 w-4.5"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition">Pipeline & Deal Intelligence</h4>
+                            <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition">Pipeline & Deal Intelligence</h4>
                             <p class="text-[11px] text-slate-500 mt-0.5">Audit deals at risk and review expected revenue.</p>
                         </div>
                     </div>
 
-                    <div onclick="setAgentComposerPrompt('Give me a complete daily executive briefing of today\'s meetings, hot leads, and overdue tasks.')" class="p-4 bg-white border border-slate-200/90 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
+                    <div onclick="setAgentComposerPrompt('Give me a complete daily executive briefing of today\'s meetings, hot leads, and overdue tasks.')" class="agent-welcome-card p-4 bg-white border border-slate-200 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
                         <div class="h-9 w-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600 shrink-0 group-hover:scale-105 transition">
                             <i data-lucide="sparkles" class="h-4.5 w-4.5"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition">Daily Executive Briefing</h4>
+                            <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition">Daily Executive Briefing</h4>
                             <p class="text-[11px] text-slate-500 mt-0.5">Synthesize today's meetings, priority leads & urgent tasks.</p>
                         </div>
                     </div>
 
-                    <div onclick="setAgentComposerPrompt('Summarize my incoming emails and draft a follow-up reply for the most urgent lead.')" class="p-4 bg-white border border-slate-200/90 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
+                    <div onclick="setAgentComposerPrompt('Summarize my incoming emails and draft a follow-up reply for the most urgent lead.')" class="agent-welcome-card p-4 bg-white border border-slate-200 hover:border-indigo-400 rounded-2xl hover:shadow-md transition duration-200 cursor-pointer group flex items-start space-x-3.5">
                         <div class="h-9 w-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0 group-hover:scale-105 transition">
                             <i data-lucide="mail" class="h-4.5 w-4.5"></i>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition">Email Correspondence Assistant</h4>
+                            <h4 class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition">Email Correspondence Assistant</h4>
                             <p class="text-[11px] text-slate-500 mt-0.5">Search emails, summarize threads & prepare drafts.</p>
                         </div>
                     </div>
@@ -480,12 +480,12 @@
 
                 <!-- Quick Prompt Chips -->
                 <div class="space-y-2">
-                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block text-center">Suggested Commands:</span>
+                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 block text-center">Suggested Commands:</span>
                     <div class="flex flex-wrap gap-2 justify-center text-xs">
-                        <button onclick="setAgentComposerPrompt('What can you do?')" class="px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">What can you do?</button>
-                        <button onclick="setAgentComposerPrompt('Show my pending tasks for today')" class="px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">Today's pending tasks</button>
-                        <button onclick="setAgentComposerPrompt('Find hot leads with high buying intent')" class="px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">🔥 Top hot leads</button>
-                        <button onclick="setAgentComposerPrompt('What is our total pipeline revenue by stage?')" class="px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">📊 Pipeline breakdown</button>
+                        <button onclick="setAgentComposerPrompt('What can you do?')" class="agent-quick-pill px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">What can you do?</button>
+                        <button onclick="setAgentComposerPrompt('Show my pending tasks for today')" class="agent-quick-pill px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">Today's pending tasks</button>
+                        <button onclick="setAgentComposerPrompt('Find hot leads with high buying intent')" class="agent-quick-pill px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">🔥 Top hot leads</button>
+                        <button onclick="setAgentComposerPrompt('What is our total pipeline revenue by stage?')" class="agent-quick-pill px-3 py-1.5 bg-white hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 rounded-full font-medium transition cursor-pointer">📊 Pipeline breakdown</button>
                     </div>
                 </div>
             </div>
@@ -590,7 +590,7 @@
                             <i data-lucide="check" class="h-3.5 w-3.5"></i>
                             <span>Approve & Execute</span>
                         </button>
-                        <button onclick="rejectAgentAction()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                        <button onclick="rejectAgentAction()" class="agent-btn-secondary px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold transition cursor-pointer">
                             Cancel
                         </button>
                     </div>

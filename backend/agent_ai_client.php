@@ -7,133 +7,135 @@ require_once __DIR__ . '/ai_tool_registry.php';
 class AgentAIClient {
 
     /**
-     * Resolves active provider, model, and decrypted API key.
+     * Resolves all available providers with valid API keys across `user_ai_keys`, `users` table, and environment.
      */
-    public static function getActiveAIConfig($userId = null) {
+    public static function getAllAvailableProviders($userId = null) {
         $db = Database::getConnection();
-        $provider = 'github_models';
-        $model = GITHUB_MODELS_MODEL;
+        $candidates = [];
 
+        // 1. Fetch user & admin records from `users`
+        $userRow = null;
+        if ($userId) {
+            try {
+                $stmtUser = $db->prepare("SELECT id, role, active_ai_provider, active_ai_model, openrouter_key, github_key, google_key FROM users WHERE id = ?");
+                $stmtUser->execute([$userId]);
+                $userRow = $stmtUser->fetch(PDO::FETCH_ASSOC);
+            } catch (Throwable $e) {}
+        }
+
+        $adminRow = null;
         try {
-            $stmtAdmin = $db->query("SELECT active_ai_provider, active_ai_model FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
-            $adminRes = $stmtAdmin->fetch();
-            if ($adminRes && !empty($adminRes['active_ai_provider'])) {
-                $provider = $adminRes['active_ai_provider'];
-                if ($provider === 'github_models') {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : GITHUB_MODELS_MODEL;
-                } elseif ($provider === 'google_ai_studio') {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : GOOGLE_AI_STUDIO_MODEL;
-                } elseif ($provider === 'groq') {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : GROQ_MODEL;
-                } else {
-                    $model = !empty($adminRes['active_ai_model']) ? $adminRes['active_ai_model'] : OPENROUTER_MODEL;
+            $stmtAdmin = $db->query("SELECT id, role, active_ai_provider, active_ai_model, openrouter_key, github_key, google_key FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+            $adminRow = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {}
+
+        $targetUser = $userRow ?: $adminRow;
+        $activeProvider = (!empty($targetUser['active_ai_provider'])) ? $targetUser['active_ai_provider'] : 'google_ai_studio';
+        $activeModel = $targetUser['active_ai_model'] ?? null;
+
+        // 2. Fetch keys from `user_ai_keys` table
+        $dbKeys = [];
+        try {
+            $userIds = array_unique(array_filter([$userId, $adminRow['id'] ?? null]));
+            if (!empty($userIds)) {
+                $inClause = implode(',', array_map('intval', $userIds));
+                $stmt = $db->query("SELECT provider, api_key, status FROM user_ai_keys WHERE user_id IN ($inClause) AND status NOT IN ('invalid', 'paused') ORDER BY id ASC");
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($rows as $r) {
+                    $dec = decryptData($r['api_key']);
+                    $cleanKey = ($dec !== false) ? $dec : $r['api_key'];
+                    if (!empty($cleanKey) && strpos($cleanKey, 'placeholder') === false) {
+                        $dbKeys[$r['provider']] = $cleanKey;
+                    }
                 }
             }
-        } catch (Exception $e) {}
+        } catch (Throwable $e) {}
 
-        // Fetch keys list
-        $keysList = [];
-        try {
-            $stmtKeys = $db->prepare("
-                SELECT k.id, k.api_key, k.status 
-                FROM user_ai_keys k 
-                JOIN users u ON k.user_id = u.id 
-                WHERE u.role = 'admin' AND k.provider = ? AND k.status NOT IN ('invalid', 'paused') 
-                ORDER BY FIELD(k.status, 'active', 'limit_exceeded') ASC, k.id ASC
-            ");
-            $stmtKeys->execute([$provider]);
-            $keysList = $stmtKeys->fetchAll();
-        } catch (Exception $e) {}
-
-        $apiKey = '';
-        if (!empty($keysList)) {
-            $rawKey = $keysList[0]['api_key'];
-            $decrypted = decryptData($rawKey);
-            $apiKey = ($decrypted !== false) ? $decrypted : $rawKey;
-        }
-
-        // Fallbacks if no DB key exists
-        if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) {
-            if ($provider === 'github_models') {
-                $apiKey = getenv('GITHUB_TOKEN') ?: getenv('GITHUB_API_KEY') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
-            } elseif ($provider === 'google_ai_studio') {
-                $apiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '');
-            } elseif ($provider === 'groq') {
-                $apiKey = getenv('GROQ_API_KEY') ?: (defined('GROQ_API_KEY') ? GROQ_API_KEY : '');
-            } else {
-                $apiKey = getenv('OPENROUTER_API_KEY') ?: (defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '');
+        // 3. Also check keys saved directly in `users` table
+        foreach ([$userRow, $adminRow] as $u) {
+            if (!$u) continue;
+            if (!empty($u['google_key']) && !isset($dbKeys['google_ai_studio'])) {
+                $dec = decryptData($u['google_key']);
+                $k = ($dec !== false) ? $dec : $u['google_key'];
+                if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['google_ai_studio'] = $k;
+            }
+            if (!empty($u['openrouter_key']) && !isset($dbKeys['openrouter'])) {
+                $dec = decryptData($u['openrouter_key']);
+                $k = ($dec !== false) ? $dec : $u['openrouter_key'];
+                if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['openrouter'] = $k;
+            }
+            if (!empty($u['github_key']) && !isset($dbKeys['github_models'])) {
+                $dec = decryptData($u['github_key']);
+                $k = ($dec !== false) ? $dec : $u['github_key'];
+                if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['github_models'] = $k;
             }
         }
 
-        return [
-            'provider' => $provider,
-            'model' => $model,
-            'api_key' => $apiKey
+        // 4. Fallback to ENV constants if not found in DB
+        if (!isset($dbKeys['groq'])) {
+            $k = getenv('GROQ_API_KEY') ?: (defined('GROQ_API_KEY') ? GROQ_API_KEY : '');
+            if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['groq'] = $k;
+        }
+        if (!isset($dbKeys['google_ai_studio'])) {
+            $k = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '');
+            if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['google_ai_studio'] = $k;
+        }
+        if (!isset($dbKeys['openrouter'])) {
+            $k = getenv('OPENROUTER_API_KEY') ?: (defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '');
+            if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['openrouter'] = $k;
+        }
+        if (!isset($dbKeys['github_models'])) {
+            $k = getenv('GITHUB_TOKEN') ?: getenv('GITHUB_API_KEY') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
+            if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['github_models'] = $k;
+        }
+
+        // 5. Default model mappings
+        $modelMap = [
+            'google_ai_studio' => defined('GOOGLE_AI_STUDIO_MODEL') ? GOOGLE_AI_STUDIO_MODEL : 'gemini-2.0-flash',
+            'groq' => defined('GROQ_MODEL') ? GROQ_MODEL : 'llama-3.3-70b-versatile',
+            'openrouter' => defined('OPENROUTER_MODEL') ? OPENROUTER_MODEL : 'google/gemini-2.0-flash-lite:free',
+            'github_models' => defined('GITHUB_MODELS_MODEL') ? GITHUB_MODELS_MODEL : 'gpt-4o-mini'
         ];
+
+        // Ensure active provider is tested first
+        $providerOrder = array_unique(array_merge([$activeProvider], ['google_ai_studio', 'groq', 'openrouter', 'github_models']));
+
+        foreach ($providerOrder as $prov) {
+            if (!empty($dbKeys[$prov])) {
+                $provModel = ($prov === $activeProvider && !empty($activeModel)) ? $activeModel : ($modelMap[$prov] ?? 'gpt-4o-mini');
+                $candidates[] = [
+                    'provider' => $prov,
+                    'model' => $provModel,
+                    'api_key' => $dbKeys[$prov]
+                ];
+            }
+        }
+
+        // If no configured key, provide default openrouter fallback
+        if (empty($candidates)) {
+            $candidates[] = [
+                'provider' => 'openrouter',
+                'model' => 'google/gemini-2.0-flash-lite:free',
+                'api_key' => defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : ''
+            ];
+        }
+
+        return $candidates;
     }
 
     /**
-     * Resolves all available providers with valid API keys for resilient automatic failover.
+     * Resolves the primary active provider configuration.
      */
-    public static function getAllAvailableProviders($userId = null) {
-        $candidates = [];
-        $primary = self::getActiveAIConfig($userId);
-        if (!empty($primary['api_key']) && strpos($primary['api_key'], 'placeholder') === false) {
-            $candidates[$primary['provider']] = $primary;
-        }
-
-        // Fallback candidate 1: Groq (ultra fast inference)
-        $groqKey = getenv('GROQ_API_KEY') ?: (defined('GROQ_API_KEY') ? GROQ_API_KEY : '');
-        if (!empty($groqKey) && strpos($groqKey, 'placeholder') === false && !isset($candidates['groq'])) {
-            $candidates['groq'] = [
-                'provider' => 'groq',
-                'model' => defined('GROQ_MODEL') ? GROQ_MODEL : 'llama-3.3-70b-versatile',
-                'api_key' => $groqKey
-            ];
-        }
-
-        // Fallback candidate 2: Google AI Studio
-        $geminiKey = getenv('GEMINI_API_KEY') ?: (defined('GEMINI_API_KEY') ? GEMINI_API_KEY : '');
-        if (!empty($geminiKey) && strpos($geminiKey, 'placeholder') === false && !isset($candidates['google_ai_studio'])) {
-            $candidates['google_ai_studio'] = [
-                'provider' => 'google_ai_studio',
-                'model' => defined('GOOGLE_AI_STUDIO_MODEL') ? GOOGLE_AI_STUDIO_MODEL : 'gemini-2.0-flash',
-                'api_key' => $geminiKey
-            ];
-        }
-
-        // Fallback candidate 3: OpenRouter
-        $openrouterKey = getenv('OPENROUTER_API_KEY') ?: (defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : '');
-        if (!empty($openrouterKey) && strpos($openrouterKey, 'placeholder') === false && !isset($candidates['openrouter'])) {
-            $candidates['openrouter'] = [
-                'provider' => 'openrouter',
-                'model' => defined('OPENROUTER_MODEL') ? OPENROUTER_MODEL : 'google/gemini-2.0-flash-lite:free',
-                'api_key' => $openrouterKey
-            ];
-        }
-
-        // Fallback candidate 4: GitHub Models
-        $ghKey = getenv('GITHUB_TOKEN') ?: getenv('GITHUB_API_KEY') ?: (defined('GITHUB_TOKEN') ? GITHUB_TOKEN : '');
-        if (!empty($ghKey) && strpos($ghKey, 'placeholder') === false && !isset($candidates['github_models'])) {
-            $candidates['github_models'] = [
-                'provider' => 'github_models',
-                'model' => defined('GITHUB_MODELS_MODEL') ? GITHUB_MODELS_MODEL : 'gpt-4o-mini',
-                'api_key' => $ghKey
-            ];
-        }
-
-        if (empty($candidates)) {
-            $candidates[$primary['provider']] = $primary;
-        }
-
-        return array_values($candidates);
+    public static function getActiveAIConfig($userId = null) {
+        $all = self::getAllAvailableProviders($userId);
+        return $all[0];
     }
 
     /**
      * Executes OpenAI compatible Chat Completion with tool calling and automatic multi-provider failover.
-     * Guarantees that a valid reply is returned rather than failing or returning blank.
+     * Fast 8s timeout prevents hanging and guarantees quick responses.
      */
-    public static function callChat(array $messages, array $tools = [], $userId = null, $maxTokens = 1200) {
+    public static function callChat(array $messages, array $tools = [], $userId = null, $maxTokens = 1000) {
         $providers = self::getAllAvailableProviders($userId);
         $lastError = null;
 
@@ -142,7 +144,7 @@ class AgentAIClient {
             $model = $cfg['model'];
             $apiKey = $cfg['api_key'];
 
-            if (empty($apiKey)) continue;
+            if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) continue;
 
             $endpoint = "https://openrouter.ai/api/v1/chat/completions";
             $headers = [
@@ -165,7 +167,7 @@ class AgentAIClient {
             $postFields = [
                 "model" => $model,
                 "messages" => $messages,
-                "temperature" => 0.2,
+                "temperature" => 0.3,
                 "max_tokens" => $maxTokens
             ];
 
@@ -181,7 +183,8 @@ class AgentAIClient {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 30); // 30s timeout per provider for fast failover
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4); // 4s connect timeout
+                curl_setopt($ch, CURLOPT_TIMEOUT, 8); // 8s fast execution timeout
 
                 $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -218,9 +221,9 @@ class AgentAIClient {
             }
         }
 
-        // Guaranteed safety reply - never return blank or throw unhandled error
+        // If all providers failed, throw or return contextual notice
         return [
-            'content' => "I am connected and ready. What would you like to review today across your CRM contacts, deals, tasks, or WhatsApp messages?",
+            'content' => "I am having trouble reaching the AI model right now due to a network or authentication timeout. Please check your AI API key in Settings > Integrations.",
             'tool_calls' => [],
             'tokens_used' => 0
         ];
@@ -232,8 +235,8 @@ class AgentAIClient {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
 
         $response = curl_exec($ch);
         curl_close($ch);

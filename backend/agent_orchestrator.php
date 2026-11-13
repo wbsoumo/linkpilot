@@ -196,11 +196,15 @@ You have direct, real-time access to control, manage, and execute operations acr
 {$integrationsSummary}
 {$memText}
 
-### CASUAL GREETINGS & SHORT CHATS:
+### CASUAL GREETINGS & GENERAL QUESTIONS:
 - When the user sends a greeting (e.g. 'hi', 'hello', 'hey', 'good morning', 'who are you', etc.) or casual comment:
   1. Reply naturally, warmly, and concisely (1 to 2 sentences max).
   2. Answer ONLY what was asked without unnecessary rambling or dumping tool menus unprompted.
   3. Offer 2 to 3 short, relevant recommendations or things you can do for them today as bullet points.
+- When the user asks a general question, general knowledge, or informational query (e.g. 'whats the weather in kolkata ?', 'what is CRM?', 'who was Steve Jobs?'):
+  1. Answer directly, informatively, and helpfully in a conversational tone.
+  2. If real-time meteorological sensor data is not connected, politely provide the general climate/seasonal context for that city and offer to help with workspace tasks.
+  3. Never respond with an unrelated sales pitch when asked an informational question.
 
 ### CAPABILITIES OVERVIEW:
 You are not a passive text generator. You execute real actions using your tool library:
@@ -254,8 +258,9 @@ You are not a passive text generator. You execute real actions using your tool l
             self::renameConversation($userId, $convId, $autoTitle, $db);
         }
 
-        // Check if user message is a short casual greeting to fast-path (skip tool schema overhead)
+        // Check if user message is a short casual greeting or general question with no business tool intent
         $isGreeting = preg_match('/^\s*(hi|hello|hey|hola|namaste|good\s+(morning|afternoon|evening)|howdy|sup|who\s+are\s+you)\b/i', $userMessage);
+        $isGeneralQuestion = preg_match('/^(what|who|where|when|why|how|tell\s+me)\b/i', $userMessage) && !preg_match('/\b(contact|deal|pipeline|lead|task|whatsapp|email|meeting|automation|crm)\b/i', $userMessage);
 
         // Fetch existing rolling summary of conversation
         $stmtSummary = $db->prepare("SELECT summary FROM ai_agent_conversations WHERE id = ? AND user_id = ?");
@@ -286,8 +291,8 @@ You are not a passive text generator. You execute real actions using your tool l
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
-        // For greetings, bypass 15+ tool schemas to achieve instant sub-second response
-        $availableTools = $isGreeting ? [] : AIToolRegistry::getOpenAITools();
+        // For greetings or general questions, bypass 15+ tool schemas to achieve instant sub-second response
+        $availableTools = ($isGreeting || $isGeneralQuestion) ? [] : AIToolRegistry::getOpenAITools();
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;
@@ -440,7 +445,13 @@ You are not a passive text generator. You execute real actions using your tool l
                 }
                 $finalAssistantText = implode("\n\n", $synthesizedParts) . "\n\nWhat would you like me to do next with this information?";
             } else {
-                $finalAssistantText = "I am connected to your LinkPilot workspace. How can I help you right now with your CRM contacts, deals, tasks, or WhatsApp conversations?";
+                if ($isGeneralQuestion) {
+                    $finalAssistantText = "I don't currently have access to live internet browsing or live external feeds (such as real-time weather), but I'm fully equipped to manage your LinkPilot contacts, leads, deals, tasks, and WhatsApp automations.";
+                } elseif ($isGreeting) {
+                    $finalAssistantText = "Hello! How can I assist you today with your LinkPilot CRM, leads, tasks, or WhatsApp conversations?";
+                } else {
+                    $finalAssistantText = "I am connected to your LinkPilot workspace. How can I help you right now with your CRM contacts, deals, tasks, or WhatsApp conversations?";
+                }
             }
         }
 

@@ -71,7 +71,8 @@ try {
     $orchTook = round(microtime(true) - $t0, 2);
     echo "Orchestrator responded in {$orchTook}s:\n";
     echo "Status: " . ($orchRes['status'] ?? 'unknown') . "\n";
-    echo "Reply: " . ($orchRes['message']['content'] ?? 'NO CONTENT') . "\n";
+    $replyText = $orchRes['content'] ?? ($orchRes['message']['content'] ?? 'NO CONTENT');
+    echo "Reply: " . $replyText . "\n";
     if (!empty($orchRes['steps'])) {
         echo "Steps executed: " . count($orchRes['steps']) . "\n";
     }

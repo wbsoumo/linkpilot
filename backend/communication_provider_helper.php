@@ -153,8 +153,11 @@ class CommunicationProviderHelper {
             $isSuccess = !empty($sentRes['status']) || !empty($sentRes['success']);
             if (!$isSuccess) {
                 $err = $sentRes['message'] ?? 'SMTP Dispatch Failed';
-                $db->prepare("UPDATE communication_actions SET status = 'failed', provider_response = ? WHERE idempotency_token = ?")
-                   ->execute([json_encode(['error' => $err]), $idempotencyToken]);
+                try {
+                    $dbActive = Database::getConnection();
+                    $dbActive->prepare("UPDATE communication_actions SET status = 'failed', provider_response = ? WHERE idempotency_token = ?")
+                       ->execute([json_encode(['error' => $err]), $idempotencyToken]);
+                } catch (Throwable $eDb) {}
                 throw new Exception("Email dispatch failed: " . $err);
             }
             $executionResult = $sentRes;

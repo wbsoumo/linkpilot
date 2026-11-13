@@ -33,8 +33,8 @@ class EmailIntelligenceService {
 
             $results[] = [
                 'id' => (int)$email['id'],
-                'from_email' => $email['from_email'],
-                'contact_name' => $email['contact_name'] ?? $email['from_email'],
+                'sender_email' => $email['sender_email'] ?? '',
+                'contact_name' => $email['contact_name'] ?? ($email['sender_name'] ?? ($email['sender_email'] ?? '')),
                 'contact_company' => $email['contact_company'] ?? '',
                 'subject' => $email['subject'],
                 'date' => $email['created_at'],

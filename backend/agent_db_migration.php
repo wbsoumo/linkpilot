@@ -155,6 +155,13 @@ class AgentDBMigration {
             }
         } catch (Throwable $e) {}
 
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `crm_activity_timeline` LIKE 'metadata_json'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `crm_activity_timeline` ADD COLUMN `metadata_json` LONGTEXT DEFAULT NULL");
+            }
+        } catch (Throwable $e) {}
+
         self::$migrated = true;
     }
 }

@@ -364,20 +364,34 @@ class CRMSyncHelper {
             $db = Database::getConnection();
         }
 
+        $metaVal = !empty($metadata) ? json_encode($metadata) : null;
         try {
-            $stmt = $db->prepare("INSERT INTO crm_activity_timeline (user_id, contact_id, channel, direction, summary, metadata_json) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO crm_activity_timeline (user_id, contact_id, channel, direction, summary, meta_data_json) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $userId,
                 $contactId ? (int)$contactId : null,
                 $channel,
                 $direction,
                 $summary,
-                !empty($metadata) ? json_encode($metadata) : null
+                $metaVal
             ]);
             return $db->lastInsertId();
         } catch (Exception $e) {
-            error_log("logActivity Error: " . $e->getMessage());
-            return false;
+            try {
+                $stmt = $db->prepare("INSERT INTO crm_activity_timeline (user_id, contact_id, channel, direction, summary, metadata_json) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute([
+                    $userId,
+                    $contactId ? (int)$contactId : null,
+                    $channel,
+                    $direction,
+                    $summary,
+                    $metaVal
+                ]);
+                return $db->lastInsertId();
+            } catch (Exception $e2) {
+                error_log("logActivity Error: " . $e2->getMessage());
+                return false;
+            }
         }
     }
 
@@ -574,14 +588,20 @@ class CRMSyncHelper {
     /**
      * Adds a tag to contact tags list.
      */
-    public static function addContactTag($userId, $contactId, $tagName, $db = null) {
-        if (!$db) $db = Database::getConnection();
+    public static function addContactTag($userId, $contactId, $tagName, $colorOrDb = null, $db = null) {
+        if ($colorOrDb instanceof PDO) {
+            $db = $colorOrDb;
+        } elseif (!$db) {
+            $db = Database::getConnection();
+        }
 
         $tagName = trim($tagName);
         if (empty($tagName)) return false;
 
         // Ensure tag exists in master tags table
-        $db->prepare("INSERT IGNORE INTO crm_contact_tags (user_id, tag_name) VALUES (?, ?)")->execute([$userId, $tagName]);
+        try {
+            $db->prepare("INSERT IGNORE INTO crm_contact_tags (user_id, tag_name) VALUES (?, ?)")->execute([$userId, $tagName]);
+        } catch (Exception $e) {}
 
         // Append tag to crm_contacts.tags if not present
         $stmtC = $db->prepare("SELECT tags FROM crm_contacts WHERE id = ? AND user_id = ? LIMIT 1");

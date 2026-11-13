@@ -10,7 +10,7 @@ chdir($root);
 echo "Working directory: " . getcwd() . "\n";
 echo "Date: " . date('Y-m-d H:i:s') . "\n";
 
-$cmd = "git pull origin main 2>&1";
+$cmd = "GIT_TERMINAL_PROMPT=0 git pull origin main 2>&1";
 $output = [];
 $executed = false;
 

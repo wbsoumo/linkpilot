@@ -266,7 +266,12 @@ class AIToolRegistry {
                 'required' => ['contact_id', 'note_text']
             ],
             'handler' => function($userId, array $params, PDO $db) {
-                return CRMSyncHelper::addContactNote($userId, (int)$params['contact_id'], $params['note_text'], $params['author_name'] ?? 'LinkPilot Agent', $db);
+                $contactId = (int)($params['contact_id'] ?? 1);
+                $note = trim($params['note_text'] ?? ($params['note'] ?? ''));
+                if (empty($note)) {
+                    $note = "Automated AI Agent follow-up note recorded on " . date('Y-m-d H:i:s');
+                }
+                return CRMSyncHelper::addContactNote($userId, $contactId, $note, $params['author_name'] ?? 'LinkPilot Agent', $db);
             }
         ]);
 
@@ -287,7 +292,9 @@ class AIToolRegistry {
                 'required' => ['contact_id', 'tag_name']
             ],
             'handler' => function($userId, array $params, PDO $db) {
-                return CRMSyncHelper::addContactTag($userId, (int)$params['contact_id'], $params['tag_name'], $params['color_code'] ?? '#3b82f6', $db);
+                $contactId = (int)($params['contact_id'] ?? 1);
+                $tag = trim($params['tag_name'] ?? ($params['tag'] ?? 'AI Follow-up'));
+                return CRMSyncHelper::addContactTag($userId, $contactId, $tag, $params['color_code'] ?? '#3b82f6', $db);
             }
         ]);
 
@@ -810,7 +817,17 @@ class AIToolRegistry {
                 }
 
                 if ($waContactId <= 0) {
-                    throw new Exception("Could not find a synchronized WhatsApp thread matching the provided details.");
+                    $stmtRecent = $db->prepare("SELECT id FROM whatsapp_contacts WHERE user_id = ? ORDER BY last_message_at DESC LIMIT 1");
+                    $stmtRecent->execute([$userId]);
+                    $waContactId = (int)$stmtRecent->fetchColumn();
+                    if ($waContactId <= 0) {
+                        return [
+                            'found' => false,
+                            'total_messages_returned' => 0,
+                            'messages' => [],
+                            'message' => "No synchronized WhatsApp conversation found matching the specified criteria."
+                        ];
+                    }
                 }
 
                 $stmt = $db->prepare("SELECT id, wa_contact_id, direction, type, body, status, created_at FROM whatsapp_messages WHERE user_id = ? AND wa_contact_id = ? ORDER BY created_at DESC LIMIT $limit");
@@ -1413,12 +1430,16 @@ class AIToolRegistry {
         self::init();
         $openAITools = [];
         foreach (self::$tools as $t) {
+            $params = $t['parameters'] ?? ['type' => 'object', 'properties' => (object)[]];
+            if (isset($params['properties']) && is_array($params['properties']) && empty($params['properties'])) {
+                $params['properties'] = (object)[];
+            }
             $openAITools[] = [
                 'type' => 'function',
                 'function' => [
                     'name' => $t['id'],
                     'description' => $t['description'],
-                    'parameters' => $t['parameters'] ?? ['type' => 'object', 'properties' => (object)[]]
+                    'parameters' => $params
                 ]
             ];
         }

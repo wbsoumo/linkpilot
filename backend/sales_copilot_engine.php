@@ -14,7 +14,7 @@ class SalesCopilotEngine {
             LEFT JOIN crm_contacts c ON (c.id = d.contact_id AND c.user_id = d.user_id)
             LEFT JOIN crm_companies co ON (co.id = c.company_id AND co.user_id = c.user_id)
             WHERE d.user_id = ? AND d.stage NOT IN ('Closed Won', 'Closed Lost')
-            ORDER BY d.value DESC LIMIT 20
+            ORDER BY d.expected_revenue DESC LIMIT 20
         ");
         $stmt->execute([$userId]);
         $deals = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -40,7 +40,7 @@ class SalesCopilotEngine {
                 $results[] = [
                     'id' => (int)$deal['id'],
                     'title' => $deal['title'],
-                    'value' => (float)$deal['value'],
+                    'value' => (float)($deal['expected_revenue'] ?? 0),
                     'stage' => $deal['stage'],
                     'contact_name' => $deal['contact_name'] ?? 'N/A',
                     'contact_company' => $deal['contact_company'] ?? 'N/A',

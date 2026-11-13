@@ -27,11 +27,11 @@ function sendCorsHeaders() {
 sendCorsHeaders();
 
 // Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'helnovexaa_linkdb');
-define('DB_USER', 'helnovexaa_linkuser');
-define('DB_PASS', 'Soumojit1234@');
-define('DB_PORT', '3306');
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('DB_NAME') ?: 'helnovexaa_linkdb');
+define('DB_USER', getenv('DB_USER') ?: 'helnovexaa_linkuser');
+define('DB_PASS', getenv('DB_PASS') ?: 'Soumojit1234@');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
 
 // JWT Configuration
 define('JWT_SECRET', 'linkpilot_super_secret_key_2026_jwt_token_auth');
@@ -111,6 +111,7 @@ class Database {
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                     PDO::ATTR_EMULATE_PREPARES   => false,
                     PDO::ATTR_PERSISTENT         => false,
+                    PDO::ATTR_TIMEOUT            => 5,
                 ];
                 try {
                     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";port=" . DB_PORT . ";charset=utf8mb4";
@@ -715,6 +716,9 @@ class Database {
                 } catch (Exception $e) {}
                 }
             } catch (PDOException $e) {
+                if (php_sapi_name() === 'cli') {
+                    throw $e;
+                }
                 http_response_code(500);
                 echo json_encode([
                     "status" => "error",

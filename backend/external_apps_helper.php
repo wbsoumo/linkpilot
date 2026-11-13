@@ -64,11 +64,16 @@ class GoogleOAuthHelper {
 }
 
 class ExternalAppsHelper {
+    private static $schemaChecked = false;
 
     /**
      * Self-healing database check. Automatically creates connection table and adds missing columns.
      */
     public static function checkDatabaseSchema() {
+        if (self::$schemaChecked) {
+            return;
+        }
+        self::$schemaChecked = true;
         $db = Database::getConnection();
         try {
             // 1. Create external_app_connections table if missing

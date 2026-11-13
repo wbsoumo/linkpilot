@@ -242,6 +242,7 @@ class SMTPHelper {
             $mail->SMTPAuth   = true;
             $mail->Username   = $smtp['username'];
             $mail->Password   = $decryptedPassword;
+            $mail->Timeout    = 5;
             
             // Port and Security
             $port = (int)$smtp['port'];
@@ -455,8 +456,7 @@ class SMTPHelper {
      */
     public static function callAwsProxyWorker($action, $data) {
         $workerUrls = [
-            "http://13.232.195.16/mailbaby/index.php?action=" . urlencode($action),
-            "https://mailbaby.linkpilot.work/index.php?action=" . urlencode($action)
+            "http://13.232.195.16/mailbaby/index.php?action=" . urlencode($action)
         ];
         $secretKey = "LINKPILOT_AWS_SECRET_KEY_2026";
 
@@ -469,15 +469,15 @@ class SMTPHelper {
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $curlErr = curl_error($ch);
-            curl_close($ch);
+            @curl_close($ch);
 
             if ($httpCode === 200 && !empty($response)) {
                 $res = json_decode($response, true);

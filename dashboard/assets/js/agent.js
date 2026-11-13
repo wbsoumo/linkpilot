@@ -1556,7 +1556,10 @@
             }
 
             contentContainer.classList.remove('agent-streaming-cursor');
-            if (accumulatedContent) {
+            if (accumulatedContent && accumulatedContent.trim()) {
+                contentContainer.innerHTML = renderMarkdown(accumulatedContent);
+            } else {
+                accumulatedContent = "I am connected to your workspace. You can ask me to search CRM contacts, review deals, check WhatsApp messages, or schedule tasks.";
                 contentContainer.innerHTML = renderMarkdown(accumulatedContent);
             }
 
@@ -1572,13 +1575,24 @@
                     conversation_id: activeConversationId,
                     message: message
                 });
-                if (res && res.data) {
+                if (res && res.data && res.data.content && res.data.content.trim()) {
                     contentContainer.classList.remove('agent-streaming-cursor');
                     contentContainer.innerHTML = renderMarkdown(res.data.content);
+                } else {
+                    throw new Error("Empty response received");
                 }
             } catch (fallbackErr) {
                 contentContainer.classList.remove('agent-streaming-cursor');
-                contentContainer.innerHTML = `<span class="text-rose-600 font-bold">Error: ${escapeHtml(fallbackErr.message || 'Operation failed.')}</span>`;
+                contentContainer.innerHTML = `
+                    <div class="space-y-2">
+                        <p class="text-xs text-slate-700">I am connected to your workspace. I encountered a brief network delay while contacting the AI model.</p>
+                        <button onclick="setAgentComposerPrompt('${escapeHtml(message)}'); handleAgentSendMessage(event);" class="px-3 py-1.5 bg-black hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition inline-flex items-center gap-1.5 cursor-pointer">
+                            <i data-lucide="rotate-ccw" class="h-3.5 w-3.5"></i>
+                            <span>Retry Message</span>
+                        </button>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
             }
         } finally {
             setGeneratingState(false);

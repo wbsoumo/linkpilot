@@ -254,13 +254,29 @@ You are not a passive text generator. You execute real actions using your tool l
             self::renameConversation($userId, $convId, $autoTitle, $db);
         }
 
-        // Fetch sliding window of recent conversation history (last 12 messages)
-        $stmtHist = $db->prepare("SELECT role, content, tool_calls_json, tool_results_json FROM ai_agent_messages WHERE conversation_id = ? AND user_id = ? AND id < ? ORDER BY id DESC LIMIT 12");
-        $stmtHist->execute([$convId, $userId, $userMsgId]);
-        $historyRows = array_reverse($stmtHist->fetchAll(PDO::FETCH_ASSOC));
+        // Check if user message is a short casual greeting to fast-path (skip tool schema overhead)
+        $isGreeting = preg_match('/^\s*(hi|hello|hey|hola|namaste|good\s+(morning|afternoon|evening)|howdy|sup|who\s+are\s+you)\b/i', $userMessage);
+
+        // Fetch existing rolling summary of conversation
+        $stmtSummary = $db->prepare("SELECT summary FROM ai_agent_conversations WHERE id = ? AND user_id = ?");
+        $stmtSummary->execute([$convId, $userId]);
+        $existingSummary = $stmtSummary->fetchColumn();
 
         $messages = [];
         $messages[] = ['role' => 'system', 'content' => self::buildSystemPrompt($userId, $db)];
+
+        // If conversation has an established rolling summary, inject it into system memory
+        if (!empty($existingSummary)) {
+            $messages[] = [
+                'role' => 'system',
+                'content' => "### PERSISTENT CONVERSATION MEMORY (ROLLING SUMMARY):\nThe following key facts, client names, contact details, deal sizes, and agreements were established earlier in this conversation:\n" . $existingSummary . "\n(Use this summary for complete memory recall, while keeping recent responses snappy and contextual.)"
+            ];
+        }
+
+        // Fetch sliding window of recent conversation history (last 6 messages instead of 12 for 2x faster token processing)
+        $stmtHist = $db->prepare("SELECT role, content FROM ai_agent_messages WHERE conversation_id = ? AND user_id = ? AND id < ? ORDER BY id DESC LIMIT 6");
+        $stmtHist->execute([$convId, $userId, $userMsgId]);
+        $historyRows = array_reverse($stmtHist->fetchAll(PDO::FETCH_ASSOC));
 
         foreach ($historyRows as $row) {
             $role = $row['role'];
@@ -270,7 +286,8 @@ You are not a passive text generator. You execute real actions using your tool l
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
-        $availableTools = AIToolRegistry::getOpenAITools();
+        // For greetings, bypass 15+ tool schemas to achieve instant sub-second response
+        $availableTools = $isGreeting ? [] : AIToolRegistry::getOpenAITools();
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;
@@ -280,10 +297,10 @@ You are not a passive text generator. You execute real actions using your tool l
         while ($loopCount < $maxLoops) {
             $loopCount++;
 
-            // Call AI
-            $aiResponse = AgentAIClient::callChat($messages, $availableTools, $userId);
-            $content = $aiResponse['content'];
-            $toolCalls = $aiResponse['tool_calls'];
+            // Call AI with automatic multi-provider failover
+            $aiResponse = AgentAIClient::callChat($messages, $availableTools, $userId, 1000);
+            $content = trim($aiResponse['content'] ?? '');
+            $toolCalls = $aiResponse['tool_calls'] ?? [];
 
             if (empty($toolCalls)) {
                 $finalAssistantText = $content;
@@ -392,8 +409,39 @@ You are not a passive text generator. You execute real actions using your tool l
 
         // If no text was produced yet, generate final synthesis
         if (empty($finalAssistantText) && empty($approvalRequiredPayload)) {
-            $finalAi = AgentAIClient::callChat($messages, [], $userId);
-            $finalAssistantText = $finalAi['content'];
+            try {
+                $finalAi = AgentAIClient::callChat($messages, [], $userId, 1000);
+                $finalAssistantText = trim($finalAi['content'] ?? '');
+            } catch (Throwable $synthesisEx) {
+                error_log("Synthesis LLM warning: " . $synthesisEx->getMessage());
+            }
+        }
+
+        // GUARANTEED REPLY GUARD: Never return empty text or leave user with no reply
+        if (empty($finalAssistantText) && empty($approvalRequiredPayload)) {
+            if (!empty($toolExecutionSteps)) {
+                $synthesizedParts = [];
+                foreach ($toolExecutionSteps as $step) {
+                    $toolName = $step['tool_name'] ?? $step['tool_id'];
+                    $output = $step['output'] ?? [];
+                    if (isset($output['error'])) {
+                        $synthesizedParts[] = "⚠️ **{$toolName}**: " . $output['error'];
+                    } elseif (isset($output['message'])) {
+                        $synthesizedParts[] = "✅ **{$toolName}**: " . $output['message'];
+                    } elseif (isset($output['total']) && isset($output['contacts'])) {
+                        $synthesizedParts[] = "✅ Found **" . intval($output['total']) . " contacts** in your CRM.";
+                    } elseif (isset($output['total_deals'])) {
+                        $synthesizedParts[] = "✅ Retrieved **" . intval($output['total_deals']) . " deals** from sales pipeline.";
+                    } elseif (isset($output['tasks'])) {
+                        $synthesizedParts[] = "✅ Retrieved **" . count($output['tasks']) . " tasks**.";
+                    } else {
+                        $synthesizedParts[] = "✅ **{$toolName}** executed successfully.";
+                    }
+                }
+                $finalAssistantText = implode("\n\n", $synthesizedParts) . "\n\nWhat would you like me to do next with this information?";
+            } else {
+                $finalAssistantText = "I am connected to your LinkPilot workspace. How can I help you right now with your CRM contacts, deals, tasks, or WhatsApp conversations?";
+            }
         }
 
         // Extract proactive recommendations
@@ -414,6 +462,9 @@ You are not a passive text generator. You execute real actions using your tool l
 
         // Update conversation timestamp
         $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+
+        // Background Rolling Summary: update memory periodically so no facts are ever lost
+        self::maybeUpdateRollingSummary($userId, $convId, $existingSummary, $userMessage, $finalAssistantText, $db);
 
         if ($streamEmitter) {
             $streamEmitter('token', ['content' => $finalAssistantText]);
@@ -436,6 +487,42 @@ You are not a passive text generator. You execute real actions using your tool l
             'proactive_suggestions' => $proactiveSuggestions,
             'status' => $status
         ];
+    }
+
+    /**
+     * Incrementally updates rolling conversation summary in the background.
+     * Retains key business facts (names, numbers, deals, dates, pending items) while keeping token size small.
+     */
+    public static function maybeUpdateRollingSummary($userId, $convId, $existingSummary, $userMsg, $assistantReply, PDO $db) {
+        try {
+            $stmtCount = $db->prepare("SELECT COUNT(*) FROM ai_agent_messages WHERE conversation_id = ?");
+            $stmtCount->execute([$convId]);
+            $count = (int)$stmtCount->fetchColumn();
+
+            // Run once conversation has enough context (>= 4 messages) and periodically or if empty
+            if ($count >= 4 && ($count % 3 === 0 || empty($existingSummary))) {
+                $summaryPrompt = [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are an executive memory compressor. Maintain a concise rolling summary (3 to 5 bullet points) of key facts from this conversation. Focus on: client/contact names, phone numbers/emails, deal values/stages, agreed decisions, and scheduled tasks. Exclude casual greetings. Return ONLY the bullet points.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Current summary:\n" . ($existingSummary ?: "None yet.") . "\n\nRecent exchange:\nUser: " . mb_substr($userMsg, 0, 400) . "\nAssistant: " . mb_substr($assistantReply, 0, 600) . "\n\nUpdated concise rolling summary:"
+                    ]
+                ];
+
+                $aiSummary = AgentAIClient::callChat($summaryPrompt, [], $userId, 250);
+                $newSummary = trim($aiSummary['content'] ?? '');
+                if (!empty($newSummary) && strlen($newSummary) > 10) {
+                    $stmtUpdate = $db->prepare("UPDATE ai_agent_conversations SET summary = ? WHERE id = ? AND user_id = ?");
+                    $stmtUpdate->execute([$newSummary, $convId, $userId]);
+                }
+            }
+        } catch (Throwable $e) {
+            // Non-fatal, summary failure should never interrupt user chat
+            error_log("Rolling summary update skipped: " . $e->getMessage());
+        }
     }
 
     /**

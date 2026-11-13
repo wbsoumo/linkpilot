@@ -197,7 +197,8 @@
 #agent-history-sidebar {
     background-color: #ffffff !important;
     color: #1e293b !important;
-    border-right: 1px solid #e2e8f0 !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: width, opacity;
 }
 
 #agent-history-sidebar * {
@@ -213,7 +214,7 @@
 #agent-history-sidebar h6 {
     color: #64748b !important;
     font-size: 10px !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
 }
@@ -222,7 +223,7 @@
 #agent-history-sidebar button.bg-indigo-600 {
     background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
     color: #ffffff !important;
-    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25) !important;
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.2) !important;
     border: none !important;
 }
 #agent-history-sidebar button.bg-indigo-600 * {
@@ -231,7 +232,7 @@
 }
 #agent-history-sidebar button.bg-indigo-600:hover {
     background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%) !important;
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35) !important;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3) !important;
 }
 
 /* Search Input */
@@ -284,7 +285,7 @@
 }
 .agent-conv-active span {
     color: #312e81 !important; /* deep indigo-900 */
-    font-weight: 700 !important;
+    font-weight: 600 !important;
 }
 .agent-conv-active i,
 .agent-conv-active svg {
@@ -314,46 +315,32 @@
 #agent-chat-header {
     background-color: #ffffff !important;
     border-bottom: 1px solid #e2e8f0 !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
 }
 
 #agent-active-title {
     color: #0f172a !important;
 }
 
-#agent-chat-header button {
-    background-color: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    color: #334155 !important;
-}
-#agent-chat-header button * {
-    color: #334155 !important;
-}
-#agent-chat-header button i.text-indigo-600,
-#agent-chat-header button svg.text-indigo-600 {
-    color: #4f46e5 !important;
-    stroke: #4f46e5 !important;
-}
-#agent-chat-header button:hover {
-    background-color: #f8fafc !important;
-    border-color: #cbd5e1 !important;
-    color: #0f172a !important;
-}
-
-/* 3. Bottom Composer Bar */
+/* 3. Bottom Floating Composer Bar */
 #agent-composer-bar {
-    background-color: #ffffff !important;
-    border-top: 1px solid #e2e8f0 !important;
-    box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.02) !important;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.95) 30%, #f8fafc 100%) !important;
+    border-top: none !important;
+    box-shadow: none !important;
 }
 
 #agent-composer-form {
     background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+#agent-composer-form:hover {
+    border-color: #cbd5e1 !important;
 }
 #agent-composer-form:focus-within {
     border-color: #6366f1 !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12), 0 4px 16px -2px rgba(15, 23, 42, 0.08) !important;
 }
 
 #agent-user-prompt-input {
@@ -362,20 +349,6 @@
 }
 #agent-user-prompt-input::placeholder {
     color: #94a3b8 !important;
-}
-
-#agent-composer-form button[type="button"] {
-    background: transparent !important;
-    border: none !important;
-    color: #64748b !important;
-}
-#agent-composer-form button[type="button"] * {
-    color: #64748b !important;
-    stroke: #64748b !important;
-}
-#agent-composer-form button[type="button"]:hover {
-    background-color: #f1f5f9 !important;
-    color: #0f172a !important;
 }
 
 #agent-send-button {
@@ -391,19 +364,16 @@
     background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%) !important;
 }
 
-#agent-composer-bar .text-slate-500 {
-    color: #64748b !important;
-}
-
 /* 4. Welcome Screen & Cards */
 .agent-welcome-card {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+    transition: all 0.15s ease !important;
 }
 .agent-welcome-card:hover {
-    border-color: #818cf8 !important;
-    box-shadow: 0 6px 16px -2px rgba(79, 70, 229, 0.08) !important;
+    border-color: #a5b4fc !important;
+    box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.08) !important;
     transform: translateY(-1px);
 }
 .agent-welcome-card h4 {
@@ -420,12 +390,13 @@
 .agent-quick-pill {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    color: #334155 !important;
+    color: #475569 !important;
+    transition: all 0.15s ease !important;
 }
 .agent-quick-pill:hover {
-    background-color: #eef2ff !important;
-    border-color: #c7d2fe !important;
-    color: #4338ca !important;
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #4f46e5 !important;
 }
 
 /* 5. Secondary buttons */

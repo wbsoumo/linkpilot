@@ -375,13 +375,13 @@ async function navigateTo(view, params = {}) {
             }
         }
         
-        if (view !== 'automation' || !window.wfState.activeWorkflow) {
+        if (view === 'agent' || (view === 'automation' && window.wfState.activeWorkflow)) {
+            const assistantBtn = document.getElementById('ai-chat-trigger-btn');
+            if (assistantBtn) assistantBtn.classList.add('hidden');
+        } else {
             toggleSidebarCollapsed(false);
             const assistantBtn = document.getElementById('ai-chat-trigger-btn');
             if (assistantBtn) assistantBtn.classList.remove('hidden');
-        } else {
-            const assistantBtn = document.getElementById('ai-chat-trigger-btn');
-            if (assistantBtn) assistantBtn.classList.add('hidden');
         }
         
         // Clear WhatsApp CRM context if navigating away from whatsapp views

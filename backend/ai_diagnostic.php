@@ -41,16 +41,91 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// 4. Test Chat Execution via AgentAIClient::callChat
-echo "\n--- TESTING FULL AgentAIClient::callChat() ---\n";
-$start = microtime(true);
-$res = AgentAIClient::callChat([
-    ['role' => 'user', 'content' => 'hello, reply with one short sentence']
-], [], $adminId);
-$elapsed = round(microtime(true) - $start, 2);
-echo "Elapsed Time: {$elapsed}s\n";
-echo "Response Content: " . ($res['content'] ?? 'EMPTY') . "\n";
-echo "Tokens Used: " . ($res['tokens_used'] ?? 0) . "\n";
+// 4. Test each candidate individually with exact response
+echo "\n--- INDIVIDUAL CANDIDATE TESTS ---\n";
+foreach ($candidates as $idx => $c) {
+    $prov = $c['provider'];
+    $model = $c['model'];
+    $key = $c['api_key'];
+    $maskedKey = substr($key, 0, 8) . '...' . substr($key, -4);
+    echo "\n[Test $idx] Provider: $prov | Model: $model | Key: $maskedKey\n";
+
+    $endpoint = "https://openrouter.ai/api/v1/chat/completions";
+    $headers = [
+        "Authorization: Bearer " . $key,
+        "Content-Type: application/json"
+    ];
+
+    if ($prov === 'github_models') {
+        $endpoint = "https://models.inference.ai.azure.com/chat/completions";
+        $headers[] = "User-Agent: LinkPilot-AI";
+    } elseif ($prov === 'google_ai_studio') {
+        $endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+    } elseif ($prov === 'groq') {
+        $endpoint = "https://api.groq.com/openai/v1/chat/completions";
+    } else {
+        $headers[] = "HTTP-Referer: https://linkpilot.work";
+        $headers[] = "X-Title: LinkPilot AI Agent";
+    }
+
+    $ch = curl_init($endpoint);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+        'model' => $model,
+        'messages' => [['role' => 'user', 'content' => 'hi']],
+        'max_tokens' => 20
+    ]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+    $t0 = microtime(true);
+    $res = curl_exec($ch);
+    $took = round(microtime(true) - $t0, 2);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $err = curl_error($ch);
+    curl_close($ch);
+
+    echo "  Time: {$took}s | HTTP: {$httpCode}\n";
+    if ($err) echo "  cURL Error: {$err}\n";
+    echo "  Response: " . substr($res, 0, 400) . "\n";
+
+    // If Google, also test native v1beta endpoint
+    if ($prov === 'google_ai_studio') {
+        echo "  [Google Native Endpoint Test]:\n";
+        $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . urlencode($key);
+        $ch2 = curl_init($nativeUrl);
+        curl_setopt($ch2, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+        curl_setopt($ch2, CURLOPT_POST, true);
+        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode([
+            "contents" => [["parts" => [["text" => "hi"]]]]
+        ]));
+        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch2, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch2, CURLOPT_TIMEOUT, 10);
+        $res2 = curl_exec($ch2);
+        $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+        $err2 = curl_error($ch2);
+        curl_close($ch2);
+        echo "  Native HTTP: {$httpCode2}\n";
+        if ($err2) echo "  Native Error: {$err2}\n";
+        echo "  Native Response: " . substr($res2, 0, 400) . "\n";
+    }
+}
+
+// 5. Test all rows in user_ai_keys
+echo "\n--- ALL USER_AI_KEYS TABLE ROWS ---\n";
+$stmtAll = $db->query("SELECT id, user_id, provider, status, api_key FROM user_ai_keys ORDER BY id ASC");
+$allKeys = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
+foreach ($allKeys as $kRow) {
+    $dec = decryptData($kRow['api_key']);
+    $finalKey = ($dec !== false) ? $dec : $kRow['api_key'];
+    $mKey = substr($finalKey, 0, 8) . '...' . substr($finalKey, -4);
+    echo "ID: {$kRow['id']} | Provider: {$kRow['provider']} | Status: {$kRow['status']} | Key: {$mKey}\n";
+}
 
 // 5. Optional file sync trigger
 if (isset($_GET['sync'])) {

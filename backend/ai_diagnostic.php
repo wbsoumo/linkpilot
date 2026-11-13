@@ -15,6 +15,7 @@ require_once __DIR__ . '/config.php';
 if (isset($_GET['sync'])) {
     echo "=== DIRECT GITHUB SYNC ===\n";
     $syncFiles = [
+        '.cpanel.yml',
         'backend/agent_ai_client.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
@@ -24,10 +25,16 @@ if (isset($_GET['sync'])) {
         'backend/ai_diagnostic.php'
     ];
     $root = dirname(__DIR__);
-    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
+    $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");
+    curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
+    curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
+    $commitData = json_decode(curl_exec($chCommit), true);
+    $sha = $commitData['sha'] ?? 'main';
+    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/{$sha}/";
     $synced = 0;
     foreach ($syncFiles as $f) {
-        $ch = curl_init($baseUrl . $f . '?t=' . time());
+        $ch = curl_init($baseUrl . $f);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);

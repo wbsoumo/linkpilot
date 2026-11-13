@@ -81,11 +81,34 @@ if (!$executed) {
         'backend/git_pull.php'
     ];
 
-    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
+    // 1. Fetch latest commit SHA from GitHub first for 100% cache-free immutable raw URLs
+    $latestSha = 'main';
+    try {
+        $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");
+        curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
+        curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($chCommit, CURLOPT_TIMEOUT, 10);
+        $commitJson = curl_exec($chCommit);
+        $commitData = json_decode($commitJson, true);
+        if (!empty($commitData['sha'])) {
+            $latestSha = trim($commitData['sha']);
+            $gitHeadPath = $root . '/.git/refs/heads/main';
+            if (is_dir(dirname($gitHeadPath))) {
+                @file_put_contents($gitHeadPath, $latestSha . "\n");
+                @file_put_contents($root . '/.git/ORIG_HEAD', $latestSha . "\n");
+                echo "Latest GitHub commit identified: {$latestSha}\n";
+            }
+        }
+    } catch (Throwable $e) {
+        echo "Git ref update notice: " . $e->getMessage() . "\n";
+    }
+
+    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/{$latestSha}/";
     $synced = 0;
 
     foreach ($syncFiles as $file) {
-        $url = $baseUrl . $file . '?t=' . time();
+        $url = $baseUrl . $file;
         $target = $root . '/' . $file;
 
         $ch = curl_init($url);
@@ -111,28 +134,6 @@ if (!$executed) {
         }
     }
     echo "Pure PHP sync completed: {$synced}/" . count($syncFiles) . " files updated.\n";
-
-    // Update .git/refs/heads/main so cPanel Git Version Control detects latest commit
-    try {
-        $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");
-        curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
-        curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($chCommit, CURLOPT_TIMEOUT, 10);
-        $commitJson = curl_exec($chCommit);
-        $commitData = json_decode($commitJson, true);
-        if (!empty($commitData['sha'])) {
-            $latestSha = trim($commitData['sha']);
-            $gitHeadPath = $root . '/.git/refs/heads/main';
-            if (is_dir(dirname($gitHeadPath))) {
-                @file_put_contents($gitHeadPath, $latestSha . "\n");
-                @file_put_contents($root . '/.git/ORIG_HEAD', $latestSha . "\n");
-                echo "Updated .git/refs/heads/main to: {$latestSha}\n";
-            }
-        }
-    } catch (Throwable $e) {
-        echo "Git ref update notice: " . $e->getMessage() . "\n";
-    }
 }
 
 // Touch .htaccess to flush LiteSpeed PHP opcache

@@ -1103,12 +1103,15 @@ class AIToolRegistry {
                 ]
             ],
             'handler' => function($userId, array $params, PDO $db) {
-                $query = "SELECT id, name, description, trigger_type, status, is_active, runs_count, success_count, failed_count, last_run_at FROM automation_workflows WHERE user_id = ?";
+                $query = "SELECT id, name, trigger_type, trigger_value, is_active, created_at FROM automation_workflows WHERE user_id = ?";
                 $binds = [$userId];
 
                 if (!empty($params['status']) && $params['status'] !== 'all') {
-                    $query .= " AND status = ?";
-                    $binds[] = trim($params['status']);
+                    if ($params['status'] === 'active') {
+                        $query .= " AND is_active = 1";
+                    } elseif ($params['status'] === 'draft' || $params['status'] === 'paused') {
+                        $query .= " AND is_active = 0";
+                    }
                 }
 
                 $query .= " ORDER BY id DESC";
@@ -1138,8 +1141,8 @@ class AIToolRegistry {
                 $isActive = $params['is_active'] ? 1 : 0;
                 $status = $isActive ? 'active' : 'paused';
 
-                $stmt = $db->prepare("UPDATE automation_workflows SET is_active = ?, status = ? WHERE id = ? AND user_id = ?");
-                $stmt->execute([$isActive, $status, $wfId, $userId]);
+                $stmt = $db->prepare("UPDATE automation_workflows SET is_active = ? WHERE id = ? AND user_id = ?");
+                $stmt->execute([$isActive, $wfId, $userId]);
 
                 return [
                     'workflow_id' => $wfId,
@@ -1353,10 +1356,25 @@ class AIToolRegistry {
             'approval_required' => false,
             'parameters' => ['type' => 'object', 'properties' => []],
             'handler' => function($userId, array $params, PDO $db) {
-                $balance = getUserCreditsBalance($userId, $db);
+                $stmt = $db->prepare("SELECT total_credits, used_credits, remaining_credits, free_credits, purchased_credits FROM user_email_credits WHERE user_id = ?");
+                $stmt->execute([$userId]);
+                $wallet = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (!$wallet) {
+                    $wallet = [
+                        'total_credits' => 200,
+                        'used_credits' => 0,
+                        'remaining_credits' => 200,
+                        'free_credits' => 200,
+                        'purchased_credits' => 0
+                    ];
+                }
                 return [
-                    'credits_balance' => $balance,
-                    'formatted' => "₹" . number_format($balance, 2)
+                    'remaining_credits' => (int)($wallet['remaining_credits'] ?? 0),
+                    'free_credits' => (int)($wallet['free_credits'] ?? 0),
+                    'purchased_credits' => (int)($wallet['purchased_credits'] ?? 0),
+                    'used_credits' => (int)($wallet['used_credits'] ?? 0),
+                    'total_credits' => (int)($wallet['total_credits'] ?? 0),
+                    'formatted' => number_format((int)($wallet['remaining_credits'] ?? 0)) . " Credits"
                 ];
             }
         ]);

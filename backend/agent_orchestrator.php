@@ -134,19 +134,32 @@ class AgentOrchestrator {
         $companyName = $user['company_name'] ?? 'LinkPilot Workspace';
 
         // Integrations overview
-        $stmtWa = $db->prepare("SELECT status, business_name FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
-        $stmtWa->execute([$userId]);
-        $wa = $stmtWa->fetch(PDO::FETCH_ASSOC);
+        $integrationsSummary = "- WhatsApp Cloud API: Not Connected\n- Business Email: Not Connected\n- Google Calendar: Not Connected\n- Zoom Meetings: Not Connected";
+        try {
+            $stmtWa = $db->prepare("SELECT status, business_name FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
+            $stmtWa->execute([$userId]);
+            $wa = $stmtWa->fetch(PDO::FETCH_ASSOC);
 
-        $smtp = SMTPHelper::getSMTPConfig($userId);
-        $stmtGmail = $db->prepare("SELECT setting_value FROM external_app_settings WHERE user_id = ? AND app_name = 'google_gmail' AND setting_key = 'access_token' LIMIT 1");
-        $stmtGmail->execute([$userId]);
-        $hasGmail = (bool)$stmtGmail->fetchColumn();
+            $smtp = SMTPHelper::getSMTPConfig($userId);
+            $hasGmail = false;
+            try {
+                $stmtGmail = $db->prepare("SELECT access_token FROM external_app_connections WHERE user_id = ? AND provider = 'google' AND status = 'connected' LIMIT 1");
+                $stmtGmail->execute([$userId]);
+                $hasGmail = (bool)$stmtGmail->fetchColumn();
+            } catch (Throwable $e) {}
 
-        $integrationsSummary = "- WhatsApp Cloud API: " . ($wa ? "Connected ({$wa['business_name']})" : "Not Connected") . "\n";
-        $integrationsSummary .= "- Business Email: " . ($smtp ? "Connected (SMTP: {$smtp['sender_email']})" : ($hasGmail ? "Connected (Gmail OAuth)" : "Not Connected")) . "\n";
-        $integrationsSummary .= "- Google Calendar: " . (ExternalAppsHelper::isGoogleConnected($userId) ? "Connected" : "Not Connected") . "\n";
-        $integrationsSummary .= "- Zoom Meetings: " . (ExternalAppsHelper::isZoomConnected($userId) ? "Connected" : "Not Connected");
+            $hasGoogleCal = false;
+            $hasZoom = false;
+            if (class_exists('ExternalAppsHelper')) {
+                try { $hasGoogleCal = ExternalAppsHelper::isGoogleConnected($userId); } catch (Throwable $e) {}
+                try { $hasZoom = ExternalAppsHelper::isZoomConnected($userId); } catch (Throwable $e) {}
+            }
+
+            $integrationsSummary = "- WhatsApp Cloud API: " . ($wa ? "Connected ({$wa['business_name']})" : "Not Connected") . "\n";
+            $integrationsSummary .= "- Business Email: " . ($smtp ? "Connected (SMTP: {$smtp['sender_email']})" : ($hasGmail ? "Connected (Gmail OAuth)" : "Not Connected")) . "\n";
+            $integrationsSummary .= "- Google Calendar: " . ($hasGoogleCal ? "Connected" : "Not Connected") . "\n";
+            $integrationsSummary .= "- Zoom Meetings: " . ($hasZoom ? "Connected" : "Not Connected");
+        } catch (Throwable $e) {}
 
         // Long-term user memories
         $stmtMem = $db->prepare("SELECT key_name, value_text FROM ai_agent_memory WHERE user_id = ? LIMIT 20");

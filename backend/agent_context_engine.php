@@ -20,9 +20,12 @@ class AgentContextEngine {
 
         // 2. Integration availability checks
         $smtpConfig = SMTPHelper::getSMTPConfig($userId);
-        $stmtGmail = $db->prepare("SELECT setting_value FROM external_app_settings WHERE user_id = ? AND app_name = 'google_gmail' AND setting_key = 'access_token' LIMIT 1");
-        $stmtGmail->execute([$userId]);
-        $gmailToken = $stmtGmail->fetchColumn();
+        $gmailToken = null;
+        try {
+            $stmtGmail = $db->prepare("SELECT access_token FROM external_app_connections WHERE user_id = ? AND provider = 'google' AND status = 'connected' LIMIT 1");
+            $stmtGmail->execute([$userId]);
+            $gmailToken = $stmtGmail->fetchColumn();
+        } catch (Throwable $e) {}
 
         $stmtWa = $db->prepare("SELECT id FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
         $stmtWa->execute([$userId]);

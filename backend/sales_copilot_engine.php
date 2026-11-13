@@ -9,9 +9,10 @@ class SalesCopilotEngine {
 
     public static function getRiskDeals(int $userId, PDO $db): array {
         $stmt = $db->prepare("
-            SELECT d.*, c.name as contact_name, c.company as contact_company
+            SELECT d.*, c.name as contact_name, co.name as contact_company
             FROM crm_deals d
             LEFT JOIN crm_contacts c ON (c.id = d.contact_id AND c.user_id = d.user_id)
+            LEFT JOIN crm_companies co ON (co.id = c.company_id AND co.user_id = c.user_id)
             WHERE d.user_id = ? AND d.stage NOT IN ('Closed Won', 'Closed Lost')
             ORDER BY d.value DESC LIMIT 20
         ");

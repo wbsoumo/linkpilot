@@ -101,6 +101,60 @@ class AgentDBMigration {
             INDEX `idx_agent_step_lookup` (`execution_id`, `step_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
+        // 6. Compatibility & self-healing migrations across schemas
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS `external_app_settings` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `user_id` INT NOT NULL,
+                `app_name` VARCHAR(100) NOT NULL,
+                `setting_key` VARCHAR(100) NOT NULL,
+                `setting_value` TEXT DEFAULT NULL,
+                INDEX `idx_eas_lookup` (`user_id`, `app_name`, `setting_key`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {}
+
+        try {
+            $db->exec("CREATE OR REPLACE VIEW `email_templates` AS 
+                SELECT id, user_id, name, subject, category, tag, html_content, created_at, updated_at 
+                FROM `custom_email_templates`");
+        } catch (Throwable $e) {}
+
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `whatsapp_templates` LIKE 'body_text'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `whatsapp_templates` ADD COLUMN `body_text` TEXT DEFAULT NULL");
+            }
+        } catch (Throwable $e) {}
+
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `whatsapp_campaigns` LIKE 'total_recipients'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `whatsapp_campaigns` ADD COLUMN `total_recipients` INT DEFAULT 0");
+            }
+        } catch (Throwable $e) {}
+
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `automation_workflows` LIKE 'description'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `automation_workflows` ADD COLUMN `description` TEXT DEFAULT NULL");
+            }
+        } catch (Throwable $e) {}
+
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `automation_workflows` LIKE 'status'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `automation_workflows` ADD COLUMN `status` VARCHAR(50) DEFAULT 'active'");
+            }
+        } catch (Throwable $e) {}
+
+        try {
+            $stmt = $db->query("SHOW COLUMNS FROM `crm_contacts` LIKE 'company'");
+            if (!$stmt->fetch()) {
+                $db->exec("ALTER TABLE `crm_contacts` ADD COLUMN `company` VARCHAR(255) DEFAULT NULL");
+                $db->exec("UPDATE `crm_contacts` c JOIN `crm_companies` co ON c.company_id = co.id SET c.company = co.name WHERE c.company IS NULL");
+            }
+        } catch (Throwable $e) {}
+
         self::$migrated = true;
     }
 }

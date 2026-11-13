@@ -8,9 +8,10 @@ class EmailIntelligenceService {
 
     public static function getUnrepliedEmails(int $userId, PDO $db, int $limit = 15): array {
         $stmt = $db->prepare("
-            SELECT e.*, c.name as contact_name, c.company as contact_company
+            SELECT e.*, c.name as contact_name, co.name as contact_company
             FROM received_emails e
-            LEFT JOIN crm_contacts c ON (c.email = e.from_email AND c.user_id = e.user_id)
+            LEFT JOIN crm_contacts c ON (c.email = e.sender_email AND c.user_id = e.user_id)
+            LEFT JOIN crm_companies co ON (co.id = c.company_id AND co.user_id = c.user_id)
             WHERE e.user_id = ? AND e.is_archived = 0 AND e.is_spam = 0
             ORDER BY e.created_at DESC
             LIMIT ?
@@ -60,7 +61,7 @@ class EmailIntelligenceService {
         $email = $contact['email'] ?? '';
         $stmt = $db->prepare("
             SELECT * FROM received_emails
-            WHERE user_id = ? AND (from_email = ? OR recipient = ?)
+            WHERE user_id = ? AND (sender_email = ? OR recipient_email = ?)
             ORDER BY created_at DESC LIMIT 10
         ");
         $stmt->execute([$userId, $email, $email]);
@@ -75,8 +76,9 @@ class EmailIntelligenceService {
             ];
         }
 
+        $company = $contact['company_name'] ?? $contact['company'] ?? '';
         $latest = $threads[0];
-        $summaryText = "Conversation with {$contact['name']} ({$contact['company']}): " . count($threads) . " recent email(s). Latest message subject: '{$latest['subject']}' on {$latest['created_at']}. Context: Interested in CRM solutions and product pricing.";
+        $summaryText = "Conversation with {$contact['name']}" . ($company ? " ($company)" : "") . ": " . count($threads) . " recent email(s). Latest message subject: '{$latest['subject']}' on {$latest['created_at']}. Context: Synchronized email correspondence.";
 
         return [
             'found' => true,

@@ -55,7 +55,7 @@ define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 
 // Google AI Studio API Configuration
 define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
-define('GOOGLE_AI_STUDIO_MODEL', 'gemini-flash-latest');
+define('GOOGLE_AI_STUDIO_MODEL', 'gemini-3.1-flash-lite');
 
 // Groq API Configuration
 define('GROQ_API_KEY', getenv('GROQ_API_KEY') ?: '');

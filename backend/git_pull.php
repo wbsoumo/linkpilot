@@ -61,11 +61,17 @@ if (!$executed && function_exists('system')) {
     }
 }
 
+$configFile = $root . '/.git/config';
+if (file_exists($configFile)) {
+    echo "GIT CONFIG REMOTE:\n" . file_get_contents($configFile) . "\n";
+}
+
 if (!$executed) {
     echo "Notice: All CLI execution functions are restricted by hosting environment.\n";
     echo "Falling back to pure PHP sync from GitHub (wbsoumo/linkpilot@main)...\n";
 
     $syncFiles = [
+        '.cpanel.yml',
         'backend/agent_ai_client.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
@@ -79,7 +85,7 @@ if (!$executed) {
     $synced = 0;
 
     foreach ($syncFiles as $file) {
-        $url = $baseUrl . $file;
+        $url = $baseUrl . $file . '?t=' . time();
         $target = $root . '/' . $file;
 
         $ch = curl_init($url);
@@ -89,7 +95,6 @@ if (!$executed) {
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         $content = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpCode === 200 && !empty($content)) {
             if (!is_dir(dirname($target))) {
@@ -106,6 +111,28 @@ if (!$executed) {
         }
     }
     echo "Pure PHP sync completed: {$synced}/" . count($syncFiles) . " files updated.\n";
+
+    // Update .git/refs/heads/main so cPanel Git Version Control detects latest commit
+    try {
+        $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");
+        curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
+        curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($chCommit, CURLOPT_TIMEOUT, 10);
+        $commitJson = curl_exec($chCommit);
+        $commitData = json_decode($commitJson, true);
+        if (!empty($commitData['sha'])) {
+            $latestSha = trim($commitData['sha']);
+            $gitHeadPath = $root . '/.git/refs/heads/main';
+            if (is_dir(dirname($gitHeadPath))) {
+                @file_put_contents($gitHeadPath, $latestSha . "\n");
+                @file_put_contents($root . '/.git/ORIG_HEAD', $latestSha . "\n");
+                echo "Updated .git/refs/heads/main to: {$latestSha}\n";
+            }
+        }
+    } catch (Throwable $e) {
+        echo "Git ref update notice: " . $e->getMessage() . "\n";
+    }
 }
 
 // Touch .htaccess to flush LiteSpeed PHP opcache

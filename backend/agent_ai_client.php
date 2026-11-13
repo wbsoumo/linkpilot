@@ -150,7 +150,7 @@ class AgentAIClient {
         $lastError = null;
 
         $modelCatalog = [
-            'google_ai_studio' => ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-pro-latest'],
+            'google_ai_studio' => ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-pro-latest'],
             'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5', 'openrouter/auto', 'meta-llama/llama-3.3-70b-instruct'],
             'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192', 'llama3-8b-8192'],
             'github_models' => ['gpt-4o-mini', 'gpt-4o']
@@ -298,46 +298,144 @@ class AgentAIClient {
     }
 
     /**
-     * Native v1beta generateContent fallback for Google Gemini
+     * Native v1beta generateContent for Google Gemini.
+     * Supports system_instruction, function_declarations (tools), and multiturn conversation.
      */
-    private static function callGoogleNative($apiKey, $model, array $messages) {
+    private static function callGoogleNative($apiKey, $model, array $messages, array $tools = []) {
         $cleanModel = str_replace('models/', '', $model);
         $url = "https://generativelanguage.googleapis.com/v1beta/models/{$cleanModel}:generateContent?key=" . urlencode($apiKey);
 
+        $systemParts = [];
         $contents = [];
+
         foreach ($messages as $msg) {
-            $role = ($msg['role'] === 'assistant') ? 'model' : 'user';
-            $text = is_string($msg['content']) ? $msg['content'] : json_encode($msg['content']);
+            $role = $msg['role'] ?? 'user';
+            $text = is_string($msg['content'] ?? '') ? $msg['content'] : json_encode($msg['content'] ?? '');
+
+            if ($role === 'system') {
+                if (!empty($text)) {
+                    $systemParts[] = ['text' => $text];
+                }
+                continue;
+            }
+
+            $geminiRole = ($role === 'assistant') ? 'model' : 'user';
+
+            // If preceding message had the same role, combine them to satisfy Gemini's strict alternating turn rule
+            $lastIdx = count($contents) - 1;
+            if ($lastIdx >= 0 && $contents[$lastIdx]['role'] === $geminiRole) {
+                $contents[$lastIdx]['parts'][] = ['text' => $text];
+            } else {
+                $contents[] = [
+                    'role' => $geminiRole,
+                    'parts' => [['text' => $text]]
+                ];
+            }
+        }
+
+        // Gemini requires first content turn to be 'user'
+        if (!empty($contents) && $contents[0]['role'] !== 'user') {
+            array_unshift($contents, [
+                'role' => 'user',
+                'parts' => [['text' => 'Hello']]
+            ]);
+        }
+
+        if (empty($contents)) {
             $contents[] = [
-                'role' => $role,
-                'parts' => [['text' => $text]]
+                'role' => 'user',
+                'parts' => [['text' => 'Hello']]
             ];
+        }
+
+        $payload = ['contents' => $contents];
+
+        if (!empty($systemParts)) {
+            $payload['system_instruction'] = ['parts' => $systemParts];
+        }
+
+        // Convert OpenAI-style tools to Gemini function_declarations
+        if (!empty($tools)) {
+            $funcDecls = [];
+            foreach ($tools as $t) {
+                if (!empty($t['function'])) {
+                    $fn = $t['function'];
+                    $decl = [
+                        'name' => $fn['name'],
+                        'description' => $fn['description'] ?? ''
+                    ];
+                    if (!empty($fn['parameters'])) {
+                        $decl['parameters'] = $fn['parameters'];
+                    }
+                    $funcDecls[] = $decl;
+                }
+            }
+            if (!empty($funcDecls)) {
+                $payload['tools'] = [['function_declarations' => $funcDecls]];
+            }
         }
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['contents' => $contents]));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
-        if ($httpCode === 200) {
+        if ($httpCode === 200 && !empty($response)) {
             $data = json_decode($response, true);
-            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-            if (!empty($text)) {
+            $candidate = $data['candidates'][0]['content'] ?? [];
+            $parts = $candidate['parts'] ?? [];
+
+            $textContent = '';
+            $toolCalls = [];
+
+            foreach ($parts as $p) {
+                if (isset($p['text'])) {
+                    $textContent .= $p['text'];
+                }
+                if (isset($p['functionCall'])) {
+                    $toolCalls[] = [
+                        'id' => 'call_' . uniqid(),
+                        'name' => $p['functionCall']['name'] ?? '',
+                        'arguments' => $p['functionCall']['args'] ?? []
+                    ];
+                }
+            }
+
+            $textContent = trim($textContent);
+
+            // Also check if text content contains markdown tool calls
+            if (empty($toolCalls) && !empty($textContent)) {
+                if (preg_match_all('/```(?:tool_call|json)?\s*(\{\s*"name"\s*:\s*"[^"]+".*?\})\s*```/is', $textContent, $m)) {
+                    foreach ($m[1] as $block) {
+                        $parsed = json_decode($block, true);
+                        if ($parsed && !empty($parsed['name'])) {
+                            $toolCalls[] = [
+                                'id' => 'call_' . uniqid(),
+                                'name' => $parsed['name'],
+                                'arguments' => $parsed['arguments'] ?? []
+                            ];
+                        }
+                    }
+                    $textContent = trim(preg_replace('/```(?:tool_call|json)?\s*\{\s*"name"\s*:\s*"[^"]+".*?\}\s*```/is', '', $textContent));
+                }
+            }
+
+            if (!empty($textContent) || !empty($toolCalls)) {
                 return [
-                    'content' => trim($text),
-                    'tool_calls' => [],
+                    'content' => $textContent,
+                    'tool_calls' => $toolCalls,
                     'tokens_used' => $data['usageMetadata']['totalTokenCount'] ?? 0
                 ];
             }
         }
+
         return ['content' => '', 'tool_calls' => [], 'tokens_used' => 0];
     }
 

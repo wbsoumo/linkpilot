@@ -90,19 +90,19 @@ class AgentAIClient {
             if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['github_models'] = $k;
         }
 
-        // 5. Default model mappings with guaranteed active model IDs
+        // 5. Default model mappings with verified active model IDs
         $modelMap = [
-            'google_ai_studio' => 'gemini-1.5-flash-latest',
+            'google_ai_studio' => 'gemini-flash-latest',
             'openrouter' => 'meta-llama/llama-3.1-8b-instruct',
             'groq' => 'llama-3.1-8b-instant',
             'github_models' => 'gpt-4o-mini'
         ];
 
-        // Sanitize activeModel: if it contains invalid/obsolete strings, use known good default
+        // Sanitize activeModel: if it contains obsolete strings, use known good default
         $safeActiveModel = $activeModel;
         if (!empty($safeActiveModel)) {
-            if (strpos($safeActiveModel, '3.1') !== false || strpos($safeActiveModel, '2.0-flash') !== false || strpos($safeActiveModel, '2.5-flash:free') !== false) {
-                $safeActiveModel = $modelMap[$activeProvider] ?? 'gemini-1.5-flash-latest';
+            if (strpos($safeActiveModel, '2.0-flash') !== false || strpos($safeActiveModel, '2.5-flash:free') !== false) {
+                $safeActiveModel = $modelMap[$activeProvider] ?? 'gemini-flash-latest';
             }
         }
 
@@ -112,7 +112,7 @@ class AgentAIClient {
 
         foreach ($providerOrder as $prov) {
             if (!empty($dbKeys[$prov])) {
-                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-1.5-flash-latest');
+                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-flash-latest');
                 $candidates[] = [
                     'provider' => $prov,
                     'model' => $provModel,
@@ -150,7 +150,7 @@ class AgentAIClient {
         $lastError = null;
 
         $modelCatalog = [
-            'google_ai_studio' => ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-pro'],
+            'google_ai_studio' => ['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-pro-latest'],
             'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5', 'openrouter/auto', 'meta-llama/llama-3.3-70b-instruct'],
             'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192', 'llama3-8b-8192'],
             'github_models' => ['gpt-4o-mini', 'gpt-4o']
@@ -161,6 +161,33 @@ class AgentAIClient {
             $apiKey = $cfg['api_key'];
 
             if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) continue;
+
+            // Build ordered candidate models for this provider
+            $candidateModels = [];
+            if (!empty($cfg['model'])) {
+                $candidateModels[] = $cfg['model'];
+            }
+            if (!empty($modelCatalog[$provider])) {
+                foreach ($modelCatalog[$provider] as $m) {
+                    if (!in_array($m, $candidateModels)) {
+                        $candidateModels[] = $m;
+                    }
+                }
+            }
+
+            // For Google AI Studio, try native v1beta generateContent endpoint first
+            if ($provider === 'google_ai_studio') {
+                foreach ($candidateModels as $model) {
+                    try {
+                        $nativeRes = self::callGoogleNative($apiKey, $model, $messages, $tools);
+                        if (!empty($nativeRes['content']) || !empty($nativeRes['tool_calls'])) {
+                            return $nativeRes;
+                        }
+                    } catch (Throwable $e) {
+                        error_log("Google Native {$model} error: " . $e->getMessage());
+                    }
+                }
+            }
 
             $endpoint = "https://openrouter.ai/api/v1/chat/completions";
             $headers = [
@@ -178,19 +205,6 @@ class AgentAIClient {
             } else {
                 $headers[] = "HTTP-Referer: https://linkpilot.work";
                 $headers[] = "X-Title: LinkPilot AI Agent";
-            }
-
-            // Build ordered candidate models for this provider
-            $candidateModels = [];
-            if (!empty($cfg['model'])) {
-                $candidateModels[] = $cfg['model'];
-            }
-            if (!empty($modelCatalog[$provider])) {
-                foreach ($modelCatalog[$provider] as $m) {
-                    if (!in_array($m, $candidateModels)) {
-                        $candidateModels[] = $m;
-                    }
-                }
             }
 
             foreach ($candidateModels as $model) {
@@ -228,14 +242,6 @@ class AgentAIClient {
                     $data = json_decode($response, true);
                     if ($httpCode !== 200) {
                         $errMsg = $data['error']['message'] ?? ($data['message'] ?? "HTTP {$httpCode} Error");
-
-                        // If Google OpenAI endpoint returned 404, try Google's native generateContent endpoint
-                        if ($provider === 'google_ai_studio') {
-                            $nativeRes = self::callGoogleNative($apiKey, $model, $messages);
-                            if (!empty($nativeRes['content'])) {
-                                return $nativeRes;
-                            }
-                        }
 
                         // If tools parameter caused error on certain models, retry without tools
                         if (!empty($tools) && (stripos($errMsg, 'tool') !== false || stripos($errMsg, 'function') !== false)) {

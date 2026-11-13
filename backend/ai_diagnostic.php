@@ -81,29 +81,29 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// Query ModelService.ListModels on Google
-echo "\n--- CALLING ModelService.ListModels on Google ---\n";
-$ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models?key=" . urlencode($candidates[0]['api_key']));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-$listRes = curl_exec($ch);
-$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-echo "Google ListModels HTTP $code:\n";
-$listJson = json_decode($listRes, true);
-if (!empty($listJson['models'])) {
-    $supported = [];
-    foreach ($listJson['models'] as $m) {
-        $name = str_replace('models/', '', $m['name']);
-        $methods = $m['supportedGenerationMethods'] ?? [];
-        if (in_array('generateContent', $methods)) {
-            $supported[] = $name;
-        }
-    }
-    echo "Supported generateContent models: " . implode(', ', $supported) . "\n";
-} else {
-    echo "Google ListModels response: " . substr($listRes, 0, 500) . "\n";
+// Test Google native with gemini-flash-latest and gemini-3.1-flash-lite
+echo "\n--- TESTING GOOGLE NATIVE WITH gemini-flash-latest ---\n";
+foreach (['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'] as $testModel) {
+    echo "Testing $testModel: ";
+    $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($candidates[0]['api_key']);
+    $ch = curl_init($nativeUrl);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+        "contents" => [["parts" => [["text" => "Reply with exact word: PONG"]]]]
+    ]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $t0 = microtime(true);
+    $nRes = curl_exec($ch);
+    $took = round(microtime(true) - $t0, 2);
+    $nCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    echo "HTTP $nCode in {$took}s\n";
+    $nData = json_decode($nRes, true);
+    $reply = $nData['candidates'][0]['content']['parts'][0]['text'] ?? ('ERROR: ' . substr($nRes, 0, 150));
+    echo "  Reply: " . trim($reply) . "\n";
 }
 
 // Query Groq models

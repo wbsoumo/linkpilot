@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/helnovexaa/linkpilot.work/
+    - /bin/cp -R * $DEPLOYPATH

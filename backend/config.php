@@ -47,7 +47,7 @@ define('WHATSAPP_MESSAGE_COST', 0.15);
 // OpenRouter API Configuration
 // Users can define their custom key, fallback to env or empty
 define('OPENROUTER_API_KEY', getenv('OPENROUTER_API_KEY') ?: 'sk-or-v1-placeholder-please-replace-with-your-actual-key');
-define('OPENROUTER_MODEL', 'meta-llama/llama-3.1-8b-instruct:free'); // Fast, verified free model
+define('OPENROUTER_MODEL', 'meta-llama/llama-3.1-8b-instruct'); // Fast, verified active model
 
 // GitHub Models API Configuration
 define('GITHUB_TOKEN', getenv('GITHUB_TOKEN') ?: getenv('GITHUB_API_KEY') ?: 'github_pat_placeholder-please-replace-with-your-actual-token');
@@ -55,7 +55,7 @@ define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 
 // Google AI Studio API Configuration
 define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
-define('GOOGLE_AI_STUDIO_MODEL', 'gemini-1.5-flash');
+define('GOOGLE_AI_STUDIO_MODEL', 'gemini-flash-latest');
 
 // Groq API Configuration
 define('GROQ_API_KEY', getenv('GROQ_API_KEY') ?: '');

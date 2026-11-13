@@ -98,6 +98,27 @@ function hideProgressBar() {
 }
 
 function getSkeletonLoader(view) {
+    if (view === 'agent') {
+        return `
+            <div class="flex h-full w-full overflow-hidden bg-[#f8fafc] animate-pulse">
+                <div class="w-72 bg-white border-r border-slate-200 hidden lg:flex flex-col p-4 space-y-4">
+                    <div class="h-9 bg-slate-200 rounded-xl w-full"></div>
+                    <div class="h-8 bg-slate-100 rounded-lg w-full"></div>
+                    <div class="space-y-2 pt-2">
+                        <div class="h-10 bg-slate-100 rounded-xl w-full"></div>
+                        <div class="h-10 bg-slate-100 rounded-xl w-full"></div>
+                        <div class="h-10 bg-slate-100 rounded-xl w-full"></div>
+                    </div>
+                </div>
+                <div class="flex-grow flex flex-col p-6 space-y-6">
+                    <div class="h-10 bg-white border border-slate-200 rounded-xl w-full"></div>
+                    <div class="flex-grow flex items-center justify-center">
+                        <div class="loader-spinner"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
     if (view === 'dashboard') {
         return `
             <div class="space-y-8 animate-pulse text-xs">
@@ -463,6 +484,10 @@ async function navigateTo(view, params = {}) {
         
         if (view === 'email-builder') {
             contentArea.className = "flex-grow overflow-hidden w-full h-screen flex flex-col bg-[#f8fafc]";
+        } else if (view === 'agent') {
+            contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col p-0 bg-[#f8fafc]";
+            contentArea.style.padding = '0';
+            contentArea.style.maxWidth = '100%';
         } else if (view === 'email-templates' || view === 'templates' || view === 'inbox' || view === 'email' || view === 'sent' || view === 'starred' || view === 'drafts' || view === 'archived' || view === 'snoozed' || view === 'trash' || view === 'spam' || view === 'whatsapp-inbox' || view === 'followups' || view === 'email-followups' || (view === 'automation' && window.wfState.activeWorkflow)) {
             contentArea.className = "flex-grow overflow-hidden w-full h-[calc(100vh-61px)] flex flex-col";
         } else if (view === 'email-campaigns' || view === 'campaigns') {
@@ -477,6 +502,11 @@ async function navigateTo(view, params = {}) {
         // Render corresponding screen
         try {
             switch (view) {
+            case 'agent':
+                if (typeof renderAgentView === 'function') {
+                    await renderAgentView(contentArea, params);
+                }
+                break;
             case 'dashboard':
                 await renderDashboard(contentArea);
                 break;

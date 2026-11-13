@@ -32,6 +32,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css?v=6.24">
+    <!-- LinkPilot Agent CSS -->
+    <link rel="stylesheet" href="assets/css/agent.css?v=1.0">
     <!-- Lottie Files Animation Integration -->
     <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 </head>
@@ -64,6 +66,13 @@
         <div class="flex-grow overflow-y-auto p-5 space-y-6">
             <!-- Sidebar Navigation Links -->
             <nav class="space-y-1 flex flex-col text-xs" id="sidebar-navigation-container">
+                <a href="#/agent" id="sidebar-agent-nav-link" class="sidebar-nav-link text-slate-300 transition duration-150 mb-1.5 flex items-center justify-between group">
+                    <div class="flex items-center">
+                        <i data-lucide="sparkles" class="h-4 w-4 mr-2.5 text-indigo-400 group-hover:text-indigo-300 transition"></i>
+                        <span class="font-bold text-slate-200">Agent</span>
+                    </div>
+                    <span class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">AI</span>
+                </a>
                 <a href="#/dashboard" class="sidebar-nav-link text-slate-300 transition duration-150 mb-2">
                     <i data-lucide="grid" class="h-4 w-4 mr-2.5"></i><span>Dashboard</span>
                 </a>
@@ -572,6 +581,7 @@
 
     <!-- Scripts integrations -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="assets/js/agent.js?v=1.0"></script>
     <script src="assets/js/app.js?v=7.10"></script>
     <script src="assets/js/crm.js?v=7.10"></script>
     <script src="assets/js/whatsapp.js?v=7.10"></script>

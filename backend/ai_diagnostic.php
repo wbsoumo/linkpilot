@@ -41,80 +41,74 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// 4. Test each candidate individually with exact response
-echo "\n--- INDIVIDUAL CANDIDATE TESTS ---\n";
-foreach ($candidates as $idx => $c) {
-    $prov = $c['provider'];
-    $model = $c['model'];
-    $key = $c['api_key'];
-    $maskedKey = substr($key, 0, 8) . '...' . substr($key, -4);
-    echo "\n[Test $idx] Provider: $prov | Model: $model | Key: $maskedKey\n";
-
-    $endpoint = "https://openrouter.ai/api/v1/chat/completions";
-    $headers = [
-        "Authorization: Bearer " . $key,
-        "Content-Type: application/json"
-    ];
-
-    if ($prov === 'github_models') {
-        $endpoint = "https://models.inference.ai.azure.com/chat/completions";
-        $headers[] = "User-Agent: LinkPilot-AI";
-    } elseif ($prov === 'google_ai_studio') {
-        $endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
-    } elseif ($prov === 'groq') {
-        $endpoint = "https://api.groq.com/openai/v1/chat/completions";
-    } else {
-        $headers[] = "HTTP-Referer: https://linkpilot.work";
-        $headers[] = "X-Title: LinkPilot AI Agent";
+// Query ModelService.ListModels on Google
+echo "\n--- CALLING ModelService.ListModels on Google ---\n";
+$ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models?key=" . urlencode($candidates[0]['api_key']));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+$listRes = curl_exec($ch);
+$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+echo "Google ListModels HTTP $code:\n";
+$listJson = json_decode($listRes, true);
+if (!empty($listJson['models'])) {
+    $supported = [];
+    foreach ($listJson['models'] as $m) {
+        $name = str_replace('models/', '', $m['name']);
+        $methods = $m['supportedGenerationMethods'] ?? [];
+        if (in_array('generateContent', $methods)) {
+            $supported[] = $name;
+        }
     }
-
-    $ch = curl_init($endpoint);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-        'model' => $model,
-        'messages' => [['role' => 'user', 'content' => 'hi']],
-        'max_tokens' => 20
-    ]));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-
-    $t0 = microtime(true);
-    $res = curl_exec($ch);
-    $took = round(microtime(true) - $t0, 2);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $err = curl_error($ch);
-    curl_close($ch);
-
-    echo "  Time: {$took}s | HTTP: {$httpCode}\n";
-    if ($err) echo "  cURL Error: {$err}\n";
-    echo "  Response: " . substr($res, 0, 400) . "\n";
-
-    // If Google, also test native v1beta endpoint
-    if ($prov === 'google_ai_studio') {
-        echo "  [Google Native Endpoint Test]:\n";
-        $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . urlencode($key);
-        $ch2 = curl_init($nativeUrl);
-        curl_setopt($ch2, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
-        curl_setopt($ch2, CURLOPT_POST, true);
-        curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode([
-            "contents" => [["parts" => [["text" => "hi"]]]]
-        ]));
-        curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch2, CURLOPT_CONNECTTIMEOUT, 5);
-        curl_setopt($ch2, CURLOPT_TIMEOUT, 10);
-        $res2 = curl_exec($ch2);
-        $httpCode2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
-        $err2 = curl_error($ch2);
-        curl_close($ch2);
-        echo "  Native HTTP: {$httpCode2}\n";
-        if ($err2) echo "  Native Error: {$err2}\n";
-        echo "  Native Response: " . substr($res2, 0, 400) . "\n";
-    }
+    echo "Supported generateContent models: " . implode(', ', $supported) . "\n";
+} else {
+    echo "Google ListModels response: " . substr($listRes, 0, 500) . "\n";
 }
+
+// Query Groq models
+echo "\n--- CALLING Groq /v1/models ---\n";
+$ch = curl_init("https://api.groq.com/openai/v1/models");
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer " . $candidates[1]['api_key']]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+$groqRes = curl_exec($ch);
+$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+echo "Groq models HTTP $code:\n";
+$groqJson = json_decode($groqRes, true);
+if (!empty($groqJson['data'])) {
+    $gModels = array_map(function($m) { return $m['id']; }, $groqJson['data']);
+    echo "Available Groq models: " . implode(', ', array_slice($gModels, 0, 20)) . "\n";
+} else {
+    echo "Groq response: " . substr($groqRes, 0, 500) . "\n";
+}
+
+// Test OpenRouter with suggested slug: meta-llama/llama-3.1-8b-instruct
+echo "\n--- TEST OpenRouter with meta-llama/llama-3.1-8b-instruct ---\n";
+$ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Authorization: Bearer " . $candidates[2]['api_key'],
+    "Content-Type: application/json",
+    "HTTP-Referer: https://linkpilot.work",
+    "X-Title: LinkPilot AI Agent"
+]);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
+    'model' => 'meta-llama/llama-3.1-8b-instruct',
+    'messages' => [['role' => 'user', 'content' => 'hello']],
+    'max_tokens' => 20
+]));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+$orRes = curl_exec($ch);
+$orCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+echo "OpenRouter test HTTP $orCode:\n";
+echo "Response: " . substr($orRes, 0, 500) . "\n";
+
 
 // 5. Test all rows in user_ai_keys
 echo "\n--- ALL USER_AI_KEYS TABLE ROWS ---\n";

@@ -196,15 +196,18 @@ You have direct, real-time access to control, manage, and execute operations acr
 {$integrationsSummary}
 {$memText}
 
-### CASUAL GREETINGS & GENERAL QUESTIONS:
+### CASUAL GREETINGS:
 - When the user sends a greeting (e.g. 'hi', 'hello', 'hey', 'good morning', 'who are you', etc.) or casual comment:
   1. Reply naturally, warmly, and concisely (1 to 2 sentences max).
   2. Answer ONLY what was asked without unnecessary rambling or dumping tool menus unprompted.
   3. Offer 2 to 3 short, relevant recommendations or things you can do for them today as bullet points.
-- When the user asks a general question, general knowledge, or informational query (e.g. 'whats the weather in kolkata ?', 'what is CRM?', 'who was Steve Jobs?'):
-  1. Answer directly, informatively, and helpfully in a conversational tone.
-  2. If real-time meteorological sensor data is not connected, politely provide the general climate/seasonal context for that city and offer to help with workspace tasks.
-  3. Never respond with an unrelated sales pitch when asked an informational question.
+
+### REAL-TIME WEB SEARCH & LIVE DATA:
+- You have real-time access to the live internet through your tool library:
+  1. Real-Time Weather: Whenever asked about the weather, temperature, or forecast in any city or location, ALWAYS call get_live_weather(location: '...'). Never guess or say you lack a sensor — you have the live weather tool!
+  2. Live Web & Google Search: Whenever the user asks for current news, live facts, market updates, external information, or anything you are uncertain about, ALWAYS call web_search(query: '...').
+  3. Website Content Scraper: Whenever the user provides a URL (e.g. https://...) or asks to extract, analyze, or summarize a webpage, ALWAYS call fetch_webpage_content(url: '...').
+- Answer the user directly, accurately, and informatively with the real-time data retrieved.
 
 ### CAPABILITIES OVERVIEW:
 You are not a passive text generator. You execute real actions using your tool library:
@@ -216,6 +219,7 @@ You are not a passive text generator. You execute real actions using your tool l
 6. Automation: Monitor and toggle active trigger-action workflows.
 7. Calendar: List and schedule business meetings (Google Meet, Zoom).
 8. Analytics: Generate daily executive briefings, pipeline revenue summaries, and conversion KPI reports.
+9. Web & Research: Live weather lookups, Google/web search, and direct webpage content extraction.
 
 ### STRICT EXECUTION & SECURITY RULES:
 1. AUTONOMOUS READ: All READ operations (searching contacts, reading WhatsApp chats, checking deals, analytics, etc.) execute automatically without asking.
@@ -291,8 +295,8 @@ You are not a passive text generator. You execute real actions using your tool l
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
-        // For greetings or general questions, bypass 15+ tool schemas to achieve instant sub-second response
-        $availableTools = ($isGreeting || $isGeneralQuestion) ? [] : AIToolRegistry::getOpenAITools();
+        // For simple casual greetings, bypass tools to achieve instant sub-second response
+        $availableTools = $isGreeting ? [] : AIToolRegistry::getOpenAITools();
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;
@@ -439,18 +443,24 @@ You are not a passive text generator. You execute real actions using your tool l
                         $synthesizedParts[] = "✅ Retrieved **" . intval($output['total_deals']) . " deals** from sales pipeline.";
                     } elseif (isset($output['tasks'])) {
                         $synthesizedParts[] = "✅ Retrieved **" . count($output['tasks']) . " tasks**.";
+                    } elseif (isset($output['formatted_summary'])) {
+                        $synthesizedParts[] = "🌤️ " . $output['formatted_summary'];
+                    } elseif (isset($output['results']) && isset($output['query'])) {
+                        $count = count($output['results']);
+                        $synthesizedParts[] = "🔍 Found **{$count} web search results** for *\"" . htmlspecialchars($output['query']) . "\"*.";
+                    } elseif (isset($output['extracted_content'])) {
+                        $title = !empty($output['title']) ? $output['title'] : ($output['url'] ?? 'Webpage');
+                        $synthesizedParts[] = "🌐 Successfully extracted content from **{$title}**.";
                     } else {
                         $synthesizedParts[] = "✅ **{$toolName}** executed successfully.";
                     }
                 }
                 $finalAssistantText = implode("\n\n", $synthesizedParts) . "\n\nWhat would you like me to do next with this information?";
             } else {
-                if ($isGeneralQuestion) {
-                    $finalAssistantText = "I don't currently have access to live internet browsing or live external feeds (such as real-time weather), but I'm fully equipped to manage your LinkPilot contacts, leads, deals, tasks, and WhatsApp automations.";
-                } elseif ($isGreeting) {
-                    $finalAssistantText = "Hello! How can I assist you today with your LinkPilot CRM, leads, tasks, or WhatsApp conversations?";
+                if ($isGreeting) {
+                    $finalAssistantText = "Hello! How can I assist you today with your LinkPilot workspace, real-time research, or CRM automations?";
                 } else {
-                    $finalAssistantText = "I am connected to your LinkPilot workspace. How can I help you right now with your CRM contacts, deals, tasks, or WhatsApp conversations?";
+                    $finalAssistantText = "I am connected and ready. I can search the web, fetch live weather, extract website data, or manage your CRM contacts, deals, tasks, and WhatsApp automations.";
                 }
             }
         }

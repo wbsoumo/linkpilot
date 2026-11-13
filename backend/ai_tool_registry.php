@@ -10,6 +10,7 @@ require_once __DIR__ . '/email_intelligence_service.php';
 require_once __DIR__ . '/sales_copilot_engine.php';
 require_once __DIR__ . '/smtp_helper.php';
 require_once __DIR__ . '/external_apps_helper.php';
+require_once __DIR__ . '/web_search_helper.php';
 
 class AIToolRegistry {
     private static $tools = [];
@@ -1393,6 +1394,84 @@ class AIToolRegistry {
                     'total_credits' => (int)($wallet['total_credits'] ?? 0),
                     'formatted' => number_format((int)($wallet['remaining_credits'] ?? 0)) . " Credits"
                 ];
+            }
+        ]);
+
+        // ==========================================
+        // 9. LIVE WEB, REAL-TIME WEATHER & SCRAPING
+        // ==========================================
+
+        self::registerTool([
+            'id' => 'get_live_weather',
+            'name' => 'Get Live Weather',
+            'description' => 'Fetch exact real-time weather conditions, current temperature, humidity, wind, and forecast for any city or location.',
+            'category' => 'web',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'location' => [
+                        'type' => 'string',
+                        'description' => 'Name of the city or location (e.g. "Kolkata", "Mumbai", "London", "New York").'
+                    ]
+                ],
+                'required' => ['location']
+            ],
+            'handler' => function($userId, array $params, PDO $db) {
+                return WebSearchHelper::getWeather($params['location'] ?? '');
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'web_search',
+            'name' => 'Search Google & Web',
+            'description' => 'Search Google and the live web for real-time information, current news, facts, market research, or competitor details.',
+            'category' => 'web',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'query' => [
+                        'type' => 'string',
+                        'description' => 'Search query keywords to find on Google and the live web.'
+                    ],
+                    'limit' => [
+                        'type' => 'integer',
+                        'description' => 'Maximum number of search results to return (default 5, max 10).'
+                    ]
+                ],
+                'required' => ['query']
+            ],
+            'handler' => function($userId, array $params, PDO $db) {
+                return WebSearchHelper::searchWeb($params['query'] ?? '', $params['limit'] ?? 5);
+            }
+        ]);
+
+        self::registerTool([
+            'id' => 'fetch_webpage_content',
+            'name' => 'Fetch Webpage Content',
+            'description' => 'Fetch, read, and extract clean text, pricing, articles, documentation, or data from any specific public website URL.',
+            'category' => 'web',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'url' => [
+                        'type' => 'string',
+                        'description' => 'Full public HTTP or HTTPS website URL (e.g. "https://example.com/pricing").'
+                    ],
+                    'instruction' => [
+                        'type' => 'string',
+                        'description' => 'Optional instruction on what specific information to extract or focus on.'
+                    ]
+                ],
+                'required' => ['url']
+            ],
+            'handler' => function($userId, array $params, PDO $db) {
+                return WebSearchHelper::fetchUrlContent($params['url'] ?? '', $params['instruction'] ?? '');
             }
         ]);
     }

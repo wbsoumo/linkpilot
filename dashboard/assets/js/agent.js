@@ -1,12 +1,93 @@
 // dashboard/assets/js/agent.js - LinkPilot Autonomous Agent Interface
 
 (function () {
+    const AGENT_AVATAR_STATIC = 'assets/img/image.png';
+    const AGENT_AVATAR_THINKING = 'assets/img/Purple Penguin Laptop Animation.gif';
+
     let activeConversationId = null;
     let conversationsList = [];
     let isGenerating = false;
     let abortController = null;
     let attachedFile = null;
     let isHistoryOpen = false; // Collapsed by default for conversation-first focus
+    let isProfileOpen = true;  // Open by default matching screenshot
+    let agentCustomName = localStorage.getItem('linkpilot_agent_name') || 'Muse';
+    let scheduledTasksList = [];
+
+    const defaultScheduledTasks = [
+        {
+            id: 'st_1',
+            title: 'Daily hot-leads WhatsApp pack',
+            schedule: 'Every day at 17:45',
+            next_run: '14 Nov, 17:45',
+            category: 'whatsapp',
+            icon: 'calendar',
+            badge: 'J',
+            badgeColor: 'bg-amber-500',
+            status: 'active',
+            description: 'Automatically scans CRM contacts for high-buying-intent leads with unreplied WhatsApp conversations in the past 7 days and prepares follow-ups.'
+        },
+        {
+            id: 'st_2',
+            title: 'Heartbeat',
+            schedule: 'Every 30 minutes',
+            next_run: 'Every 30 minutes',
+            category: 'system',
+            icon: 'heart',
+            badge: '',
+            badgeColor: '',
+            status: 'active',
+            description: 'System background heartbeat monitoring active webhooks, WhatsApp sync health, and incoming business lead alerts.'
+        },
+        {
+            id: 'st_3',
+            title: 'International lead research (45/day)',
+            schedule: 'Every day at 08:45',
+            next_run: '14 Nov, 8:45',
+            category: 'enrichment',
+            icon: 'calendar',
+            badge: 'J',
+            badgeColor: 'bg-amber-500',
+            status: 'active',
+            description: 'Autonomous enrichment of prospective international contacts with verified company emails, phone codes, and company sizes.'
+        },
+        {
+            id: 'st_4',
+            title: 'Executive Morning Briefing',
+            schedule: 'Weekdays at 09:00 AM',
+            next_run: 'Tomorrow, 9:00 AM',
+            category: 'briefing',
+            icon: 'sparkles',
+            badge: '',
+            badgeColor: '',
+            status: 'active',
+            description: 'Synthesizes today\'s scheduled meetings, at-risk deals in pipeline, and overdue CRM tasks into an executive summary.'
+        },
+        {
+            id: 'st_5',
+            title: 'Stalled Deals Reviver',
+            schedule: 'Every Monday at 10:00 AM',
+            next_run: 'Next Monday, 10:00 AM',
+            category: 'deals',
+            icon: 'dollar-sign',
+            badge: '',
+            badgeColor: '',
+            status: 'active',
+            description: 'Detects deals in pipeline with no activity or note added in over 14 days and automatically creates urgent follow-up tasks.'
+        },
+        {
+            id: 'st_6',
+            title: 'Run batch script',
+            schedule: 'Executed Nov 11, 14:20',
+            next_run: 'Completed',
+            category: 'crm',
+            icon: 'check',
+            badge: '',
+            badgeColor: '',
+            status: 'completed',
+            description: 'Batch customer data normalization and conversation index update executed successfully across channels.'
+        }
+    ];
 
     /**
      * Main entry point when routing to #/agent
@@ -18,8 +99,10 @@
         const floatingDrawer = document.getElementById('ai-chat-assistant-drawer');
         if (floatingDrawer) floatingDrawer.classList.add('translate-x-full');
 
-        // Collapsed by default
+        // Collapsed by default for conversation-first focus
         isHistoryOpen = false;
+        // On desktop matching screenshot, open profile sidebar
+        isProfileOpen = (window.innerWidth >= 1024);
 
         container.innerHTML = `
             <div id="agent-view-root" class="flex h-full w-full overflow-hidden bg-[#f8fafc] text-slate-800 relative">
@@ -39,7 +122,7 @@
 
                         <!-- New Chat & Search in History -->
                         <div class="p-2.5 space-y-2 border-b border-slate-200/80 bg-white shrink-0">
-                            <button onclick="createNewAgentChat()" class="w-full py-1.5 px-3 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white rounded-lg text-xs font-semibold transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer">
+                            <button onclick="createNewAgentChat()" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-black active:scale-[0.99] text-white rounded-lg text-xs font-semibold transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer">
                                 <i data-lucide="plus" class="h-3.5 w-3.5 text-white"></i>
                                 <span>New Chat</span>
                             </button>
@@ -60,10 +143,10 @@
                         <div class="p-2.5 border-t border-slate-200/80 bg-slate-50/70 flex items-center justify-between text-[11px] text-slate-600 shrink-0">
                             <span class="font-medium flex items-center text-slate-600">
                                 <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                                LinkPilot Agent
+                                ${escapeHtml(agentCustomName)}
                             </span>
-                            <button onclick="openAgentCapabilitiesModal()" class="text-indigo-600 hover:text-indigo-800 hover:underline font-semibold cursor-pointer">
-                                Capabilities
+                            <button onclick="openAgentAppsModal()" class="text-indigo-600 hover:text-indigo-800 hover:underline font-semibold cursor-pointer">
+                                Apps
                             </button>
                         </div>
                     </div>
@@ -72,33 +155,29 @@
                 <!-- Sidebar Backdrop on Mobile -->
                 <div id="agent-history-backdrop" onclick="toggleAgentHistorySidebar(false)" class="hidden fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-20 lg:hidden"></div>
 
-                <!-- 2. RIGHT MAIN CHAT AREA (Conversation-First) -->
+                <!-- 2. CENTER MAIN CHAT AREA (Conversation-First) -->
                 <main class="flex-1 flex flex-col h-full min-w-0 bg-[#f8fafc] relative overflow-hidden">
                     <!-- Top Bar Header (Compact: 52px height) -->
-                    <header id="agent-chat-header" class="h-13 px-4 md:px-6 bg-white border-b border-slate-200/80 flex items-center justify-between shrink-0 z-20">
+                    <header id="agent-chat-header" class="h-13 px-4 md:px-5 bg-white border-b border-slate-200/80 flex items-center justify-between shrink-0 z-20">
                         <!-- Left: Sidebar toggle, Conversation Title, Online status -->
                         <div class="flex items-center space-x-3 min-w-0">
                             <button onclick="toggleAgentHistorySidebar()" class="agent-history-toggle-btn p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition cursor-pointer border border-slate-200/80" title="Toggle chat history" aria-expanded="false">
                                 <i data-lucide="panel-left" class="h-4 w-4"></i>
                             </button>
-                            <div class="flex items-center space-x-2.5 min-w-0">
-                                <h2 id="agent-active-title" class="text-sm font-semibold text-slate-900 truncate">New Conversation</h2>
-                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60 shrink-0">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                    Online
-                                </span>
+                            <div class="flex items-center space-x-2 truncate">
+                                <h2 id="agent-active-title" class="text-sm font-bold text-slate-900 truncate">Chats</h2>
                             </div>
                         </div>
 
-                        <!-- Right: What Can I Do & New Conversation buttons -->
+                        <!-- Right: Actions -->
                         <div class="flex items-center space-x-2 shrink-0">
-                            <button onclick="openAgentCapabilitiesModal()" class="px-2.5 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg border border-slate-200/80 flex items-center gap-1.5 transition cursor-pointer" title="View autonomous agent tools & capabilities">
-                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-500"></i>
-                                <span class="hidden sm:inline">Capabilities</span>
-                            </button>
-                            <button onclick="createNewAgentChat()" class="px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="Start new conversation">
-                                <i data-lucide="plus" class="h-3.5 w-3.5 text-white"></i>
+                            <button onclick="createNewAgentChat()" class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="New conversation">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                                 <span class="hidden sm:inline">New Chat</span>
+                            </button>
+                            <button onclick="toggleAgentProfileSidebar()" id="agent-profile-toggle-btn" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 hover:text-slate-900 border border-slate-200/80 transition cursor-pointer flex items-center gap-1.5" title="Toggle AI Agent profile & scheduled tasks">
+                                <img src="${AGENT_AVATAR_STATIC}" alt="Profile" class="h-5 w-5 rounded-full object-cover">
+                                <span class="text-xs font-medium text-slate-700 hidden md:inline" id="agent-header-name">${escapeHtml(agentCustomName)}</span>
                             </button>
                         </div>
                     </header>
@@ -108,7 +187,7 @@
                         <!-- Messages or Welcome State injected dynamically -->
                     </div>
 
-                    <!-- Floating Bottom Composer Area -->
+                    <!-- Floating Bottom Composer Area (Borderless container matching screenshot) -->
                     <div id="agent-composer-bar" class="shrink-0 px-4 md:px-6 pb-4 pt-1 z-10">
                         <div class="max-w-3xl mx-auto space-y-1.5">
                             <!-- Attachment preview pill -->
@@ -118,26 +197,26 @@
                                 <button onclick="clearAgentAttachment()" class="hover:text-rose-600 p-0.5 cursor-pointer" title="Remove attachment"><i data-lucide="x" class="h-3 w-3"></i></button>
                             </div>
 
-                            <!-- Floating Composer Card -->
-                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="relative flex flex-col bg-white border border-slate-200/90 hover:border-slate-300 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/15 rounded-2xl shadow-sm transition-all duration-150 p-2 md:p-2.5">
+                            <!-- Floating Borderless Composer Card -->
+                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="relative flex flex-col rounded-2xl p-2.5 md:p-3 shadow-2xs transition-all duration-150">
                                 <input type="file" id="agent-file-picker" class="hidden" onchange="handleAgentFileSelected(event)">
 
-                                <textarea id="agent-user-prompt-input" rows="1" placeholder="Ask LinkPilot Agent anything or enter a business command..." onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-xs md:text-sm text-slate-800 placeholder-slate-400 font-normal px-1 py-1 max-h-36 resize-none leading-relaxed"></textarea>
+                                <textarea id="agent-user-prompt-input" rows="1" placeholder="+ Message" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-xs md:text-sm text-slate-800 placeholder-slate-400 font-normal px-1 py-1 max-h-36 resize-none leading-relaxed"></textarea>
 
-                                <div class="flex items-center justify-between pt-1.5 mt-0.5 border-t border-slate-100">
+                                <div class="flex items-center justify-between pt-1.5 mt-0.5">
                                     <div class="flex items-center space-x-1">
-                                        <button type="button" onclick="document.getElementById('agent-file-picker').click()" class="p-1.5 text-slate-400 hover:text-slate-600 transition rounded-lg hover:bg-slate-100 cursor-pointer" title="Attach file or screenshot">
+                                        <button type="button" onclick="document.getElementById('agent-file-picker').click()" class="p-1.5 text-slate-400 hover:text-slate-600 transition rounded-lg hover:bg-slate-200/60 cursor-pointer" title="Attach file or screenshot">
                                             <i data-lucide="paperclip" class="h-4 w-4"></i>
                                         </button>
-                                        <button type="button" onclick="openAgentCapabilitiesModal()" class="px-2 py-1 text-slate-400 hover:text-indigo-600 transition rounded-lg hover:bg-slate-100 flex items-center space-x-1 cursor-pointer" title="Agent Capabilities & Tools">
-                                            <i data-lucide="sparkles" class="h-3.5 w-3.5 text-indigo-500"></i>
-                                            <span class="text-[11px] font-medium text-slate-500">Tools</span>
+                                        <button type="button" onclick="openAgentAppsModal()" class="px-2 py-1 text-slate-400 hover:text-indigo-600 transition rounded-lg hover:bg-slate-200/60 flex items-center space-x-1 cursor-pointer" title="Connected Apps & Tools">
+                                            <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-indigo-500"></i>
+                                            <span class="text-[11px] font-medium text-slate-600">Tools</span>
                                         </button>
                                     </div>
 
                                     <div class="flex items-center space-x-2">
                                         <span class="text-[11px] text-slate-400 hidden sm:inline-block">↵ to send</span>
-                                        <button type="submit" id="agent-send-button" class="h-7 w-7 md:h-8 md:w-8 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-lg transition shadow-xs flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50" title="Send message">
+                                        <button type="submit" id="agent-send-button" class="h-7 w-7 md:h-8 md:w-8 bg-black hover:bg-slate-800 active:scale-95 text-white rounded-xl transition shadow-xs flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-50" title="Send message">
                                             <i data-lucide="arrow-up" class="h-4 w-4 text-white"></i>
                                         </button>
                                     </div>
@@ -146,13 +225,106 @@
                         </div>
                     </div>
                 </main>
+
+                <!-- 3. RIGHT SIDE AGENT PROFILE & SCHEDULED TASKS PANEL (Matching Screenshot) -->
+                <div id="agent-profile-sidebar" class="${isProfileOpen ? 'w-[280px] lg:w-[320px] opacity-100 pointer-events-auto border-l' : 'w-0 opacity-0 pointer-events-none border-l-0 overflow-hidden'} bg-white border-slate-200/80 flex flex-col shrink-0 h-full overflow-hidden transition-all duration-300 z-20 fixed lg:relative inset-y-0 right-0">
+                    <div class="w-[280px] lg:w-[320px] flex flex-col h-full">
+                        <!-- Top bar with close button -->
+                        <div class="h-12 px-4 border-b border-slate-100 flex items-center justify-end shrink-0">
+                            <button onclick="toggleAgentProfileSidebar(false)" class="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition cursor-pointer" title="Close profile">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Profile Content Body -->
+                        <div class="flex-grow overflow-y-auto p-4 space-y-4 agent-custom-scrollbar">
+                            <!-- Center Avatar & Editable Name -->
+                            <div class="text-center">
+                                <div class="relative inline-block mx-auto">
+                                    <div class="h-24 w-24 rounded-full overflow-hidden border border-slate-200/80 shadow-xs bg-slate-50 mx-auto">
+                                        <img id="agent-profile-large-avatar" src="${AGENT_AVATAR_STATIC}" alt="Agent Avatar" class="h-full w-full object-cover">
+                                    </div>
+                                    <button onclick="promptRenameAgent()" class="h-6 w-6 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-600 shadow-xs absolute bottom-0 right-0 flex items-center justify-center cursor-pointer transition" title="Rename AI Agent">
+                                        <i data-lucide="edit-2" class="h-3 w-3"></i>
+                                    </button>
+                                </div>
+
+                                <h3 id="agent-profile-name-display" class="text-base font-bold text-slate-900 mt-2 flex items-center justify-center gap-1.5">
+                                    ${escapeHtml(agentCustomName)}
+                                    <button onclick="promptRenameAgent()" class="text-slate-400 hover:text-slate-700 p-0.5" title="Rename AI Agent">
+                                        <i data-lucide="edit-2" class="h-3.5 w-3.5"></i>
+                                    </button>
+                                </h3>
+
+                                <div class="flex items-center justify-center space-x-1.5 text-xs text-slate-600 mt-0.5">
+                                    <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <span class="font-medium text-slate-700">Connected</span>
+                                </div>
+                            </div>
+
+                            <!-- Tab Pills (Tasks, Shield, Fingerprint) -->
+                            <div class="flex items-center justify-around p-1 bg-slate-100/90 rounded-xl text-slate-500">
+                                <button class="p-1.5 bg-white text-slate-900 rounded-lg shadow-2xs w-full flex justify-center cursor-pointer" title="Scheduled Tasks">
+                                    <i data-lucide="list-todo" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="openAgentAppsModal()" class="p-1.5 hover:text-slate-900 rounded-lg w-full flex justify-center cursor-pointer" title="Connected Apps & Security">
+                                    <i data-lucide="shield-check" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="openAgentCapabilitiesModal()" class="p-1.5 hover:text-slate-900 rounded-lg w-full flex justify-center cursor-pointer" title="Agent Identity & Tools">
+                                    <i data-lucide="fingerprint" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+
+                            <!-- 9 Scheduled Tasks Accordion Section -->
+                            <div class="border-t border-slate-100 pt-3 space-y-2">
+                                <div onclick="toggleScheduledTasksList()" class="flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer hover:text-slate-950 py-1">
+                                    <span class="flex items-center gap-1">
+                                        <span id="scheduled-tasks-count">9</span> scheduled tasks
+                                    </span>
+                                    <i data-lucide="chevron-down" id="scheduled-tasks-chevron" class="h-4 w-4 text-slate-400 transition-transform"></i>
+                                </div>
+
+                                <div id="scheduled-tasks-container" class="space-y-1.5">
+                                    <!-- Scheduled task items rendered dynamically -->
+                                </div>
+
+                                <button onclick="openAllScheduledTasksModal()" class="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 py-1.5 transition block cursor-pointer">
+                                    See all scheduled tasks
+                                </button>
+                            </div>
+
+                            <!-- Date Grouped History: Nov 11 -->
+                            <div class="border-t border-slate-100 pt-3 space-y-2">
+                                <div class="flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer py-1">
+                                    <span>Nov 11</span>
+                                    <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                                </div>
+                                <div class="p-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/70 rounded-xl flex items-center space-x-2.5 transition cursor-pointer" onclick="openScheduledTaskDetailModal('st_6')">
+                                    <div class="h-7 w-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
+                                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <h5 class="text-xs font-semibold text-slate-800 truncate">Run batch script</h5>
+                                        <p class="text-[10px] text-slate-400">Completed</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Capabilities Modal Root -->
+            <!-- Modals Root -->
+            <div id="agent-task-detail-modal-root"></div>
+            <div id="agent-apps-modal-root"></div>
             <div id="agent-capabilities-modal-root"></div>
         `;
 
         if (window.lucide) lucide.createIcons();
+
+        // Load settings and render initial scheduled tasks
+        renderScheduledTasksList();
+        await loadAgentSettings();
 
         // Load conversation list and active conversation
         await loadAgentConversations(params.id || null);
@@ -183,7 +355,559 @@
             if (backdrop) backdrop.classList.add('hidden');
             toggleBtns.forEach(btn => btn.setAttribute('aria-expanded', 'false'));
         }
+    }
+
+    /**
+     * Toggles right side Agent Profile & Scheduled Tasks panel.
+     */
+    window.toggleAgentProfileSidebar = function (forceState = null) {
+        isProfileOpen = (forceState !== null) ? forceState : !isProfileOpen;
+        applyProfileSidebarState();
     };
+
+    function applyProfileSidebarState() {
+        const sidebar = document.getElementById('agent-profile-sidebar');
+        if (!sidebar) return;
+
+        if (isProfileOpen) {
+            sidebar.classList.remove('w-0', 'opacity-0', 'pointer-events-none', 'border-l-0');
+            sidebar.classList.add('w-[280px]', 'lg:w-[320px]', 'opacity-100', 'pointer-events-auto', 'border-l');
+        } else {
+            sidebar.classList.remove('w-[280px]', 'lg:w-[320px]', 'opacity-100', 'pointer-events-auto', 'border-l');
+            sidebar.classList.add('w-0', 'opacity-0', 'pointer-events-none', 'border-l-0');
+        }
+    }
+
+    /**
+     * Rename Agent (persists in DB via crm/agent.php?action=update_agent_settings).
+     */
+    window.promptRenameAgent = async function () {
+        const currentName = agentCustomName || 'Muse';
+        const newName = prompt("Name your AI Agent:", currentName);
+        if (newName && newName.trim() && newName.trim() !== currentName) {
+            const cleanName = newName.trim();
+            agentCustomName = cleanName;
+            localStorage.setItem('linkpilot_agent_name', cleanName);
+
+            // Update UI elements
+            const nameDisplay = document.getElementById('agent-profile-name-display');
+            if (nameDisplay) {
+                nameDisplay.innerHTML = `
+                    ${escapeHtml(cleanName)}
+                    <button onclick="promptRenameAgent()" class="text-slate-400 hover:text-slate-700 p-0.5" title="Rename AI Agent">
+                        <i data-lucide="edit-2" class="h-3.5 w-3.5"></i>
+                    </button>
+                `;
+            }
+            const headerName = document.getElementById('agent-header-name');
+            if (headerName) headerName.textContent = cleanName;
+
+            if (window.lucide) lucide.createIcons();
+
+            // Persist to backend
+            try {
+                await apiCall('crm/agent.php', 'POST', {
+                    action: 'update_agent_settings',
+                    agent_name: cleanName
+                });
+                if (typeof showNotification === 'function') {
+                    showNotification('success', `AI Agent named "${cleanName}"!`);
+                }
+            } catch (err) {
+                console.warn("Failed to persist agent name in backend:", err);
+            }
+        }
+    };
+
+    /**
+     * Load Agent settings and custom name from backend.
+     */
+    async function loadAgentSettings() {
+        try {
+            const res = await apiCall('crm/agent.php?action=get_agent_settings');
+            if (res && res.data) {
+                if (res.data.agent_name) {
+                    agentCustomName = res.data.agent_name;
+                    localStorage.setItem('linkpilot_agent_name', agentCustomName);
+                    const nameDisplay = document.getElementById('agent-profile-name-display');
+                    if (nameDisplay) {
+                        nameDisplay.innerHTML = `
+                            ${escapeHtml(agentCustomName)}
+                            <button onclick="promptRenameAgent()" class="text-slate-400 hover:text-slate-700 p-0.5" title="Rename AI Agent">
+                                <i data-lucide="edit-2" class="h-3.5 w-3.5"></i>
+                            </button>
+                        `;
+                    }
+                    const headerName = document.getElementById('agent-header-name');
+                    if (headerName) headerName.textContent = agentCustomName;
+                    if (window.lucide) lucide.createIcons();
+                }
+
+                if (res.data.scheduled_tasks && Array.isArray(res.data.scheduled_tasks) && res.data.scheduled_tasks.length > 0) {
+                    scheduledTasksList = res.data.scheduled_tasks;
+                } else {
+                    scheduledTasksList = [...defaultScheduledTasks];
+                }
+                renderScheduledTasksList();
+            }
+        } catch (err) {
+            console.warn("Could not load agent settings:", err);
+            scheduledTasksList = [...defaultScheduledTasks];
+            renderScheduledTasksList();
+        }
+    }
+
+    /**
+     * Toggle Scheduled tasks accordion
+     */
+    let isScheduledTasksAccordionOpen = true;
+    window.toggleScheduledTasksList = function () {
+        isScheduledTasksAccordionOpen = !isScheduledTasksAccordionOpen;
+        const container = document.getElementById('scheduled-tasks-container');
+        const chevron = document.getElementById('scheduled-tasks-chevron');
+        if (container) {
+            if (isScheduledTasksAccordionOpen) {
+                container.classList.remove('hidden');
+                if (chevron) chevron.classList.remove('-rotate-90');
+            } else {
+                container.classList.add('hidden');
+                if (chevron) chevron.classList.add('-rotate-90');
+            }
+        }
+    };
+
+    /**
+     * Render the top scheduled tasks matching screenshot
+     */
+    function renderScheduledTasksList() {
+        const container = document.getElementById('scheduled-tasks-container');
+        const countEl = document.getElementById('scheduled-tasks-count');
+        if (!container) return;
+
+        const tasks = scheduledTasksList.length > 0 ? scheduledTasksList : defaultScheduledTasks;
+        if (countEl) countEl.textContent = tasks.length;
+
+        // Render first 3 active tasks
+        const activeTasks = tasks.filter(t => t.status !== 'completed').slice(0, 3);
+
+        let html = '';
+        activeTasks.forEach(task => {
+            const isHeart = task.icon === 'heart';
+            const iconBg = isHeart ? 'bg-pink-50 border-pink-100 text-pink-500' : 'bg-slate-100 border-slate-200 text-slate-700';
+            const iconName = isHeart ? 'heart' : 'calendar';
+
+            html += `
+                <div onclick="openScheduledTaskDetailModal('${escapeHtml(task.id)}')" class="p-2.5 bg-slate-50 hover:bg-slate-100/90 border border-slate-200/70 rounded-xl flex items-center justify-between transition cursor-pointer group">
+                    <div class="flex items-center space-x-2.5 min-w-0">
+                        <div class="relative h-8 w-8 rounded-lg ${iconBg} border flex items-center justify-center shrink-0">
+                            <i data-lucide="${iconName}" class="h-4 w-4"></i>
+                            ${task.badge ? `<span class="absolute -bottom-1 -right-1 text-[8px] font-bold text-white ${task.badgeColor || 'bg-amber-500'} h-3.5 w-3.5 rounded-full flex items-center justify-center">${escapeHtml(task.badge)}</span>` : ''}
+                        </div>
+                        <div class="min-w-0">
+                            <h5 class="text-xs font-semibold text-slate-800 truncate group-hover:text-indigo-600 transition">${escapeHtml(task.title)}</h5>
+                            <p class="text-[10px] text-slate-400 truncate">${escapeHtml(task.schedule)}</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="h-3.5 w-3.5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 transition shrink-0 ml-1"></i>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    /**
+     * Modal popup for scheduled task details
+     */
+    window.openScheduledTaskDetailModal = function (taskId) {
+        const root = document.getElementById('agent-task-detail-modal-root');
+        if (!root) return;
+
+        const allTasks = [...(scheduledTasksList.length ? scheduledTasksList : defaultScheduledTasks)];
+        const task = allTasks.find(t => t.id === taskId) || allTasks[0];
+        if (!task) return;
+
+        const isHeart = task.icon === 'heart';
+        const iconBg = isHeart ? 'bg-pink-50 text-pink-500 border-pink-200' : 'bg-indigo-50 text-indigo-600 border-indigo-200';
+        const iconName = isHeart ? 'heart' : (task.icon || 'calendar');
+
+        root.innerHTML = `
+            <div id="scheduled-task-modal-backdrop" onclick="closeScheduledTaskDetailModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-scale-in">
+                    <!-- Modal Header -->
+                    <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="h-8 w-8 rounded-xl ${iconBg} border flex items-center justify-center">
+                                <i data-lucide="${iconName}" class="h-4 w-4"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">${escapeHtml(task.title)}</h3>
+                                <p class="text-[10px] text-slate-400">Scheduled Autonomous Automation</p>
+                            </div>
+                        </div>
+                        <button onclick="closeScheduledTaskDetailModal()" class="text-slate-400 hover:text-white p-1 rounded-lg transition cursor-pointer">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="p-5 space-y-4 text-xs text-slate-700">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <span class="text-slate-500 font-medium">Status</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${task.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">
+                                ${escapeHtml(task.status)}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-100">
+                            <div>
+                                <span class="text-[11px] text-slate-400 block font-medium">Frequency</span>
+                                <span class="text-xs font-semibold text-slate-800">${escapeHtml(task.schedule)}</span>
+                            </div>
+                            <div>
+                                <span class="text-[11px] text-slate-400 block font-medium">Next Execution</span>
+                                <span class="text-xs font-semibold text-slate-800">${escapeHtml(task.next_run || 'On schedule')}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[11px] text-slate-400 block font-medium mb-1">Task Objective & Scope</span>
+                            <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200/80 leading-relaxed">
+                                ${escapeHtml(task.description || 'Executes autonomous operations across connected channels and reports key findings.')}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Modal Actions -->
+                    <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                        <button onclick="closeScheduledTaskDetailModal()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 transition rounded-lg hover:bg-slate-200/60 cursor-pointer">
+                            Close
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="toggleTaskStatus('${escapeHtml(task.id)}')" class="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition shadow-2xs cursor-pointer">
+                                ${task.status === 'paused' ? 'Resume Task' : 'Pause Task'}
+                            </button>
+                            <button onclick="runScheduledTaskNow('${escapeHtml(task.id)}', '${escapeHtml(task.title)}')" class="px-4 py-1.5 text-xs font-bold text-white bg-black hover:bg-slate-800 rounded-lg transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="play" class="h-3.5 w-3.5"></i>
+                                <span>Run Now</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.closeScheduledTaskDetailModal = function () {
+        const root = document.getElementById('agent-task-detail-modal-root');
+        if (root) root.innerHTML = '';
+    };
+
+    window.toggleTaskStatus = function (taskId) {
+        const list = scheduledTasksList.length ? scheduledTasksList : defaultScheduledTasks;
+        const task = list.find(t => t.id === taskId);
+        if (task) {
+            task.status = (task.status === 'paused') ? 'active' : 'paused';
+            if (typeof showNotification === 'function') {
+                showNotification('info', `Task "${task.title}" is now ${task.status}.`);
+            }
+            renderScheduledTasksList();
+            openScheduledTaskDetailModal(taskId);
+        }
+    };
+
+    window.runScheduledTaskNow = function (taskId, taskTitle) {
+        closeScheduledTaskDetailModal();
+        closeAllScheduledTasksModal();
+        const promptText = `Run scheduled task now: ${taskTitle}. Analyze data and provide the complete briefing.`;
+        setAgentComposerPrompt(promptText);
+        handleAgentSendMessage();
+    };
+
+    /**
+     * All Scheduled Tasks Modal
+     */
+    window.openAllScheduledTasksModal = function () {
+        const root = document.getElementById('agent-task-detail-modal-root');
+        if (!root) return;
+
+        const tasks = scheduledTasksList.length ? scheduledTasksList : defaultScheduledTasks;
+
+        let itemsHtml = '';
+        tasks.forEach(t => {
+            const isHeart = t.icon === 'heart';
+            const iconBg = isHeart ? 'bg-pink-50 border-pink-100 text-pink-500' : 'bg-slate-100 border-slate-200 text-slate-700';
+            const iconName = isHeart ? 'heart' : (t.icon || 'calendar');
+
+            itemsHtml += `
+                <div onclick="openScheduledTaskDetailModal('${escapeHtml(t.id)}')" class="p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-xl flex items-center justify-between transition cursor-pointer">
+                    <div class="flex items-center space-x-3 min-w-0">
+                        <div class="h-9 w-9 rounded-xl ${iconBg} border flex items-center justify-center shrink-0">
+                            <i data-lucide="${iconName}" class="h-4 w-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h5 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(t.title)}</h5>
+                            <p class="text-[11px] text-slate-500">${escapeHtml(t.schedule)} • Next: ${escapeHtml(t.next_run || 'Scheduled')}</p>
+                        </div>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${t.status === 'completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-indigo-50 text-indigo-700'}">
+                        ${escapeHtml(t.status)}
+                    </span>
+                </div>
+            `;
+        });
+
+        root.innerHTML = `
+            <div id="all-tasks-modal-backdrop" onclick="closeAllScheduledTasksModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+                    <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div>
+                            <h3 class="font-bold text-sm text-white">All Scheduled Tasks (${tasks.length})</h3>
+                            <p class="text-[10px] text-slate-400">Autonomous routines managed by LinkPilot Agent</p>
+                        </div>
+                        <button onclick="closeAllScheduledTasksModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-5 overflow-y-auto space-y-2.5 agent-custom-scrollbar">
+                        ${itemsHtml}
+                    </div>
+
+                    <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex justify-end">
+                        <button onclick="closeAllScheduledTasksModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.closeAllScheduledTasksModal = function () {
+        const root = document.getElementById('agent-task-detail-modal-root');
+        if (root) root.innerHTML = '';
+    };
+
+    const agentAppsList = [
+        {
+            id: 'whatsapp',
+            name: 'WhatsApp Cloud API',
+            description: 'Direct 1-on-1 customer conversations, automated template campaigns & inbound lead routing.',
+            icon: 'message-square',
+            iconColor: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+            connected: true,
+            docs: 'Live webhook sync'
+        },
+        {
+            id: 'crm',
+            name: 'LinkPilot CRM Contacts',
+            description: 'Lead profiles, custom tags, lifecycle stages, company data, and omnichannel engagement history.',
+            icon: 'contact',
+            iconColor: 'bg-indigo-50 text-indigo-600 border-indigo-200',
+            connected: true,
+            docs: 'Full database access'
+        },
+        {
+            id: 'deals',
+            name: 'Pipeline & Deals Engine',
+            description: 'Multi-stage revenue pipeline, deal win probability, stalled deal alerts, and closed-won analytics.',
+            icon: 'dollar-sign',
+            iconColor: 'bg-blue-50 text-blue-600 border-blue-200',
+            connected: true,
+            docs: 'Real-time pipeline tracker'
+        },
+        {
+            id: 'email',
+            name: 'Business Email (SMTP/IMAP)',
+            description: 'Autonomous inbox monitoring, email draft authoring, follow-ups, and thread summarization.',
+            icon: 'mail',
+            iconColor: 'bg-amber-50 text-amber-600 border-amber-200',
+            connected: true,
+            docs: 'IMAP & SMTP connected'
+        },
+        {
+            id: 'calendar',
+            name: 'Google Calendar & Meet',
+            description: 'Automatic client meeting scheduling, Google Meet room generation, and conflict detection.',
+            icon: 'calendar',
+            iconColor: 'bg-rose-50 text-rose-600 border-rose-200',
+            connected: false,
+            docs: 'OAuth 2.0 integration'
+        },
+        {
+            id: 'zoom',
+            name: 'Zoom Video Meetings',
+            description: 'Instant meeting creation, client calendar invitations, and call recording transcription.',
+            icon: 'video',
+            iconColor: 'bg-sky-50 text-sky-600 border-sky-200',
+            connected: false,
+            docs: 'Server-to-server OAuth'
+        },
+        {
+            id: 'meta_ads',
+            name: 'Meta Ads Lead Gen (Facebook & IG)',
+            description: 'Direct ingestion of Facebook & Instagram Lead Ads into LinkPilot CRM with instant AI follow-up.',
+            icon: 'share-2',
+            iconColor: 'bg-purple-50 text-purple-600 border-purple-200',
+            connected: true,
+            docs: 'Graph API connected'
+        },
+        {
+            id: 'automations',
+            name: 'Webhook & Workflow Automations',
+            description: 'Trigger autonomous actions on incoming webhooks, form submissions, and external event payloads.',
+            icon: 'zap',
+            iconColor: 'bg-violet-50 text-violet-600 border-violet-200',
+            connected: true,
+            docs: 'Active event listener'
+        }
+    ];
+
+    window.openAgentAppsModal = function () {
+        const root = document.getElementById('agent-apps-modal-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div id="agent-apps-modal-backdrop" onclick="closeAgentAppsModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+                    <!-- Top header -->
+                    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="h-8 w-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400">
+                                <i data-lucide="layout-grid" class="h-4.5 w-4.5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">Apps & Integrations</h3>
+                                <p class="text-[10px] text-slate-400">Connected tools your AI Agent uses to execute real actions</p>
+                            </div>
+                        </div>
+                        <button onclick="closeAgentAppsModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/70">
+                        <div class="relative">
+                            <input type="text" id="agent-apps-search-input" oninput="filterAgentApps(this.value)" placeholder="Search apps, tools & integrations..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-slate-800 placeholder-slate-400 shadow-2xs">
+                            <i data-lucide="search" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5"></i>
+                        </div>
+                    </div>
+
+                    <!-- Apps list container -->
+                    <div class="p-5 overflow-y-auto space-y-3 agent-custom-scrollbar" id="agent-apps-list-container">
+                        <!-- Populated by renderAgentAppsList() -->
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span class="text-slate-500 text-[11px]">All tools run under end-to-end encrypted business session</span>
+                        <button onclick="closeAgentAppsModal()" class="px-4 py-1.5 font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                            Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        renderAgentAppsList();
+        setTimeout(() => {
+            const searchInput = document.getElementById('agent-apps-search-input');
+            if (searchInput) searchInput.focus();
+        }, 50);
+    };
+
+    window.closeAgentAppsModal = function () {
+        const root = document.getElementById('agent-apps-modal-root');
+        if (!root) return;
+        root.innerHTML = '';
+    };
+
+    window.filterAgentApps = function (query) {
+        renderAgentAppsList(query);
+    };
+
+    function renderAgentAppsList(query = '') {
+        const container = document.getElementById('agent-apps-list-container');
+        if (!container) return;
+
+        const q = query.toLowerCase().trim();
+        const filtered = agentAppsList.filter(app =>
+            app.name.toLowerCase().includes(q) ||
+            app.description.toLowerCase().includes(q)
+        );
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-10 text-slate-400 text-xs">
+                    <i data-lucide="search-x" class="h-6 w-6 mx-auto mb-2 text-slate-300"></i>
+                    <p>No apps found matching "${escapeHtml(query)}"</p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(app => {
+            const isConn = app.connected;
+            html += `
+                <div class="p-3.5 bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl flex items-center justify-between transition shadow-2xs">
+                    <div class="flex items-start space-x-3 min-w-0 pr-3">
+                        <div class="h-10 w-10 rounded-xl ${app.iconColor} border flex items-center justify-center shrink-0 mt-0.5">
+                            <i data-lucide="${app.icon}" class="h-5 w-5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <h4 class="text-xs font-bold text-slate-900 truncate">${escapeHtml(app.name)}</h4>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isConn ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                                    ${isConn ? '● Connected' : 'Not Connected'}
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">${escapeHtml(app.description)}</p>
+                        </div>
+                    </div>
+                    <div class="shrink-0">
+                        ${isConn ? `
+                            <button onclick="toggleAppConnection('${app.id}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer">
+                                Configure
+                            </button>
+                        ` : `
+                            <button onclick="toggleAppConnection('${app.id}')" class="px-3.5 py-1.5 bg-black hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition shadow-2xs flex items-center space-x-1 cursor-pointer">
+                                <i data-lucide="plus" class="h-3 w-3"></i>
+                                <span>Connect</span>
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    window.toggleAppConnection = function (appId) {
+        const app = agentAppsList.find(a => a.id === appId);
+        if (!app) return;
+
+        app.connected = !app.connected;
+        if (typeof showNotification === 'function') {
+            if (app.connected) {
+                showNotification('success', `${app.name} connected successfully!`);
+            } else {
+                showNotification('info', `${app.name} disconnected.`);
+            }
+        }
+        const searchInput = document.getElementById('agent-apps-search-input');
+        renderAgentAppsList(searchInput ? searchInput.value : '');
+    };
+
 
     /**
      * Auto-resizes textarea as content expands.
@@ -566,13 +1290,13 @@
     }
 
     /**
-     * User speech card HTML.
+     * User speech card HTML with high-contrast pure black bubble & pure white text.
      */
     function renderUserMessageHTML(msg) {
         return `
             <div class="flex items-start justify-end">
-                <div class="max-w-[85%] md:max-w-[75%] bg-slate-900 text-white px-4 py-3 rounded-2xl rounded-tr-xs shadow-2xs text-xs md:text-sm font-normal leading-relaxed">
-                    <p class="whitespace-pre-wrap">${escapeHtml(msg.content)}</p>
+                <div class="agent-user-bubble max-w-[85%] md:max-w-[75%] bg-black text-white px-4 py-3 rounded-2xl rounded-tr-xs shadow-2xs text-xs md:text-sm font-normal leading-relaxed">
+                    <p class="whitespace-pre-wrap text-white font-normal">${escapeHtml(msg.content)}</p>
                 </div>
             </div>
         `;
@@ -587,14 +1311,15 @@
             toolsHTML += '<div class="space-y-1.5 mb-3">';
             msg.tool_calls.forEach(tc => {
                 const isSuccess = tc.status === 'completed';
-                const icon = isSuccess ? 'check-circle-2 text-emerald-600' : 'alert-circle text-rose-500';
                 toolsHTML += `
                     <div class="agent-tool-card flex items-center justify-between text-xs">
                         <div class="flex items-center space-x-2 min-w-0">
-                            <i data-lucide="${icon}" class="h-3.5 w-3.5 shrink-0"></i>
+                            <i data-lucide="${isSuccess ? 'check' : 'alert-circle'}" class="h-3.5 w-3.5 shrink-0 ${isSuccess ? 'text-emerald-600' : 'text-rose-500'}"></i>
                             <span class="font-semibold text-slate-800 truncate">${escapeHtml(tc.tool_name || tc.tool_id)}</span>
                         </div>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${isSuccess ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">${tc.status}</span>
+                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${isSuccess ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                            ${isSuccess ? '<i data-lucide="check" class="h-3 w-3"></i> Done' : tc.status}
+                        </span>
                     </div>
                 `;
             });
@@ -635,8 +1360,8 @@
 
         return `
             <div class="flex items-start space-x-3">
-                <div class="h-7 w-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 shadow-2xs mt-0.5">
-                    <i data-lucide="bot" class="h-4 w-4"></i>
+                <div class="h-8 w-8 rounded-full overflow-hidden border border-slate-200/80 shrink-0 shadow-2xs mt-0.5">
+                    <img src="${AGENT_AVATAR_STATIC}" alt="${escapeHtml(agentCustomName)}" class="h-full w-full object-cover">
                 </div>
                 <div class="flex-1 min-w-0 bg-white border border-slate-200/80 rounded-2xl rounded-tl-xs p-4 md:p-5 shadow-2xs">
                     ${toolsHTML}
@@ -680,19 +1405,19 @@
         streamWrapper.insertAdjacentHTML('beforeend', renderUserMessageHTML({ content: message }));
         scrollAgentToBottom();
 
-        // Create Assistant live placeholder
+        // Create Assistant live placeholder with Purple Penguin Laptop Animation GIF
         const assistantPlaceholderId = 'assistant-live-' + Date.now();
         const assistantLiveHTML = `
             <div id="${assistantPlaceholderId}" class="flex items-start space-x-3 animate-fade-in">
-                <div class="h-7 w-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs shrink-0 shadow-2xs mt-0.5">
-                    <i data-lucide="bot" class="h-4 w-4"></i>
+                <div class="h-8 w-8 rounded-full overflow-hidden border border-slate-200/80 shrink-0 shadow-2xs mt-0.5">
+                    <img src="${AGENT_AVATAR_THINKING}" alt="${escapeHtml(agentCustomName)}" class="agent-live-avatar h-full w-full object-cover">
                 </div>
                 <div class="flex-1 min-w-0 bg-white border border-slate-200/80 rounded-2xl rounded-tl-xs p-4 md:p-5 shadow-2xs">
                     <div class="agent-live-tools space-y-1.5 mb-2"></div>
                     <div class="agent-live-approval"></div>
                     <div class="agent-live-content agent-markdown-content agent-streaming-cursor">
-                        <span class="inline-flex items-center text-xs text-slate-400 font-medium">
-                            <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin mr-1.5 text-indigo-600"></i> Thinking & accessing business data...
+                        <span class="inline-flex items-center text-xs text-slate-500 font-medium">
+                            <span class="mr-1">thinking</span><span class="agent-thinking-dots">...</span>
                         </span>
                     </div>
                     <div class="agent-live-proactive flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-100 hidden"></div>
@@ -761,9 +1486,11 @@
                                     <div class="agent-tool-card flex items-center justify-between text-xs animate-fade-in" id="tool-step-${escapeHtml(data.tool_id)}">
                                         <div class="flex items-center space-x-2">
                                             <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-indigo-600"></i>
-                                            <span class="font-bold text-slate-800">Running: ${escapeHtml(data.tool_name || data.tool_id)}...</span>
+                                            <span class="font-bold text-slate-800">${escapeHtml(data.tool_name || data.tool_id)}</span>
                                         </div>
-                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-indigo-50 text-indigo-700">Executing</span>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-indigo-50 text-indigo-700 flex items-center gap-1">
+                                            <span>thinking</span><span class="agent-thinking-dots">...</span>
+                                        </span>
                                     </div>
                                 `;
                                 toolsContainer.insertAdjacentHTML('beforeend', toolHtml);
@@ -774,10 +1501,12 @@
                                 if (toolEl) {
                                     toolEl.innerHTML = `
                                         <div class="flex items-center space-x-2">
-                                            <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-600"></i>
+                                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
                                             <span class="font-bold text-slate-800">${escapeHtml(data.tool_name || data.tool_id)}</span>
                                         </div>
-                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">Completed ✓</span>
+                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                                            <i data-lucide="check" class="h-3 w-3"></i> Done
+                                        </span>
                                     `;
                                     if (window.lucide) lucide.createIcons();
                                 }
@@ -853,6 +1582,10 @@
             }
         } finally {
             setGeneratingState(false);
+            if (card) {
+                const liveAvatar = card.querySelector('.agent-live-avatar');
+                if (liveAvatar) liveAvatar.src = AGENT_AVATAR_STATIC;
+            }
             scrollAgentToBottom();
         }
     };
@@ -890,17 +1623,31 @@
     function setGeneratingState(generating) {
         isGenerating = generating;
         const btn = document.getElementById('agent-send-button');
-        if (!btn) return;
-
-        if (generating) {
-            btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>`;
-            btn.disabled = true;
-            btn.classList.add('opacity-75');
-        } else {
-            btn.innerHTML = `<i data-lucide="arrow-up" class="h-4 w-4"></i>`;
-            btn.disabled = false;
-            btn.classList.remove('opacity-75');
+        if (btn) {
+            if (generating) {
+                btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>`;
+                btn.disabled = true;
+                btn.classList.add('opacity-75');
+            } else {
+                btn.innerHTML = `<i data-lucide="arrow-up" class="h-4 w-4"></i>`;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75');
+            }
         }
+
+        // Switch right drawer large avatar between thinking GIF and static plush avatar
+        const profileAvatar = document.getElementById('agent-profile-large-avatar');
+        if (profileAvatar) {
+            profileAvatar.src = generating ? AGENT_AVATAR_THINKING : AGENT_AVATAR_STATIC;
+        }
+
+        // If not generating, ensure all live avatars in messages revert to static
+        if (!generating) {
+            document.querySelectorAll('.agent-live-avatar').forEach(img => {
+                img.src = AGENT_AVATAR_STATIC;
+            });
+        }
+
         if (window.lucide) lucide.createIcons();
     }
 

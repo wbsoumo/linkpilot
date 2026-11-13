@@ -376,6 +376,7 @@ async function navigateTo(view, params = {}) {
         }
         
         if (view === 'agent' || (view === 'automation' && window.wfState.activeWorkflow)) {
+            toggleSidebarCollapsed(true);
             const assistantBtn = document.getElementById('ai-chat-trigger-btn');
             if (assistantBtn) assistantBtn.classList.add('hidden');
         } else {

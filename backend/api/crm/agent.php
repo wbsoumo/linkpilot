@@ -86,6 +86,114 @@ try {
         ]);
     }
 
+    // 6b. Get Agent Profile & Settings
+    elseif ($action === 'get_agent_settings') {
+        $agentName = 'Muse';
+        try {
+            $stmt = $db->prepare("SELECT value_text FROM ai_agent_memory WHERE user_id = ? AND key_name = 'agent_name' LIMIT 1");
+            $stmt->execute([$userId]);
+            $nameVal = $stmt->fetchColumn();
+            if (!empty($nameVal)) $agentName = trim($nameVal);
+        } catch (Throwable $e) {}
+
+        // Mock scheduled tasks or fetch from DB
+        $scheduledTasks = [
+            [
+                'id' => 'st_1',
+                'title' => 'Daily hot-leads WhatsApp pack',
+                'schedule' => 'Every day at 17:45',
+                'next_run' => '14 Nov, 17:45',
+                'category' => 'whatsapp',
+                'icon' => 'calendar',
+                'badge' => 'J',
+                'status' => 'active',
+                'description' => 'Automatically scans CRM contacts for high-buying-intent leads with unreplied WhatsApp conversations in the past 7 days and prepares follow-ups.'
+            ],
+            [
+                'id' => 'st_2',
+                'title' => 'Heartbeat',
+                'schedule' => 'Every 30 minutes',
+                'next_run' => 'In 18 minutes',
+                'category' => 'system',
+                'icon' => 'heart',
+                'badge' => '',
+                'status' => 'active',
+                'description' => 'System background heartbeat monitoring active webhooks, WhatsApp sync health, and incoming business lead alerts.'
+            ],
+            [
+                'id' => 'st_3',
+                'title' => 'International lead research (45/day)',
+                'schedule' => 'Every day at 08:45',
+                'next_run' => '14 Nov, 8:45',
+                'category' => 'enrichment',
+                'icon' => 'calendar',
+                'badge' => 'J',
+                'status' => 'active',
+                'description' => 'Autonomous enrichment of prospective international contacts with verified company emails, phone codes, and company sizes.'
+            ],
+            [
+                'id' => 'st_4',
+                'title' => 'Executive Morning Briefing',
+                'schedule' => 'Weekdays at 09:00 AM',
+                'next_run' => 'Tomorrow, 9:00 AM',
+                'category' => 'briefing',
+                'icon' => 'sparkles',
+                'badge' => '',
+                'status' => 'active',
+                'description' => 'Synthesizes today\'s scheduled meetings, at-risk deals in pipeline, and overdue CRM tasks into an executive summary.'
+            ],
+            [
+                'id' => 'st_5',
+                'title' => 'Stalled Deals Reviver',
+                'schedule' => 'Every Monday at 10:00 AM',
+                'next_run' => 'Next Monday, 10:00 AM',
+                'category' => 'deals',
+                'icon' => 'dollar-sign',
+                'badge' => '',
+                'status' => 'active',
+                'description' => 'Detects deals in pipeline with no activity or note added in over 14 days and automatically creates urgent follow-up tasks.'
+            ],
+            [
+                'id' => 'st_6',
+                'title' => 'Run batch script',
+                'schedule' => 'Executed Nov 11, 14:20',
+                'next_run' => 'Completed',
+                'category' => 'crm',
+                'icon' => 'check-circle-2',
+                'badge' => '',
+                'status' => 'completed',
+                'description' => 'Batch customer data normalization and conversation index update executed successfully across channels.'
+            ]
+        ];
+
+        sendJsonResponse('success', 'Agent settings retrieved.', [
+            'agent_name' => $agentName,
+            'status' => 'connected',
+            'scheduled_tasks' => $scheduledTasks
+        ]);
+    }
+
+    // 6c. Update Agent Name & Settings
+    elseif ($action === 'update_agent_settings') {
+        $newName = trim($input['agent_name'] ?? '');
+        if (empty($newName)) {
+            sendJsonResponse('error', 'Agent name cannot be empty.', [], 400);
+        }
+
+        try {
+            $stmt = $db->prepare("INSERT INTO ai_agent_memory (user_id, memory_type, key_name, value_text) 
+                VALUES (?, 'setting', 'agent_name', ?) 
+                ON DUPLICATE KEY UPDATE value_text = VALUES(value_text)");
+            $stmt->execute([$userId, $newName]);
+        } catch (Throwable $e) {
+            sendJsonResponse('error', 'Failed to update agent name: ' . $e->getMessage(), [], 500);
+        }
+
+        sendJsonResponse('success', 'Agent name updated successfully.', [
+            'agent_name' => $newName
+        ]);
+    }
+
     // 7. Approve & Execute Pending Action
     elseif ($action === 'approve_action') {
         $convId = trim($input['conversation_id'] ?? '');

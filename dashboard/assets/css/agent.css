@@ -311,6 +311,18 @@
     stroke: #ef4444 !important;
 }
 
+/* Outgoing User Message Bubble - Pure Black with pure White text (Fix invisibility) */
+.agent-user-bubble {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+.agent-user-bubble p,
+.agent-user-bubble span,
+.agent-user-bubble div,
+.agent-user-bubble * {
+    color: #ffffff !important;
+}
+
 /* 2. Chat Area Header */
 #agent-chat-header {
     background-color: #ffffff !important;
@@ -322,7 +334,7 @@
     color: #0f172a !important;
 }
 
-/* 3. Bottom Floating Composer Bar */
+/* 3. Bottom Floating Composer Bar (Borderless container matching screenshot) */
 #agent-composer-bar {
     background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.95) 30%, #f8fafc 100%) !important;
     border-top: none !important;
@@ -330,17 +342,18 @@
 }
 
 #agent-composer-form {
-    background-color: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04) !important;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    background-color: #f1f5f9 !important;
+    border: none !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 #agent-composer-form:hover {
-    border-color: #cbd5e1 !important;
+    background-color: #edf2f7 !important;
 }
 #agent-composer-form:focus-within {
-    border-color: #6366f1 !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12), 0 4px 16px -2px rgba(15, 23, 42, 0.08) !important;
+    background-color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12), 0 4px 16px -2px rgba(15, 23, 42, 0.08) !important;
 }
 
 #agent-user-prompt-input {
@@ -352,7 +365,7 @@
 }
 
 #agent-send-button {
-    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+    background: #000000 !important;
     color: #ffffff !important;
     border: none !important;
 }
@@ -361,10 +374,18 @@
     stroke: #ffffff !important;
 }
 #agent-send-button:hover {
-    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%) !important;
+    background: #1e293b !important;
 }
 
-/* 4. Welcome Screen & Cards */
+/* 4. Right Side Agent Profile & Tasks Sidebar */
+#agent-profile-sidebar {
+    background-color: #ffffff !important;
+    border-left: 1px solid #e2e8f0 !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    will-change: width, opacity;
+}
+
+/* 5. Welcome Screen & Cards */
 .agent-welcome-card {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
@@ -413,4 +434,33 @@
     border-color: #94a3b8 !important;
     color: #0f172a !important;
 }
+
+/* Animated Thinking Dots */
+.agent-thinking-dots {
+    display: inline-block;
+}
+.agent-thinking-dots::after {
+    content: "...";
+    display: inline-block;
+    animation: thinkingDotsAnim 1.4s infinite steps(4, jump-none);
+}
+
+@keyframes thinkingDotsAnim {
+    0% { content: ""; }
+    33% { content: "."; }
+    66% { content: ".."; }
+    100% { content: "..."; }
+}
+
+/* Progressive Text Reveal Effect */
+.agent-reveal-chunk {
+    display: inline;
+    animation: agentRevealIn 0.25s ease-out;
+}
+
+@keyframes agentRevealIn {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
 

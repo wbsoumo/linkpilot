@@ -900,7 +900,7 @@ class AIToolRegistry {
             'approval_required' => false,
             'parameters' => ['type' => 'object', 'properties' => []],
             'handler' => function($userId, array $params, PDO $db) {
-                $stmt = $db->prepare("SELECT id, name, category, language, status, body_text FROM whatsapp_templates WHERE user_id = ? ORDER BY name ASC");
+                $stmt = $db->prepare("SELECT id, name, category, language, status, components_json FROM whatsapp_templates WHERE user_id = ? ORDER BY name ASC");
                 $stmt->execute([$userId]);
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
@@ -915,7 +915,7 @@ class AIToolRegistry {
             'approval_required' => false,
             'parameters' => ['type' => 'object', 'properties' => []],
             'handler' => function($userId, array $params, PDO $db) {
-                $stmt = $db->prepare("SELECT id, name, template_name, status, total_recipients, sent_count, delivered_count, read_count, failed_count, created_at FROM whatsapp_campaigns WHERE user_id = ? ORDER BY id DESC LIMIT 20");
+                $stmt = $db->prepare("SELECT id, name, template_name, status, total_contacts, sent_count, delivered_count, read_count, failed_count, created_at FROM whatsapp_campaigns WHERE user_id = ? ORDER BY id DESC LIMIT 20");
                 $stmt->execute([$userId]);
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
@@ -1079,7 +1079,7 @@ class AIToolRegistry {
             'approval_required' => false,
             'parameters' => ['type' => 'object', 'properties' => []],
             'handler' => function($userId, array $params, PDO $db) {
-                $stmt = $db->prepare("SELECT id, name, subject, category FROM email_templates WHERE user_id = ? OR user_id = 0 ORDER BY id DESC");
+                $stmt = $db->prepare("SELECT id, name, subject, category, tag FROM custom_email_templates WHERE user_id = ? ORDER BY id DESC");
                 $stmt->execute([$userId]);
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
             }

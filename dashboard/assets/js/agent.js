@@ -70,26 +70,7 @@
                             <button onclick="toggleAgentHistorySidebar()" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-800 transition cursor-pointer" title="Toggle Chat History">
                                 <i data-lucide="menu" class="h-4.5 w-4.5"></i>
                             </button>
-                            <div class="truncate">
-                                <div class="flex items-center space-x-2">
-                                    <h2 id="agent-active-title" class="text-xs md:text-sm font-extrabold text-slate-900 truncate">LinkPilot Autonomous Agent</h2>
-                                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline-flex">Central Intelligence</span>
-                                </div>
-                                <div class="text-[10px] text-slate-500 flex items-center space-x-1.5 mt-0.5">
-                                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                    <span>Online • Unified Controller (CRM, WhatsApp, Email, Deals, Tasks, Automations)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center space-x-2 shrink-0">
-                            <button onclick="openAgentCapabilitiesModal()" class="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 cursor-pointer shadow-2xs" title="What can Agent do?">
-                                <i data-lucide="help-circle" class="h-3.5 w-3.5 text-indigo-600"></i>
-                                <span class="hidden md:inline text-slate-700 font-semibold">What can I do?</span>
-                            </button>
-                            <button onclick="createNewAgentChat()" class="p-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer shadow-2xs" title="New Chat">
-                                <i data-lucide="plus-circle" class="h-4.5 w-4.5 text-indigo-600"></i>
-                            </button>
+                            <h2 id="agent-active-title" class="text-sm font-bold text-slate-900 truncate">LinkPilot Autonomous Agent</h2>
                         </div>
                     </header>
 
@@ -124,12 +105,6 @@
                                     <i data-lucide="arrow-up" class="h-4 w-4 text-white"></i>
                                 </button>
                             </form>
-
-                            <!-- Proactive footer hint -->
-                            <div class="flex items-center justify-between text-[11px] text-slate-500 px-1 font-normal">
-                                <span class="text-slate-500">LinkPilot Agent executes real actions across your business. External & destructive tasks require confirmation.</span>
-                                <span class="hidden sm:inline text-slate-400">Press Enter ↵ to send, Shift+Enter for new line</span>
-                            </div>
                         </div>
                     </div>
                 </main>

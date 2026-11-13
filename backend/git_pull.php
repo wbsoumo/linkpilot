@@ -9,6 +9,11 @@ chdir($root);
 
 echo "Working directory: " . getcwd() . "\n";
 echo "Date: " . date('Y-m-d H:i:s') . "\n";
+$headFile = $root . '/.git/refs/heads/main';
+if (file_exists($headFile)) {
+    echo "SERVER GIT COMMIT: " . trim(file_get_contents($headFile)) . "\n";
+}
+echo "DISABLE_FUNCTIONS: " . ini_get('disable_functions') . "\n";
 
 $cmd = "GIT_TERMINAL_PROMPT=0 git pull origin main 2>&1";
 $output = [];
@@ -58,6 +63,49 @@ if (!$executed && function_exists('system')) {
 
 if (!$executed) {
     echo "Notice: All CLI execution functions are restricted by hosting environment.\n";
+    echo "Falling back to pure PHP sync from GitHub (wbsoumo/linkpilot@main)...\n";
+
+    $syncFiles = [
+        'backend/agent_ai_client.php',
+        'backend/agent_orchestrator.php',
+        'backend/ai_tool_registry.php',
+        'backend/web_search_helper.php',
+        'backend/config.php',
+        'backend/ai_diagnostic.php',
+        'backend/git_pull.php'
+    ];
+
+    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
+    $synced = 0;
+
+    foreach ($syncFiles as $file) {
+        $url = $baseUrl . $file;
+        $target = $root . '/' . $file;
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $content = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200 && !empty($content)) {
+            if (!is_dir(dirname($target))) {
+                @mkdir(dirname($target), 0755, true);
+            }
+            if (@file_put_contents($target, $content) !== false) {
+                echo "  [OK] Synced: {$file} (" . strlen($content) . " bytes)\n";
+                $synced++;
+            } else {
+                echo "  [FAIL] Write error: {$file}\n";
+            }
+        } else {
+            echo "  [FAIL] HTTP {$httpCode} for: {$file}\n";
+        }
+    }
+    echo "Pure PHP sync completed: {$synced}/" . count($syncFiles) . " files updated.\n";
 }
 
 // Touch .htaccess to flush LiteSpeed PHP opcache

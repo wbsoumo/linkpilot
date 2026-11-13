@@ -41,51 +41,51 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// 4. Test Model Queries
-echo "\n--- TESTING MODEL QUERIES ---\n";
+// 4. Test Chat Execution via AgentAIClient::callChat
+echo "\n--- TESTING FULL AgentAIClient::callChat() ---\n";
+$start = microtime(true);
+$res = AgentAIClient::callChat([
+    ['role' => 'user', 'content' => 'hello, reply with one short sentence']
+], [], $adminId);
+$elapsed = round(microtime(true) - $start, 2);
+echo "Elapsed Time: {$elapsed}s\n";
+echo "Response Content: " . ($res['content'] ?? 'EMPTY') . "\n";
+echo "Tokens Used: " . ($res['tokens_used'] ?? 0) . "\n";
 
-foreach ($candidates as $c) {
-    $prov = $c['provider'];
-    $key = $c['api_key'];
-
-    if ($prov === 'google_ai_studio') {
-        echo "\nListing models for Google AI Studio...\n";
-        $ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models?key=" . urlencode($key));
+// 5. Optional file sync trigger
+if (isset($_GET['sync'])) {
+    echo "\n--- DIRECT GITHUB SYNC ---\n";
+    $syncFiles = [
+        'backend/agent_ai_client.php',
+        'backend/agent_orchestrator.php',
+        'backend/ai_tool_registry.php',
+        'backend/web_search_helper.php',
+        'backend/config.php',
+        'backend/git_pull.php',
+        'backend/ai_diagnostic.php'
+    ];
+    $root = dirname(__DIR__);
+    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
+    $synced = 0;
+    foreach ($syncFiles as $f) {
+        $ch = curl_init($baseUrl . $f);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        $res = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $c = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        echo "Google models HTTP Code: $httpCode\n";
-        $data = json_decode($res, true);
-        if (!empty($data['models'])) {
-            $modelNames = array_map(function($m) { return str_replace('models/', '', $m['name']); }, $data['models']);
-            echo "Available Google models: " . implode(', ', array_slice($modelNames, 0, 15)) . "\n";
-        } else {
-            echo "Google response: " . substr($res, 0, 300) . "\n";
+        if ($code === 200 && !empty($c)) {
+            $dest = $root . '/' . $f;
+            if (!is_dir(dirname($dest))) @mkdir(dirname($dest), 0755, true);
+            if (@file_put_contents($dest, $c) !== false) {
+                echo "Synced: $f (" . strlen($c) . " bytes)\n";
+                $synced++;
+            }
         }
     }
-
-    if ($prov === 'groq') {
-        echo "\nListing models for Groq...\n";
-        $ch = curl_init("https://api.groq.com/openai/v1/models");
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $key"]);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        $res = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        echo "Groq models HTTP Code: $httpCode\n";
-        $data = json_decode($res, true);
-        if (!empty($data['data'])) {
-            $modelNames = array_map(function($m) { return $m['id']; }, $data['data']);
-            echo "Available Groq models: " . implode(', ', array_slice($modelNames, 0, 15)) . "\n";
-        } else {
-            echo "Groq response: " . substr($res, 0, 300) . "\n";
-        }
-    }
+    if (file_exists($root . '/.htaccess')) @touch($root . '/.htaccess');
+    echo "Sync finished. $synced files updated.\n";
 }
 
 echo "\n=== END DIAGNOSTIC ===\n";

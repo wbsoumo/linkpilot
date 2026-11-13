@@ -39,7 +39,8 @@ class AgentAIClient {
             $userIds = array_unique(array_filter([$userId, $adminRow['id'] ?? null]));
             if (!empty($userIds)) {
                 $inClause = implode(',', array_map('intval', $userIds));
-                $stmt = $db->query("SELECT provider, api_key, status FROM user_ai_keys WHERE user_id IN ($inClause) AND status NOT IN ('invalid', 'paused') ORDER BY id ASC");
+                // Allow keys unless explicitly paused by user
+                $stmt = $db->query("SELECT provider, api_key, status FROM user_ai_keys WHERE user_id IN ($inClause) AND status != 'paused' ORDER BY id ASC");
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 foreach ($rows as $r) {
                     $dec = decryptData($r['api_key']);
@@ -89,22 +90,29 @@ class AgentAIClient {
             if (!empty($k) && strpos($k, 'placeholder') === false) $dbKeys['github_models'] = $k;
         }
 
-        // 5. Default model mappings
-        // 5. Default model mappings with guaranteed valid model IDs
+        // 5. Default model mappings with guaranteed active model IDs
         $modelMap = [
-            'google_ai_studio' => 'gemini-2.0-flash',
-            'groq' => 'llama-3.3-70b-versatile',
-            'openrouter' => 'google/gemini-2.0-flash-lite:free',
+            'groq' => 'llama-3.1-8b-instant',
+            'openrouter' => 'meta-llama/llama-3.1-8b-instruct:free',
+            'google_ai_studio' => 'gemini-1.5-flash',
             'github_models' => 'gpt-4o-mini'
         ];
 
-        // Ensure active provider is tested first
-        $providerOrder = array_unique(array_merge([$activeProvider], ['google_ai_studio', 'groq', 'openrouter', 'github_models']));
+        // Sanitize activeModel: if it contains invalid/obsolete strings, use known good default
+        $safeActiveModel = $activeModel;
+        if (!empty($safeActiveModel)) {
+            if (strpos($safeActiveModel, '3.1') !== false || strpos($safeActiveModel, '2.0-flash') !== false || strpos($safeActiveModel, '2.5-flash:free') !== false) {
+                $safeActiveModel = $modelMap[$activeProvider] ?? 'gemini-1.5-flash';
+            }
+        }
+
+        // Ensure active provider is tested first, followed by fast, authenticated providers
+        $providerOrder = array_unique(array_merge([$activeProvider], ['groq', 'openrouter', 'google_ai_studio', 'github_models']));
         $candidates = [];
 
         foreach ($providerOrder as $prov) {
             if (!empty($dbKeys[$prov])) {
-                $provModel = ($prov === $activeProvider && !empty($activeModel) && strpos($activeModel, '3.1') === false && strpos($activeModel, '2.5') === false) ? $activeModel : ($modelMap[$prov] ?? 'gpt-4o-mini');
+                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'llama-3.1-8b-instant');
                 $candidates[] = [
                     'provider' => $prov,
                     'model' => $provModel,
@@ -117,7 +125,7 @@ class AgentAIClient {
         if (empty($candidates)) {
             $candidates[] = [
                 'provider' => 'openrouter',
-                'model' => 'google/gemini-2.0-flash-lite:free',
+                'model' => 'meta-llama/llama-3.1-8b-instruct:free',
                 'api_key' => defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : ''
             ];
         }
@@ -135,15 +143,21 @@ class AgentAIClient {
 
     /**
      * Executes OpenAI compatible Chat Completion with tool calling and automatic multi-provider failover.
-     * Fast 8s timeout prevents hanging and guarantees quick responses.
+     * Retries alternate valid models per provider if an individual model ID is deprecated.
      */
     public static function callChat(array $messages, array $tools = [], $userId = null, $maxTokens = 1000) {
         $providers = self::getAllAvailableProviders($userId);
         $lastError = null;
 
+        $modelCatalog = [
+            'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192', 'llama3-8b-8192'],
+            'openrouter' => ['meta-llama/llama-3.1-8b-instruct:free', 'meta-llama/llama-3.3-70b-instruct:free', 'google/gemini-2.0-flash-exp:free', 'mistralai/mistral-7b-instruct:free', 'openrouter/auto'],
+            'google_ai_studio' => ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-1.5-pro', 'gemini-flash-latest'],
+            'github_models' => ['gpt-4o-mini', 'gpt-4o']
+        ];
+
         foreach ($providers as $cfg) {
             $provider = $cfg['provider'];
-            $model = $cfg['model'];
             $apiKey = $cfg['api_key'];
 
             if (empty($apiKey) || strpos($apiKey, 'placeholder') !== false) continue;
@@ -166,60 +180,82 @@ class AgentAIClient {
                 $headers[] = "X-Title: LinkPilot AI Agent";
             }
 
-            $postFields = [
-                "model" => $model,
-                "messages" => $messages,
-                "temperature" => 0.3,
-                "max_tokens" => $maxTokens
-            ];
-
-            if (!empty($tools)) {
-                $postFields["tools"] = $tools;
-                $postFields["tool_choice"] = "auto";
+            // Build ordered candidate models for this provider
+            $candidateModels = [];
+            if (!empty($cfg['model'])) {
+                $candidateModels[] = $cfg['model'];
+            }
+            if (!empty($modelCatalog[$provider])) {
+                foreach ($modelCatalog[$provider] as $m) {
+                    if (!in_array($m, $candidateModels)) {
+                        $candidateModels[] = $m;
+                    }
+                }
             }
 
-            try {
-                $ch = curl_init($endpoint);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5s connect timeout
-                curl_setopt($ch, CURLOPT_TIMEOUT, 14); // 14s execution timeout
+            foreach ($candidateModels as $model) {
+                $postFields = [
+                    "model" => $model,
+                    "messages" => $messages,
+                    "temperature" => 0.3,
+                    "max_tokens" => $maxTokens
+                ];
 
-                $response = curl_exec($ch);
-                $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                $error = curl_error($ch);
-                curl_close($ch);
-
-                if ($error) {
-                    throw new Exception("Provider {$provider} curl error: " . $error);
+                if (!empty($tools)) {
+                    $postFields["tools"] = $tools;
+                    $postFields["tool_choice"] = "auto";
                 }
 
-                $data = json_decode($response, true);
-                if ($httpCode !== 200) {
-                    $errMsg = $data['error']['message'] ?? ($data['message'] ?? "HTTP {$httpCode} Error");
-                    // If tools parameter caused error on certain models, retry without tools
-                    if (!empty($tools) && (strpos($errMsg, 'tools') !== false || strpos($errMsg, 'functions') !== false)) {
-                        unset($postFields['tools']);
-                        unset($postFields['tool_choice']);
-                        $retryResult = self::callRawCurl($endpoint, $headers, $postFields);
-                        if (!empty($retryResult['content']) || !empty($retryResult['tool_calls'])) {
-                            return $retryResult;
-                        }
+                try {
+                    $ch = curl_init($endpoint);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                    curl_setopt($ch, CURLOPT_POST, true);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+
+                    $response = curl_exec($ch);
+                    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                    $error = curl_error($ch);
+                    curl_close($ch);
+
+                    if ($error) {
+                        throw new Exception("Provider {$provider} curl error: " . $error);
                     }
-                    throw new Exception("Provider {$provider} HTTP {$httpCode}: " . $errMsg);
-                }
 
-                $choice = self::extractChoice($data);
-                if (!empty($choice['content']) || !empty($choice['tool_calls'])) {
-                    return $choice;
+                    $data = json_decode($response, true);
+                    if ($httpCode !== 200) {
+                        $errMsg = $data['error']['message'] ?? ($data['message'] ?? "HTTP {$httpCode} Error");
+                        // If tools parameter caused error on certain models, retry without tools
+                        if (!empty($tools) && (stripos($errMsg, 'tool') !== false || stripos($errMsg, 'function') !== false)) {
+                            unset($postFields['tools']);
+                            unset($postFields['tool_choice']);
+                            $retryResult = self::callRawCurl($endpoint, $headers, $postFields);
+                            if (!empty($retryResult['content']) || !empty($retryResult['tool_calls'])) {
+                                return $retryResult;
+                            }
+                        }
+
+                        // If model not found or invalid model, try next model in catalog
+                        if ($httpCode === 404 || $httpCode === 400 || stripos($errMsg, 'model') !== false) {
+                            error_log("AI Model Retry: {$provider}/{$model} returned HTTP {$httpCode} ({$errMsg}). Trying catalog alternate...");
+                            continue;
+                        }
+
+                        throw new Exception("Provider {$provider} HTTP {$httpCode}: " . $errMsg);
+                    }
+
+                    $choice = self::extractChoice($data);
+                    if (!empty($choice['content']) || !empty($choice['tool_calls'])) {
+                        return $choice;
+                    }
+                } catch (Throwable $e) {
+                    $lastError = $e->getMessage();
+                    error_log("AI Provider Failover: {$provider} ({$model}) failed ({$lastError}). Trying next candidate...");
+                    continue;
                 }
-            } catch (Throwable $e) {
-                $lastError = $e->getMessage();
-                error_log("AI Provider Failover: {$provider} failed ({$lastError}). Trying next candidate...");
-                continue;
             }
         }
 

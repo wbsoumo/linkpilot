@@ -103,6 +103,10 @@ class Database {
     private static $instance = null;
     private static $migrationsRan = false;
     
+    public static function setConnection(?PDO $pdo) {
+        self::$instance = $pdo;
+    }
+
     public static function getConnection($forceNew = false) {
         if ($forceNew) {
             self::$instance = null;

@@ -1487,6 +1487,11 @@ class AIToolRegistry {
 
     public static function listTools() {
         self::init();
+        if (class_exists('AgentCache')) {
+            $cached = AgentCache::get('agent_tools_list');
+            if (!empty($cached)) return $cached;
+        }
+
         $list = [];
         foreach (self::$tools as $t) {
             $list[] = [
@@ -1499,14 +1504,23 @@ class AIToolRegistry {
                 'parameters' => $t['parameters'] ?? ['type' => 'object', 'properties' => []]
             ];
         }
+
+        if (class_exists('AgentCache')) {
+            AgentCache::set('agent_tools_list', $list, 3600);
+        }
         return $list;
     }
 
     /**
-     * Converts registered tools to OpenAI function calling format.
+     * Converts registered tools to OpenAI function calling format with caching.
      */
     public static function getOpenAITools() {
         self::init();
+        if (class_exists('AgentCache')) {
+            $cached = AgentCache::get('agent_openai_tools');
+            if (!empty($cached)) return $cached;
+        }
+
         $openAITools = [];
         foreach (self::$tools as $t) {
             $params = $t['parameters'] ?? ['type' => 'object', 'properties' => (object)[]];
@@ -1515,6 +1529,7 @@ class AIToolRegistry {
             }
             $openAITools[] = [
                 'type' => 'function',
+                'category' => $t['category'] ?? 'general',
                 'function' => [
                     'name' => $t['id'],
                     'description' => $t['description'],
@@ -1522,80 +1537,118 @@ class AIToolRegistry {
                 ]
             ];
         }
+
+        if (class_exists('AgentCache')) {
+            AgentCache::set('agent_openai_tools', $openAITools, 3600);
+        }
         return $openAITools;
     }
 
     /**
-     * Dynamically filters tools based on query intent.
+     * Category-based tool loading.
+     * Loads ONLY tools belonging to the requested functional domains.
+     */
+    public static function getToolsByCategories(array $categories) {
+        if (empty($categories)) return [];
+        $all = self::getOpenAITools();
+        $categories = array_map('strtolower', $categories);
+
+        $filtered = array_filter($all, function($t) use ($categories) {
+            $toolCat = strtolower($t['category'] ?? 'general');
+            return in_array($toolCat, $categories);
+        });
+
+        // Strip internal category tag before sending to external LLM
+        return array_values(array_map(function($t) {
+            return [
+                'type' => 'function',
+                'function' => $t['function']
+            ];
+        }, $filtered));
+    }
+
+    /**
+     * Dynamically filters tools based on query intent or router classification.
      * Prevents massive 37KB payload dumps (43 tools) to external LLMs, eliminating timeouts and cutting latency by 80%.
      */
-    public static function getToolsForMessage($userMessage) {
-        $all = self::getOpenAITools();
-        $msg = strtolower($userMessage);
-        $selectedIds = [];
+    public static function getToolsForMessage($userMessage, ?array $routerClassification = null) {
+        // If router classification is provided, obey execution path directly
+        if ($routerClassification !== null) {
+            $path = $routerClassification['path'] ?? '';
+            if ($path === 'instant' || $path === 'simple_ai') {
+                return [];
+            }
+            if (!empty($routerClassification['categories'])) {
+                $tools = self::getToolsByCategories($routerClassification['categories']);
+                if (!empty($tools)) return $tools;
+            }
+        }
 
-        // 1. Web, Weather & Research Intent
-        if (preg_match('/\b(weather|temperature|forecast|rain|climate|humidity|degrees?|celsius|fahrenheit|city)\b/i', $msg) || preg_match('/\b(kolkata|mumbai|delhi|bangalore|london|new york|tokyo|paris)\b/i', $msg)) {
-            $selectedIds[] = 'get_live_weather';
+        $msg = strtolower($userMessage);
+        $clean = preg_replace('/[^\w\s]/u', ' ', $msg);
+        $all = self::getOpenAITools();
+        $selectedCategories = [];
+
+        // 1. Web & Live Data Intent (Only if specifically asking for live weather or explicit search)
+        if (preg_match('/\b(weather|temperature|forecast|rain|climate|humidity|degrees?\s*(?:c|f)?|celsius|fahrenheit)\b/i', $clean)) {
+            $selectedCategories[] = 'web';
         }
-        if (preg_match('/\b(search|google|news|who is|who was|what is|find out|online|internet|browse|latest|stocks?|price)\b/i', $msg) || preg_match('/^(what|who|where|when|why|how)\b/i', $msg)) {
-            $selectedIds[] = 'web_search';
+        if (preg_match('/\b(search\s+google|google\s+search|web\s+search|search\s+the\s+web|latest\s+(?:news|stocks|market|crypto))\b/i', $clean)) {
+            $selectedCategories[] = 'web';
         }
-        if (preg_match('/https?:\/\/[^\s]+/i', $msg) || preg_match('/\b(url|website|link|page|scrape|summarize this)\b/i', $msg)) {
-            $selectedIds[] = 'fetch_webpage_content';
+        if (preg_match('/https?:\/\/[^\s]+/i', $userMessage) || preg_match('/\b(url|website|link|page|scrape|summarize\s+this\s+page)\b/i', $clean)) {
+            $selectedCategories[] = 'web';
         }
 
         // 2. CRM & Leads Intent
-        if (preg_match('/\b(contact|lead|customer|client|phone|person|people|tag|note)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['search_contacts', 'get_contact', 'create_contact', 'create_lead', 'get_hot_leads', 'add_contact_tag', 'add_contact_note']);
+        if (preg_match('/\b(contact|contacts|lead|leads|customer|customers|client|person|people|tag|tags|note|notes)\b/i', $clean)) {
+            $selectedCategories[] = 'crm';
         }
 
         // 3. Deals & Sales Pipeline Intent
-        if (preg_match('/\b(deal|pipeline|stage|revenue|sale|sales|at risk)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['search_deals', 'create_deal', 'move_deal_stage', 'get_pipeline_summary', 'get_at_risk_deals']);
+        if (preg_match('/\b(deal|deals|pipeline|stage|revenue|sale|sales|at\s+risk|stalled)\b/i', $clean)) {
+            $selectedCategories[] = 'deals';
         }
 
         // 4. Tasks Intent
-        if (preg_match('/\b(task|todo|to-do|reminder|schedule|pending|overdue)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['search_tasks', 'create_task', 'complete_task', 'get_overdue_tasks']);
+        if (preg_match('/\b(task|tasks|todo|to-do|reminder|reminders|schedule|pending|overdue)\b/i', $clean)) {
+            $selectedCategories[] = 'tasks';
         }
 
         // 5. WhatsApp Intent
-        if (preg_match('/\b(whatsapp|chat|text|unreplied|campaign|template)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['get_whatsapp_conversations', 'get_whatsapp_messages', 'get_whatsapp_unreplied', 'send_whatsapp_message', 'list_whatsapp_templates']);
+        if (preg_match('/\b(whatsapp|wa\s+chat|wa\s+message|unreplied|campaign|template|broadcast)\b/i', $clean)) {
+            $selectedCategories[] = 'whatsapp';
         }
 
         // 6. Email Intent
-        if (preg_match('/\b(email|mail|inbox|thread|draft)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['search_emails', 'get_email', 'get_unreplied_emails', 'send_email', 'summarize_email_conversation']);
+        if (preg_match('/\b(email|emails|mail|inbox|thread|draft|send\s+email)\b/i', $clean)) {
+            $selectedCategories[] = 'email';
         }
 
         // 7. Calendar Intent
-        if (preg_match('/\b(meeting|calendar|schedule meeting|zoom|meet|appointment)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['list_meetings', 'create_meeting']);
+        if (preg_match('/\b(meeting|meetings|calendar|schedule\s+meeting|zoom|google\s+meet|appointment)\b/i', $clean)) {
+            $selectedCategories[] = 'meetings';
         }
 
         // 8. Analytics & Settings Intent
-        if (preg_match('/\b(briefing|analytics|metric|credit|balance|wallet|report)\b/i', $msg)) {
-            $selectedIds = array_merge($selectedIds, ['get_daily_briefing', 'get_business_analytics', 'get_credit_balance']);
+        if (preg_match('/\b(briefing|analytics|metric|metrics|kpi|credit|credits|balance|wallet|report)\b/i', $clean)) {
+            $selectedCategories[] = 'analytics';
         }
 
-        // Fallback: If no specific intent matched, provide a focused core set of high-frequency tools
-        if (empty($selectedIds)) {
-            $selectedIds = [
-                'get_live_weather',
-                'web_search',
-                'search_contacts',
-                'search_deals',
-                'search_tasks',
-                'get_whatsapp_unreplied'
+        if (!empty($selectedCategories)) {
+            return self::getToolsByCategories(array_unique($selectedCategories));
+        }
+
+        // Safe Fallback: focused core set of 5 read tools only
+        $fallbackIds = ['search_contacts', 'search_deals', 'search_tasks', 'get_whatsapp_unreplied', 'get_daily_briefing'];
+        return array_values(array_map(function($t) {
+            return [
+                'type' => 'function',
+                'function' => $t['function']
             ];
-        }
-
-        $selectedIds = array_unique($selectedIds);
-        return array_values(array_filter($all, function($t) use ($selectedIds) {
-            return in_array($t['function']['name'], $selectedIds);
-        }));
+        }, array_filter($all, function($t) use ($fallbackIds) {
+            return in_array($t['function']['name'], $fallbackIds);
+        })));
     }
 
     public static function executeTool($toolId, $userId, array $params, PDO $db) {

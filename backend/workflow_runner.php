@@ -11,7 +11,7 @@ class WorkflowRunner {
     /**
      * Trigger workflows listening for an event (e.g. 'lead.created', 'contact.updated', etc.)
      */
-    public static function triggerEvent($userId, $eventType, array $eventContext = [], PDO $db = null) {
+    public static function triggerEvent($userId, $eventType, array $eventContext = [], ?PDO $db = null) {
         if (!$db) {
             $db = Database::getConnection();
         }
@@ -40,7 +40,7 @@ class WorkflowRunner {
     /**
      * Start a new persistent workflow execution
      */
-    public static function startExecution($userId, array $workflow, array $eventContext, PDO $db = null) {
+    public static function startExecution($userId, array $workflow, array $eventContext, ?PDO $db = null) {
         if (!$db) {
             $db = Database::getConnection();
         }
@@ -124,7 +124,7 @@ class WorkflowRunner {
     /**
      * Process a node in an active execution
      */
-    public static function processNode($execId, $nodeId, array $nodes, array $edges, array $context, PDO $db = null) {
+    public static function processNode($execId, $nodeId, array $nodes, array $edges, array $context, ?PDO $db = null) {
         if (!$db) {
             $db = Database::getConnection();
         }

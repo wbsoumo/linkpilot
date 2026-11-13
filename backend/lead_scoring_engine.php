@@ -10,7 +10,7 @@ class LeadScoringEngine {
     /**
      * Calculate or retrieve explainable lead score using real CRM evidence
      */
-    public static function calculateLeadScore($userId, $leadId, PDO $db = null, $forceRecalculate = false) {
+    public static function calculateLeadScore($userId, $leadId, ?PDO $db = null, $forceRecalculate = false) {
         if (!$db) {
             $db = Database::getConnection();
         }
@@ -281,7 +281,7 @@ class LeadScoringEngine {
     /**
      * Get top priority / hot leads for workspace
      */
-    public static function getHotLeads($userId, PDO $db = null) {
+    public static function getHotLeads($userId, ?PDO $db = null) {
         if (!$db) $db = Database::getConnection();
 
         $stmt = $db->prepare("

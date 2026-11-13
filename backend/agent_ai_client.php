@@ -143,18 +143,37 @@ class AgentAIClient {
 
     /**
      * Executes OpenAI compatible Chat Completion with tool calling and automatic multi-provider failover.
-     * Retries alternate valid models per provider if an individual model ID is deprecated.
+     * Retries alternate valid models per provider based on execution path.
      */
-    public static function callChat(array $messages, array $tools = [], $userId = null, $maxTokens = 1000) {
+    public static function callChat(array $messages, array $tools = [], $userId = null, $maxTokens = 1000, string $executionPath = 'business_ops') {
+        $startTime = microtime(true);
         $providers = self::getAllAvailableProviders($userId);
         $lastError = null;
 
+        // Model catalogs structured by execution path complexity
         $modelCatalog = [
-            'google_ai_studio' => ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-pro-latest'],
-            'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5', 'openrouter/auto', 'meta-llama/llama-3.3-70b-instruct'],
-            'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192', 'llama3-8b-8192'],
-            'github_models' => ['gpt-4o-mini', 'gpt-4o']
+            'simple_ai' => [
+                'google_ai_studio' => ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-1.5-flash'],
+                'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
+                'groq' => ['llama-3.1-8b-instant', 'llama3-8b-8192'],
+                'github_models' => ['gpt-4o-mini']
+            ],
+            'business_ops' => [
+                'google_ai_studio' => ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-pro-latest'],
+                'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
+                'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192'],
+                'github_models' => ['gpt-4o-mini', 'gpt-4o']
+            ],
+            'complex_autonomous' => [
+                'google_ai_studio' => ['gemini-pro-latest', 'gemini-flash-latest', 'gemini-2.5-flash'],
+                'openrouter' => ['meta-llama/llama-3.3-70b-instruct', 'meta-llama/llama-3.1-8b-instruct'],
+                'groq' => ['llama3-70b-8192', 'llama-3.1-8b-instant'],
+                'github_models' => ['gpt-4o', 'gpt-4o-mini']
+            ]
         ];
+
+        $pathCatalog = $modelCatalog[$executionPath] ?? $modelCatalog['business_ops'];
+        $timeoutSeconds = ($executionPath === 'complex_autonomous') ? 14 : 8;
 
         foreach ($providers as $cfg) {
             $provider = $cfg['provider'];
@@ -164,16 +183,19 @@ class AgentAIClient {
 
             // Build ordered candidate models for this provider
             $candidateModels = [];
-            if (!empty($cfg['model'])) {
+            if (!empty($cfg['model']) && strpos($cfg['model'], '3.1-flash-lite') === false && strpos($cfg['model'], '3.8-flash') === false) {
                 $candidateModels[] = $cfg['model'];
             }
-            if (!empty($modelCatalog[$provider])) {
-                foreach ($modelCatalog[$provider] as $m) {
+            if (!empty($pathCatalog[$provider])) {
+                foreach ($pathCatalog[$provider] as $m) {
                     if (!in_array($m, $candidateModels)) {
                         $candidateModels[] = $m;
                     }
                 }
             }
+
+            // Cap model attempts to at most 2 fast attempts per provider
+            $candidateModels = array_slice($candidateModels, 0, 2);
 
             // For Google AI Studio, try native v1beta generateContent endpoint first
             if ($provider === 'google_ai_studio') {
@@ -181,6 +203,10 @@ class AgentAIClient {
                     try {
                         $nativeRes = self::callGoogleNative($apiKey, $model, $messages, $tools);
                         if (!empty($nativeRes['content']) || !empty($nativeRes['tool_calls'])) {
+                            $latencyMs = (int)round((microtime(true) - $startTime) * 1000);
+                            $nativeRes['provider'] = 'google_ai_studio';
+                            $nativeRes['model'] = $model;
+                            $nativeRes['latency_ms'] = $latencyMs;
                             return $nativeRes;
                         }
                     } catch (Throwable $e) {
@@ -227,8 +253,8 @@ class AgentAIClient {
                     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-                    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, $timeoutSeconds);
 
                     $response = curl_exec($ch);
                     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -249,6 +275,10 @@ class AgentAIClient {
                             unset($postFields['tool_choice']);
                             $retryResult = self::callRawCurl($endpoint, $headers, $postFields);
                             if (!empty($retryResult['content']) || !empty($retryResult['tool_calls'])) {
+                                $latencyMs = (int)round((microtime(true) - $startTime) * 1000);
+                                $retryResult['provider'] = $provider;
+                                $retryResult['model'] = $model;
+                                $retryResult['latency_ms'] = $latencyMs;
                                 return $retryResult;
                             }
                         }
@@ -264,6 +294,10 @@ class AgentAIClient {
 
                     $choice = self::extractChoice($data);
                     if (!empty($choice['content']) || !empty($choice['tool_calls'])) {
+                        $latencyMs = (int)round((microtime(true) - $startTime) * 1000);
+                        $choice['provider'] = $provider;
+                        $choice['model'] = $model;
+                        $choice['latency_ms'] = $latencyMs;
                         return $choice;
                     }
                 } catch (Throwable $e) {
@@ -274,11 +308,14 @@ class AgentAIClient {
             }
         }
 
-        // If all providers failed, throw or return contextual notice
+        $latencyMs = (int)round((microtime(true) - $startTime) * 1000);
         return [
             'content' => "I am having trouble reaching the AI model right now due to a network or authentication timeout. Please check your AI API key in Settings > Integrations.",
             'tool_calls' => [],
-            'tokens_used' => 0
+            'tokens_used' => 0,
+            'provider' => 'none',
+            'model' => 'none',
+            'latency_ms' => $latencyMs
         ];
     }
 
@@ -381,11 +418,12 @@ class AgentAIClient {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 9);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
         if ($httpCode === 200 && !empty($response)) {
             $data = json_decode($response, true);

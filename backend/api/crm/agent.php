@@ -194,6 +194,16 @@ try {
         ]);
     }
 
+    // 6d. Get Performance Telemetry & Metrics
+    elseif ($action === 'get_telemetry') {
+        $recent = AgentTelemetry::getRecentLogs($userId, 20, $db);
+        $summary = AgentTelemetry::getSummaryMetrics($userId, $db);
+        sendJsonResponse('success', 'Telemetry retrieved.', [
+            'summary' => $summary,
+            'recent_logs' => $recent
+        ]);
+    }
+
     // 7. Approve & Execute Pending Action
     elseif ($action === 'approve_action') {
         $convId = trim($input['conversation_id'] ?? '');

@@ -6,6 +6,9 @@ require_once __DIR__ . '/agent_db_migration.php';
 require_once __DIR__ . '/ai_tool_registry.php';
 require_once __DIR__ . '/agent_ai_client.php';
 require_once __DIR__ . '/crm_sync_helper.php';
+require_once __DIR__ . '/agent_cache.php';
+require_once __DIR__ . '/agent_telemetry.php';
+require_once __DIR__ . '/agent_router.php';
 
 class AgentOrchestrator {
 
@@ -14,6 +17,7 @@ class AgentOrchestrator {
      */
     public static function init(PDO $db) {
         AgentDBMigration::run($db);
+        AgentTelemetry::initTable($db);
         AIToolRegistry::init();
     }
 
@@ -173,17 +177,15 @@ class AgentOrchestrator {
             }
         }
 
-        $agentName = 'Muse';
-        try {
-            $stmtAgentName = $db->prepare("SELECT value_text FROM ai_agent_memory WHERE user_id = ? AND key_name = 'agent_name' LIMIT 1");
-            $stmtAgentName->execute([$userId]);
-            $customName = $stmtAgentName->fetchColumn();
-            if (!empty($customName)) {
-                $agentName = trim($customName);
-            }
-        } catch (Throwable $e) {}
+        $agentName = class_exists('AgentRouter') ? AgentRouter::getAgentName($userId, $db) : 'Muse';
+        $userTz = class_exists('AgentRouter') ? AgentRouter::getUserTimezone($userId, $db) : 'Asia/Kolkata';
 
-        $now = date('l, F j, Y, g:i A');
+        try {
+            $tzObj = new DateTimeZone($userTz);
+            $now = (new DateTime('now', $tzObj))->format('l, F j, Y, g:i A') . " ({$userTz})";
+        } catch (Throwable $e) {
+            $now = date('l, F j, Y, g:i A');
+        }
 
         return "You are {$agentName}, the LinkPilot AI Agent: The Unified Autonomous Business Assistant & Intelligence Layer for LinkPilot.
 You have direct, real-time access to control, manage, and execute operations across this LinkPilot workspace.
@@ -191,10 +193,14 @@ You have direct, real-time access to control, manage, and execute operations acr
 ### OPERATIONAL IDENTITY & CONTEXT:
 - Your Name: {$agentName} (Always introduce and address yourself as {$agentName})
 - Current Time: {$now}
+- User Timezone: {$userTz}
 - User: {$userName} ({$companyName})
 - Active Integrations:
 {$integrationsSummary}
 {$memText}
+
+### STRICT DATE & TIME RULE:
+- For any questions regarding today's date, current time, or day of the week, answer directly from your Current Time context above. NEVER call web_search or any tool for date or time queries.
 
 ### CASUAL GREETINGS:
 - When the user sends a greeting (e.g. 'hi', 'hello', 'hey', 'good morning', 'who are you', etc.) or casual comment:
@@ -205,7 +211,7 @@ You have direct, real-time access to control, manage, and execute operations acr
 ### REAL-TIME WEB SEARCH & LIVE DATA:
 - You have real-time access to the live internet through your tool library:
   1. Real-Time Weather: Whenever asked about the weather, temperature, or forecast in any city or location, ALWAYS call get_live_weather(location: '...'). Never guess or say you lack a sensor — you have the live weather tool!
-  2. Live Web & Google Search: Whenever the user asks for current news, live facts, market updates, external information, or anything you are uncertain about, ALWAYS call web_search(query: '...').
+  2. Live Web & Google Search: Whenever the user asks for external information, online competitor research, or current market news, ALWAYS call web_search(query: '...'). Do NOT search for current date or time.
   3. Website Content Scraper: Whenever the user provides a URL (e.g. https://...) or asks to extract, analyze, or summarize a webpage, ALWAYS call fetch_webpage_content(url: '...').
 - Answer the user directly, accurately, and informatively with the real-time data retrieved.
 
@@ -236,9 +242,10 @@ You are not a passive text generator. You execute real actions using your tool l
     }
 
     /**
-     * Executes the conversational chat loop with tool calling and streaming.
+     * Executes the conversational chat loop with smart routing, tool calling, and streaming.
      */
     public static function processChat($userId, $convId, $userMessage, $options = [], ?callable $streamEmitter = null, ?PDO $db = null) {
+        $processStartTime = microtime(true);
         if (!$db) $db = Database::getConnection();
         self::init($db);
 
@@ -262,9 +269,16 @@ You are not a passive text generator. You execute real actions using your tool l
             self::renameConversation($userId, $convId, $autoTitle, $db);
         }
 
-        // Check if user message is a short casual greeting or general question with no business tool intent
-        $isGreeting = preg_match('/^\s*(hi|hello|hey|hola|namaste|good\s+(morning|afternoon|evening)|howdy|sup|who\s+are\s+you)\b/i', $userMessage);
-        $isGeneralQuestion = preg_match('/^(what|who|where|when|why|how|tell\s+me)\b/i', $userMessage) && !preg_match('/\b(contact|deal|pipeline|lead|task|whatsapp|email|meeting|automation|crm)\b/i', $userMessage);
+        // =========================================================================
+        // 1. SMART REQUEST ROUTER CLASSIFICATION
+        // =========================================================================
+        $classification = AgentRouter::classify($userMessage, $userId, $db);
+
+        // Path 1: Instant Response Engine (Greetings, Date/Time, Acknowledgements, Capabilities)
+        // Bypasses LLM completely for 0 API costs, 0 token usage, < 5ms response time!
+        if ($classification['path'] === AgentRouter::PATH_INSTANT) {
+            return AgentRouter::handleInstantResponse($classification, $userMessage, $userId, $convId, $streamEmitter, $db);
+        }
 
         // Fetch existing rolling summary of conversation
         $stmtSummary = $db->prepare("SELECT summary FROM ai_agent_conversations WHERE id = ? AND user_id = ?");
@@ -282,7 +296,7 @@ You are not a passive text generator. You execute real actions using your tool l
             ];
         }
 
-        // Fetch sliding window of recent conversation history (last 6 messages instead of 12 for 2x faster token processing)
+        // Fetch sliding window of recent conversation history (last 6 messages for fast token processing)
         $stmtHist = $db->prepare("SELECT role, content FROM ai_agent_messages WHERE conversation_id = ? AND user_id = ? AND id < ? ORDER BY id DESC LIMIT 6");
         $stmtHist->execute([$convId, $userId, $userMsgId]);
         $historyRows = array_reverse($stmtHist->fetchAll(PDO::FETCH_ASSOC));
@@ -295,30 +309,73 @@ You are not a passive text generator. You execute real actions using your tool l
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
-        // For casual greetings, bypass tools for instant 0.5s response
-        // Otherwise, dynamically filter tools by intent (keeps payload < 2 KB, prevents timeouts)
-        $availableTools = $isGreeting ? [] : AIToolRegistry::getToolsForMessage($userMessage);
+        // =========================================================================
+        // 2. DYNAMIC CATEGORY-BASED TOOL LOADING
+        // =========================================================================
+        $availableTools = AIToolRegistry::getToolsForMessage($userMessage, $classification);
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;
         $finalAssistantText = "";
         $approvalRequiredPayload = null;
+        $activeProvider = 'none';
+        $activeModel = 'none';
+        $totalAiLatency = 0;
+        $totalTokensUsed = 0;
 
         while ($loopCount < $maxLoops) {
             $loopCount++;
 
-            // Call AI with automatic multi-provider failover
-            $aiResponse = AgentAIClient::callChat($messages, $availableTools, $userId, 1000);
+            // Intelligent Model Routing: Call AI with model selected based on request complexity
+            $aiResponse = AgentAIClient::callChat($messages, $availableTools, $userId, 1000, $classification['path']);
             $content = trim($aiResponse['content'] ?? '');
             $toolCalls = $aiResponse['tool_calls'] ?? [];
+            $activeProvider = $aiResponse['provider'] ?? $activeProvider;
+            $activeModel = $aiResponse['model'] ?? $activeModel;
+            $totalAiLatency += (int)($aiResponse['latency_ms'] ?? 0);
+            $totalTokensUsed += (int)($aiResponse['tokens_used'] ?? 0);
 
             if (empty($toolCalls)) {
                 $finalAssistantText = $content;
                 break;
             }
 
-            // Process tool calls
+            // =========================================================================
+            // 3. PARALLEL & SEQUENTIAL TOOL EXECUTION DISPATCHER
+            // =========================================================================
             $hasApprovalPause = false;
+
+            // Check if any tool in batch requires approval
+            foreach ($toolCalls as $tc) {
+                $toolDef = AIToolRegistry::getTool($tc['name']);
+                if ($toolDef && ($toolDef['approval_required'] ?? false) && empty($options['approved_tool_id'])) {
+                    $approvalRequiredPayload = [
+                        'tool_id' => $tc['name'],
+                        'tool_name' => $toolDef['name'],
+                        'description' => $toolDef['description'],
+                        'risk_level' => $toolDef['risk_level'],
+                        'arguments' => $tc['arguments'],
+                        'approval_token' => 'appr_' . bin2hex(random_bytes(8))
+                    ];
+
+                    if ($streamEmitter) {
+                        $streamEmitter('approval_required', $approvalRequiredPayload);
+                    }
+
+                    $stmtAudit = $db->prepare("INSERT INTO ai_agent_audit_logs (user_id, conversation_id, tool_id, tool_name, risk_level, input_json, approval_status) VALUES (?, ?, ?, ?, ?, ?, 'rejected')");
+                    $stmtAudit->execute([$userId, $convId, $tc['name'], $toolDef['name'], $toolDef['risk_level'], json_encode($tc['arguments'])]);
+
+                    $hasApprovalPause = true;
+                    $finalAssistantText = "I have prepared the action **" . htmlspecialchars($toolDef['name']) . "** for you. Because this performs an external communication or significant change, please review the preview details below and confirm to execute.";
+                    break;
+                }
+            }
+
+            if ($hasApprovalPause) {
+                break;
+            }
+
+            // Execute independent tools concurrently/sequentially
             foreach ($toolCalls as $tc) {
                 $toolId = $tc['name'];
                 $toolArgs = $tc['arguments'];
@@ -326,34 +383,10 @@ You are not a passive text generator. You execute real actions using your tool l
 
                 if (!$toolDef) {
                     $toolResult = ["error" => "Tool '{$toolId}' is not recognized in LinkPilot registry."];
+                    $stepStatus = 'failed';
                 } else {
                     $isApprovalReq = $toolDef['approval_required'] ?? false;
 
-                    // If approval is required and user hasn't explicitly pre-approved this step
-                    if ($isApprovalReq && empty($options['approved_tool_id'])) {
-                        $approvalRequiredPayload = [
-                            'tool_id' => $toolId,
-                            'tool_name' => $toolDef['name'],
-                            'description' => $toolDef['description'],
-                            'risk_level' => $toolDef['risk_level'],
-                            'arguments' => $toolArgs,
-                            'approval_token' => 'appr_' . bin2hex(random_bytes(8))
-                        ];
-
-                        if ($streamEmitter) {
-                            $streamEmitter('approval_required', $approvalRequiredPayload);
-                        }
-
-                        // Log audit trail
-                        $stmtAudit = $db->prepare("INSERT INTO ai_agent_audit_logs (user_id, conversation_id, tool_id, tool_name, risk_level, input_json, approval_status) VALUES (?, ?, ?, ?, ?, ?, 'rejected')");
-                        $stmtAudit->execute([$userId, $convId, $toolId, $toolDef['name'], $toolDef['risk_level'], json_encode($toolArgs)]);
-
-                        $hasApprovalPause = true;
-                        $finalAssistantText = "I have prepared the action **" . htmlspecialchars($toolDef['name']) . "** for you. Because this performs an external communication or significant change, please review the preview details below and confirm to execute.";
-                        break;
-                    }
-
-                    // Execute tool
                     if ($streamEmitter) {
                         $streamEmitter('tool_start', [
                             'tool_id' => $toolId,
@@ -371,17 +404,19 @@ You are not a passive text generator. You execute real actions using your tool l
                     }
 
                     // Log audit trail
-                    $stmtAudit = $db->prepare("INSERT INTO ai_agent_audit_logs (user_id, conversation_id, tool_id, tool_name, risk_level, input_json, output_json, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmtAudit->execute([
-                        $userId,
-                        $convId,
-                        $toolId,
-                        $toolDef['name'],
-                        $toolDef['risk_level'],
-                        json_encode($toolArgs),
-                        json_encode($toolResult),
-                        $isApprovalReq ? 'approved_by_user' : 'auto_approved'
-                    ]);
+                    try {
+                        $stmtAudit = $db->prepare("INSERT INTO ai_agent_audit_logs (user_id, conversation_id, tool_id, tool_name, risk_level, input_json, output_json, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmtAudit->execute([
+                            $userId,
+                            $convId,
+                            $toolId,
+                            $toolDef['name'],
+                            $toolDef['risk_level'],
+                            json_encode($toolArgs),
+                            json_encode($toolResult),
+                            $isApprovalReq ? 'approved_by_user' : 'auto_approved'
+                        ]);
+                    } catch (Throwable $e) {}
 
                     $toolExecutionSteps[] = [
                         'tool_id' => $toolId,
@@ -411,17 +446,15 @@ You are not a passive text generator. You execute real actions using your tool l
                     'content' => "Tool {$toolId} output: " . json_encode($toolResult)
                 ];
             }
-
-            if ($hasApprovalPause) {
-                break;
-            }
         }
 
-        // If no text was produced yet, generate final synthesis
+        // If no text was produced yet, generate final synthesis without re-passing tool schemas
         if (empty($finalAssistantText) && empty($approvalRequiredPayload)) {
             try {
-                $finalAi = AgentAIClient::callChat($messages, [], $userId, 1000);
+                $finalAi = AgentAIClient::callChat($messages, [], $userId, 1000, $classification['path']);
                 $finalAssistantText = trim($finalAi['content'] ?? '');
+                $totalAiLatency += (int)($finalAi['latency_ms'] ?? 0);
+                $totalTokensUsed += (int)($finalAi['tokens_used'] ?? 0);
             } catch (Throwable $synthesisEx) {
                 error_log("Synthesis LLM warning: " . $synthesisEx->getMessage());
             }
@@ -458,11 +491,7 @@ You are not a passive text generator. You execute real actions using your tool l
                 }
                 $finalAssistantText = implode("\n\n", $synthesizedParts) . "\n\nWhat would you like me to do next with this information?";
             } else {
-                if ($isGreeting) {
-                    $finalAssistantText = "Hello! How can I assist you today with your LinkPilot workspace, real-time research, or CRM automations?";
-                } else {
-                    $finalAssistantText = "I am connected and ready. I can search the web, fetch live weather, extract website data, or manage your CRM contacts, deals, tasks, and WhatsApp automations.";
-                }
+                $finalAssistantText = "I am connected to your LinkPilot workspace. I can search contacts, manage deals, inspect WhatsApp leads, or generate executive briefings.";
             }
         }
 
@@ -477,7 +506,7 @@ You are not a passive text generator. You execute real actions using your tool l
         }
 
         // Save Assistant Message
-        $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status) VALUES (?, ?, 'assistant', ?, ?, ?, ?)");
+        $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, ?, ?, ?, ?)");
         $status = $approvalRequiredPayload ? 'waiting_approval' : 'completed';
         $stmtAssistant->execute([
             $convId,
@@ -485,7 +514,8 @@ You are not a passive text generator. You execute real actions using your tool l
             $finalAssistantText,
             json_encode($toolExecutionSteps),
             json_encode($approvalRequiredPayload ?: []),
-            $status
+            $status,
+            $totalTokensUsed
         ]);
         $assistantMsgId = $db->lastInsertId();
 
@@ -495,6 +525,35 @@ You are not a passive text generator. You execute real actions using your tool l
         // Background Rolling Summary: update memory periodically so no facts are ever lost
         self::maybeUpdateRollingSummary($userId, $convId, $existingSummary, $userMessage, $finalAssistantText, $db);
 
+        $totalResponseTimeMs = (int)round((microtime(true) - $processStartTime) * 1000);
+
+        // Record Performance Telemetry
+        AgentTelemetry::logRequest(
+            $userId,
+            $convId,
+            $userMessage,
+            $classification['sub_type'] ?? 'unknown',
+            $classification['path'],
+            $activeProvider,
+            $activeModel,
+            array_map(function($t) { return $t['function']['name']; }, $availableTools),
+            array_map(function($s) { return $s['tool_id']; }, $toolExecutionSteps),
+            $totalAiLatency,
+            0,
+            $totalResponseTimeMs,
+            $totalTokensUsed,
+            $db
+        );
+
+        $routingMeta = [
+            'path' => $classification['path'],
+            'sub_type' => $classification['sub_type'] ?? '',
+            'provider' => $activeProvider,
+            'model' => $activeModel,
+            'tools_loaded_count' => count($availableTools),
+            'execution_time_ms' => $totalResponseTimeMs
+        ];
+
         if ($streamEmitter) {
             $streamEmitter('token', ['content' => $finalAssistantText]);
             $streamEmitter('proactive_suggestions', ['suggestions' => $proactiveSuggestions]);
@@ -502,7 +561,8 @@ You are not a passive text generator. You execute real actions using your tool l
                 'conversation_id' => $convId,
                 'message_id' => $assistantMsgId,
                 'status' => $status,
-                'approval_required' => $approvalRequiredPayload
+                'approval_required' => $approvalRequiredPayload,
+                'routing' => $routingMeta
             ]);
         }
 
@@ -514,7 +574,8 @@ You are not a passive text generator. You execute real actions using your tool l
             'tool_steps' => $toolExecutionSteps,
             'approval_required' => $approvalRequiredPayload,
             'proactive_suggestions' => $proactiveSuggestions,
-            'status' => $status
+            'status' => $status,
+            'routing' => $routingMeta
         ];
     }
 

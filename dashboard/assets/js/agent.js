@@ -928,6 +928,19 @@
     };
 
     /**
+     * Refresh conversation list in sidebar only without destroying the active messages stream.
+     */
+    async function refreshConversationsSidebarOnly() {
+        try {
+            const res = await apiCall('crm/agent.php?action=list_conversations');
+            conversationsList = (res && res.data && res.data.conversations) ? res.data.conversations : [];
+            renderConversationsList();
+        } catch (err) {
+            console.error("Failed to refresh conversations sidebar:", err);
+        }
+    }
+
+    /**
      * Load conversations list from backend.
      */
     async function loadAgentConversations(targetConvId = null) {
@@ -1563,8 +1576,8 @@
                 contentContainer.innerHTML = renderMarkdown(accumulatedContent);
             }
 
-            // Refresh conversation titles in sidebar
-            loadAgentConversations(activeConversationId);
+            // Refresh conversation titles in sidebar without destroying active messages stream
+            refreshConversationsSidebarOnly();
 
         } catch (err) {
             console.error("Streaming chat failed, attempting JSON fallback:", err);

@@ -192,11 +192,11 @@
             renderConversationsList();
 
             if (targetConvId) {
-                await selectAgentConversation(targetConvId);
+                await selectAgentConversation(targetConvId, false);
             } else if (conversationsList.length > 0) {
-                await selectAgentConversation(conversationsList[0].id);
+                await selectAgentConversation(conversationsList[0].id, false);
             } else {
-                await createNewAgentChat();
+                await createNewAgentChat(false);
             }
         } catch (err) {
             console.error("Failed to load conversations:", err);
@@ -294,16 +294,24 @@
     /**
      * Start a fresh conversation.
      */
-    window.createNewAgentChat = async function () {
+    window.createNewAgentChat = async function (updateUrl = true) {
         try {
             const res = await apiCall('crm/agent.php', 'POST', { action: 'create_conversation', title: 'New Conversation' });
             if (res && res.data && res.data.conversation) {
                 const newConv = res.data.conversation;
                 activeConversationId = newConv.id;
+                window.activeAgentConversationId = newConv.id;
                 conversationsList.unshift(newConv);
                 renderConversationsList();
                 renderEmptyWelcomeState();
-                window.location.hash = `#/agent?id=${newConv.id}`;
+                if (updateUrl) {
+                    const targetHash = `#/agent?id=${encodeURIComponent(newConv.id)}`;
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState(null, '', targetHash);
+                    } else if (window.location.hash !== targetHash) {
+                        window.location.hash = targetHash;
+                    }
+                }
             }
         } catch (err) {
             console.error("Failed to create new conversation:", err);
@@ -314,10 +322,20 @@
     /**
      * Switch active conversation.
      */
-    window.selectAgentConversation = async function (convId) {
+    window.selectAgentConversation = async function (convId, updateUrl = true) {
+        if (!convId) return;
         activeConversationId = convId;
+        window.activeAgentConversationId = convId;
         renderConversationsList();
-        window.location.hash = `#/agent?id=${convId}`;
+
+        if (updateUrl) {
+            const targetHash = `#/agent?id=${encodeURIComponent(convId)}`;
+            if (window.history && window.history.replaceState) {
+                window.history.replaceState(null, '', targetHash);
+            } else if (window.location.hash !== targetHash) {
+                window.location.hash = targetHash;
+            }
+        }
 
         const messagesContainer = document.getElementById('agent-messages-container');
         if (!messagesContainer) return;

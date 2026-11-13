@@ -352,8 +352,28 @@ async function navigateTo(view, params = {}) {
             }
         }
 
+        // Prevent infinite re-render loop if already in agent view
+        if (currentView === view && view === 'agent' && document.getElementById('agent-messages-container')) {
+            if (params && params.id && typeof window.selectAgentConversation === 'function' && window.activeAgentConversationId !== params.id) {
+                window.selectAgentConversation(params.id, false);
+            }
+            hideProgressBar();
+            return;
+        }
+
         currentView = view;
-        window.location.hash = `#/${view}`;
+        const currentHash = window.location.hash || '';
+        const currentPath = currentHash.replace(/^#\/?/, '').split('?')[0];
+        if (currentPath !== view) {
+            let targetHash = `#/${view}`;
+            if (params && Object.keys(params).length > 0) {
+                const qs = new URLSearchParams(params).toString();
+                if (qs) targetHash += `?${qs}`;
+            }
+            if (window.location.hash !== targetHash) {
+                window.location.hash = targetHash;
+            }
+        }
         
         if (view !== 'automation' || !window.wfState.activeWorkflow) {
             toggleSidebarCollapsed(false);
@@ -23209,7 +23229,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Intercept hash change
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash || '#/dashboard';
-        const rawPath = hash.replace('#/', '');
+        const rawPath = hash.replace(/^#\/?/, '');
         const [view, queryString] = rawPath.split('?');
         const params = {};
         if (queryString) {
@@ -23222,7 +23242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const hash = window.location.hash || '#/dashboard';
-    const rawPath = hash.replace('#/', '');
+    const rawPath = hash.replace(/^#\/?/, '');
     const [view, queryString] = rawPath.split('?');
     const params = {};
     if (queryString) {

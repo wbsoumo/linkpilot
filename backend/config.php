@@ -103,7 +103,17 @@ class Database {
     private static $instance = null;
     private static $migrationsRan = false;
     
-    public static function getConnection() {
+    public static function getConnection($forceNew = false) {
+        if ($forceNew) {
+            self::$instance = null;
+        }
+        if (self::$instance !== null) {
+            try {
+                @self::$instance->query("SELECT 1");
+            } catch (Throwable $e) {
+                self::$instance = null;
+            }
+        }
         if (self::$instance === null) {
             try {
                 $options = [

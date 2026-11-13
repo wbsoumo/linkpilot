@@ -469,6 +469,13 @@ You are not a passive text generator. You execute real actions using your tool l
         // Extract proactive recommendations
         $proactiveSuggestions = self::generateProactiveSuggestions($finalAssistantText, $toolExecutionSteps, $userMessage);
 
+        // Ensure database connection is alive after AI call
+        try {
+            @$db->query("SELECT 1");
+        } catch (Throwable $e) {
+            $db = Database::getConnection(true);
+        }
+
         // Save Assistant Message
         $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status) VALUES (?, ?, 'assistant', ?, ?, ?, ?)");
         $status = $approvalRequiredPayload ? 'waiting_approval' : 'completed';

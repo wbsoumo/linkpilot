@@ -90,19 +90,21 @@ class AgentAIClient {
         }
 
         // 5. Default model mappings
+        // 5. Default model mappings with guaranteed valid model IDs
         $modelMap = [
-            'google_ai_studio' => defined('GOOGLE_AI_STUDIO_MODEL') ? GOOGLE_AI_STUDIO_MODEL : 'gemini-2.0-flash',
-            'groq' => defined('GROQ_MODEL') ? GROQ_MODEL : 'llama-3.3-70b-versatile',
-            'openrouter' => defined('OPENROUTER_MODEL') ? OPENROUTER_MODEL : 'google/gemini-2.0-flash-lite:free',
-            'github_models' => defined('GITHUB_MODELS_MODEL') ? GITHUB_MODELS_MODEL : 'gpt-4o-mini'
+            'google_ai_studio' => 'gemini-2.0-flash',
+            'groq' => 'llama-3.3-70b-versatile',
+            'openrouter' => 'google/gemini-2.0-flash-lite:free',
+            'github_models' => 'gpt-4o-mini'
         ];
 
         // Ensure active provider is tested first
         $providerOrder = array_unique(array_merge([$activeProvider], ['google_ai_studio', 'groq', 'openrouter', 'github_models']));
+        $candidates = [];
 
         foreach ($providerOrder as $prov) {
             if (!empty($dbKeys[$prov])) {
-                $provModel = ($prov === $activeProvider && !empty($activeModel)) ? $activeModel : ($modelMap[$prov] ?? 'gpt-4o-mini');
+                $provModel = ($prov === $activeProvider && !empty($activeModel) && strpos($activeModel, '3.1') === false && strpos($activeModel, '2.5') === false) ? $activeModel : ($modelMap[$prov] ?? 'gpt-4o-mini');
                 $candidates[] = [
                     'provider' => $prov,
                     'model' => $provModel,
@@ -183,8 +185,8 @@ class AgentAIClient {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4); // 4s connect timeout
-                curl_setopt($ch, CURLOPT_TIMEOUT, 8); // 8s fast execution timeout
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); // 5s connect timeout
+                curl_setopt($ch, CURLOPT_TIMEOUT, 14); // 14s execution timeout
 
                 $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -235,8 +237,8 @@ class AgentAIClient {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 14);
 
         $response = curl_exec($ch);
         curl_close($ch);

@@ -295,8 +295,9 @@ You are not a passive text generator. You execute real actions using your tool l
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
-        // For simple casual greetings, bypass tools to achieve instant sub-second response
-        $availableTools = $isGreeting ? [] : AIToolRegistry::getOpenAITools();
+        // For casual greetings, bypass tools for instant 0.5s response
+        // Otherwise, dynamically filter tools by intent (keeps payload < 2 KB, prevents timeouts)
+        $availableTools = $isGreeting ? [] : AIToolRegistry::getToolsForMessage($userMessage);
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;

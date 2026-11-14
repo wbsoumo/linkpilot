@@ -194,6 +194,16 @@ if (isset($_GET['run_tests'])) {
                 echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
             }
         }
+
+        echo "\n--- LIVE CONVERSATIONAL APPROVAL TEST ('done send that') ---\n";
+        $t0 = microtime(true);
+        $convAppr = AgentOrchestrator::processChat($adminId, $convEmailId, 'done send that', [], null, $db);
+        $convTook = round(microtime(true) - $t0, 2);
+        echo "Conversational approval responded in {$convTook}s:\n";
+        echo "Status: " . ($convAppr['status'] ?? 'unknown') . "\n";
+        echo "Action Resolved: " . json_encode($convAppr['action_resolved'] ?? []) . "\n";
+        $replyText = $convAppr['content'] ?? ($convAppr['message']['content'] ?? 'NO CONTENT');
+        echo "Reply: " . $replyText . "\n";
     } catch (Throwable $e) {
         echo "Email Test Error: " . $e->getMessage() . "\n";
     }

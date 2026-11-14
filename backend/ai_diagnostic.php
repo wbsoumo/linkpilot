@@ -127,19 +127,20 @@ if (isset($_GET['test_providers'])) {
         $k = $c['api_key'];
         echo "Testing [$idx] $p with model $m...\n";
         if ($p === 'google_ai_studio') {
-            $listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" . urlencode($k);
-            $ch = curl_init($listUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            $listRes = curl_exec($ch);
-            $listData = json_decode($listRes, true);
-            curl_close($ch);
-            echo "  Google Models List: ";
-            if (!empty($listData['models'])) {
-                $names = array_map(function($x) { return str_replace('models/', '', $x['name']); }, $listData['models']);
-                echo implode(', ', array_slice($names, 0, 20)) . "\n";
-            } else {
-                echo substr($listRes, 0, 150) . "\n";
+            $testModels = ['gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-2.5-pro'];
+            foreach ($testModels as $testModel) {
+                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($k);
+                $body = json_encode(['contents' => [['parts' => [['text' => 'Hi']]]]]);
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+                $res = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                echo "  Google ($testModel) -> HTTP $code | " . substr($res, 0, 150) . "\n";
             }
         } elseif ($p === 'groq') {
             $chG = curl_init("https://api.groq.com/openai/v1/models");

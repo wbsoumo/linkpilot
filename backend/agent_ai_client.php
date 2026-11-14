@@ -312,7 +312,20 @@ class AgentAIClient {
                 ];
 
                 if (!empty($tools)) {
-                    $postFields["tools"] = $tools;
+                    $sanitizedTools = [];
+                    foreach ($tools as $t) {
+                        if (!empty($t['function'])) {
+                            $fn = $t['function'];
+                            if (isset($fn['parameters']) && is_array($fn['parameters'])) {
+                                if (empty($fn['parameters']['properties']) || (is_array($fn['parameters']['properties']) && count($fn['parameters']['properties']) === 0)) {
+                                    $fn['parameters']['properties'] = (object)[];
+                                }
+                            }
+                            $t['function'] = $fn;
+                        }
+                        $sanitizedTools[] = $t;
+                    }
+                    $postFields["tools"] = $sanitizedTools;
                     $postFields["tool_choice"] = "auto";
                 }
 
@@ -475,9 +488,18 @@ class AgentAIClient {
                         'name' => $fn['name'],
                         'description' => $fn['description'] ?? ''
                     ];
-                    if (!empty($fn['parameters'])) {
-                        $decl['parameters'] = $fn['parameters'];
+                    $params = $fn['parameters'] ?? ['type' => 'object', 'properties' => (object)[]];
+                    if (is_array($params)) {
+                        if (!isset($params['type'])) $params['type'] = 'object';
+                        if (empty($params['properties']) || (is_array($params['properties']) && count($params['properties']) === 0)) {
+                            $params['properties'] = (object)[];
+                        } else {
+                            $params['properties'] = (object)$params['properties'];
+                        }
+                    } elseif (is_object($params) && empty((array)$params->properties)) {
+                        $params->properties = (object)[];
                     }
+                    $decl['parameters'] = $params;
                     $funcDecls[] = $decl;
                 }
             }

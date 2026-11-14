@@ -1558,11 +1558,17 @@ class AIToolRegistry {
             return in_array($toolCat, $categories);
         });
 
-        // Strip internal category tag before sending to external LLM
+        // Strip internal category tag before sending to external LLM and ensure properties is always an object
         return array_values(array_map(function($t) {
+            $fn = $t['function'];
+            if (isset($fn['parameters']) && is_array($fn['parameters'])) {
+                if (empty($fn['parameters']['properties']) || (is_array($fn['parameters']['properties']) && count($fn['parameters']['properties']) === 0)) {
+                    $fn['parameters']['properties'] = (object)[];
+                }
+            }
             return [
                 'type' => 'function',
-                'function' => $t['function']
+                'function' => $fn
             ];
         }, $filtered));
     }
@@ -1642,9 +1648,15 @@ class AIToolRegistry {
         // Safe Fallback: focused core set of 5 read tools only
         $fallbackIds = ['search_contacts', 'search_deals', 'search_tasks', 'get_whatsapp_unreplied', 'get_daily_briefing'];
         return array_values(array_map(function($t) {
+            $fn = $t['function'];
+            if (isset($fn['parameters']) && is_array($fn['parameters'])) {
+                if (empty($fn['parameters']['properties']) || (is_array($fn['parameters']['properties']) && count($fn['parameters']['properties']) === 0)) {
+                    $fn['parameters']['properties'] = (object)[];
+                }
+            }
             return [
                 'type' => 'function',
-                'function' => $t['function']
+                'function' => $fn
             ];
         }, array_filter($all, function($t) use ($fallbackIds) {
             return in_array($t['function']['name'], $fallbackIds);

@@ -64,7 +64,15 @@ $adminId = 1;
 try {
     $db->exec("UPDATE users SET active_ai_model = 'gemini-3-flash-preview' WHERE active_ai_model LIKE 'gemini-3.5%' OR active_ai_model LIKE 'gemini-2%' OR active_ai_model LIKE 'gemini-1.5%'");
     $db->exec("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE provider = 'google_ai_studio'");
-    echo "[OK] Auto-healed users and user_ai_keys in database.\n";
+    if (class_exists('AgentCache')) {
+        AgentCache::flush();
+    }
+    // Also delete any tmp cache files directly
+    $tmpDir = sys_get_temp_dir() . '/linkpilot_agent_cache';
+    if (is_dir($tmpDir)) {
+        foreach (glob($tmpDir . '/*') as $f) @unlink($f);
+    }
+    echo "[OK] Auto-healed users, user_ai_keys and flushed agent cache.\n";
 } catch (Throwable $e) {
     echo "[!] DB heal error: " . $e->getMessage() . "\n";
 }
@@ -84,9 +92,34 @@ try {
     echo "Reply: " . $replyText . "\n";
     if (!empty($orchRes['steps'])) {
         echo "Steps executed: " . count($orchRes['steps']) . "\n";
+        foreach ($orchRes['steps'] as $s) {
+            echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
+        }
     }
 } catch (Throwable $e) {
     echo "Orchestrator Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
+}
+
+// Live Agent Orchestrator Test (Email query from user screenshot)
+echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('send a mail to soumojit.200@gmail.com about his 2000 rs pending payment') ---\n";
+try {
+    $convEmail = AgentOrchestrator::createConversation($adminId, 'Diag Test Email', $db);
+    $convEmailId = $convEmail['id'] ?? uniqid('conv_');
+    $t0 = microtime(true);
+    $orchEmail = AgentOrchestrator::processChat($adminId, $convEmailId, 'send a mail to soumojit.200@gmail.com about his 2000 rs pending payment', [], null, $db);
+    $orchTook = round(microtime(true) - $t0, 2);
+    echo "Email test responded in {$orchTook}s:\n";
+    echo "Status: " . ($orchEmail['status'] ?? 'unknown') . "\n";
+    $replyText = $orchEmail['content'] ?? ($orchEmail['message']['content'] ?? 'NO CONTENT');
+    echo "Reply: " . $replyText . "\n";
+    if (!empty($orchEmail['steps'])) {
+        echo "Steps executed: " . count($orchEmail['steps']) . "\n";
+        foreach ($orchEmail['steps'] as $s) {
+            echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
+        }
+    }
+} catch (Throwable $e) {
+    echo "Email Test Error: " . $e->getMessage() . "\n";
 }
 echo "Date: " . date('Y-m-d H:i:s') . "\n\n";
 

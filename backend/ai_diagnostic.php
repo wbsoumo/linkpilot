@@ -25,7 +25,8 @@ if (isset($_GET['sync'])) {
         'backend/ai_diagnostic.php',
         'backend/api/crm/agent.php',
         'dashboard/assets/js/agent.js',
-        'dashboard/assets/css/agent.css'
+        'dashboard/assets/css/agent.css',
+        'dashboard/assets/css/style.css'
     ];
     $root = dirname(__DIR__);
     $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");

@@ -436,61 +436,74 @@
     padding-bottom: 1.25rem !important;
 }
 
-/* Capsule Composer - Screenshot Matching Design */
-#agent-composer-form.agent-capsule-composer,
+/* Rounded Card Composer - Sleek Elevated Card Design */
+#agent-composer-form.agent-card-composer,
 #agent-composer-form {
     background: #ffffff !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 9999px !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    border-radius: 26px !important;
     box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     position: relative !important;
     display: flex !important;
     flex-direction: row !important;
-    align-items: center !important;
+    align-items: flex-end !important;
     padding: 6px 8px !important;
 }
 
-#agent-composer-form.agent-capsule-composer:hover,
+#agent-composer-form.agent-card-composer:hover,
 #agent-composer-form:hover {
     border-color: #cbd5e1 !important;
     box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.08), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
 }
 
-#agent-composer-form.agent-capsule-composer:focus-within,
+#agent-composer-form.agent-card-composer:focus-within,
 #agent-composer-form:focus-within {
     border-color: #c084fc !important;
     background: #ffffff !important;
     box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.16), 0 8px 28px -3px rgba(168, 85, 247, 0.12) !important;
 }
 
-/* Explicitly override textarea from global style.css */
-#agent-composer-form textarea#agent-user-prompt-input,
-#agent-user-prompt-input,
-:not(aside) #agent-composer-form textarea {
+/* Explicitly override textarea from global style.css - ZERO RECTANGLE BORDERS */
+html body #agent-composer-form textarea#agent-user-prompt-input,
+html body #agent-user-prompt-input,
+html body :not(aside) #agent-composer-form textarea,
+html body :not(aside) #agent-composer-form textarea:focus,
+#agent-composer-form textarea#agent-user-prompt-input:focus,
+#agent-user-prompt-input:focus {
     background-color: transparent !important;
+    background: transparent !important;
     border: none !important;
+    border-style: none !important;
+    border-color: transparent !important;
+    border-width: 0 !important;
     outline: none !important;
+    outline-width: 0 !important;
     box-shadow: none !important;
+    -webkit-box-shadow: none !important;
     -webkit-appearance: none !important;
     appearance: none !important;
+    border-radius: 0 !important;
     font-size: 0.9375rem !important;
-    line-height: 1.5 !important;
+    line-height: 1.55 !important;
     color: #18181b !important;
-    padding: 4px 0 !important;
-    min-height: 28px !important;
-    max-height: 140px !important;
+    padding: 6px 0 !important;
+    min-height: 26px !important;
+    max-height: 30vh !important;
     resize: none !important;
     width: 100% !important;
 }
 
-#agent-composer-form textarea#agent-user-prompt-input:focus,
-#agent-user-prompt-input:focus,
-:not(aside) #agent-composer-form textarea:focus {
-    background-color: transparent !important;
-    border: none !important;
-    outline: none !important;
-    box-shadow: none !important;
+/* Custom scrollbar for textarea when exceeding 30% height */
+#agent-composer-form textarea#agent-user-prompt-input::-webkit-scrollbar {
+    width: 4px;
+}
+#agent-composer-form textarea#agent-user-prompt-input::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+#agent-composer-form textarea#agent-user-prompt-input::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 #agent-user-prompt-input::placeholder {

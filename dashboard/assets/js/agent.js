@@ -333,22 +333,24 @@
                                 </button>
                             </div>
 
-                            <!-- Pill Input Capsule (Screenshot Match) -->
-                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="agent-capsule-composer relative flex items-center bg-white rounded-full px-2 py-1.5 md:px-2.5 md:py-2 border border-slate-200/90 transition-all duration-200">
+                            <!-- Rounded Card Input Area -->
+                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="agent-card-composer relative flex items-end bg-white rounded-[26px] p-2 border border-slate-200/90 transition-all duration-200">
                                 <input type="file" id="agent-file-picker" class="hidden" onchange="handleAgentFileSelected(event)">
 
                                 <!-- Far Left: Soft Round Plus Button (+) -->
-                                <button type="button" id="agent-plus-btn" onclick="toggleAgentPlusMenu(event)" class="agent-round-plus-btn h-9 w-9 md:h-10 md:w-10 rounded-full bg-[#f4f4f5] hover:bg-[#e4e4e7] active:scale-95 text-[#18181b] transition flex items-center justify-center shrink-0 cursor-pointer shadow-2xs" title="Add file or tools">
-                                    <i data-lucide="plus" class="h-4 w-4 stroke-[2.4]"></i>
-                                </button>
-
-                                <!-- Center Textarea (Exact placeholder: "What can I help you with today?") -->
-                                <div class="flex-1 min-w-0 px-3 md:px-4 flex items-center">
-                                    <textarea id="agent-user-prompt-input" rows="1" placeholder="What can I help you with today?" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[14.5px] md:text-[15px] text-slate-800 placeholder-[#71717a] font-normal px-0 py-1.5 max-h-36 resize-none leading-normal"></textarea>
+                                <div class="shrink-0 pb-0.5">
+                                    <button type="button" id="agent-plus-btn" onclick="toggleAgentPlusMenu(event)" class="agent-round-plus-btn h-9 w-9 md:h-10 md:w-10 rounded-full bg-[#f4f4f5] hover:bg-[#e4e4e7] active:scale-95 text-[#18181b] transition flex items-center justify-center shrink-0 cursor-pointer shadow-2xs" title="Add file or tools">
+                                        <i data-lucide="plus" class="h-4 w-4 stroke-[2.4]"></i>
+                                    </button>
                                 </div>
 
-                                <!-- Far Right Action Group: Mic and Violet Arrow-Up Send Button -->
-                                <div class="flex items-center space-x-1.5 md:space-x-2 shrink-0">
+                                <!-- Center: Borderless textarea inside rounded card -->
+                                <div class="flex-1 min-w-0 px-2.5 md:px-3 py-1 flex items-center">
+                                    <textarea id="agent-user-prompt-input" rows="1" placeholder="What can I help you with today?" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" style="background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important;" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[14.5px] md:text-[15px] text-slate-800 placeholder-[#71717a] font-normal px-0 py-0.5 resize-none leading-relaxed"></textarea>
+                                </div>
+
+                                <!-- Far Right Action Group: Mic and Purple Send Button -->
+                                <div class="flex items-center space-x-1.5 md:space-x-2 shrink-0 pb-0.5">
                                     <!-- Microphone Button (Dictation) -->
                                     <button type="button" id="agent-mic-button" onclick="toggleAgentVoiceInput()" class="h-9 w-9 md:h-10 md:w-10 rounded-full text-[#18181b] hover:bg-[#f4f4f5] active:scale-95 transition flex items-center justify-center cursor-pointer" title="Voice input (Dictate)">
                                         <i data-lucide="mic" class="h-4.5 w-4.5 stroke-[1.9]"></i>
@@ -360,54 +362,6 @@
                                     </button>
                                 </div>
                             </form>
-
-                            <!-- Bottom Right Toolbar: Model X & Sliders Controls (Exact Screenshot Match) -->
-                            <div class="flex items-center justify-end space-x-2 pt-1 px-2">
-                                <!-- Model X Dropdown -->
-                                <div class="relative">
-                                    <button type="button" id="agent-model-pill-btn" onclick="toggleAgentModelDropdown(event)" class="flex items-center space-x-1 px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-full border border-slate-200/80 hover:border-slate-300 text-xs font-medium transition shadow-2xs cursor-pointer">
-                                        <span id="agent-active-model-name">${escapeHtml(selectedComposerModel)}</span>
-                                        <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
-                                    </button>
-                                    <!-- Model Selector Dropdown Menu -->
-                                    <div id="agent-model-dropdown" class="hidden absolute right-0 bottom-full mb-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-1.5 z-40 animate-fade-in">
-                                        <div class="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select AI Model</div>
-                                        <button type="button" onclick="setComposerModel('Model X')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-semibold flex items-center justify-between cursor-pointer transition">
-                                            <div class="flex items-center space-x-2">
-                                                <span class="w-2 h-2 rounded-full bg-violet-500"></span>
-                                                <span>Model X (Auto)</span>
-                                            </div>
-                                            <span class="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-bold">Smart</span>
-                                        </button>
-                                        <button type="button" onclick="setComposerModel('Gemini 3 Flash')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-medium flex items-center justify-between cursor-pointer transition">
-                                            <div class="flex items-center space-x-2">
-                                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                                <span>Gemini 3 Flash</span>
-                                            </div>
-                                            <span class="text-[10px] text-slate-400 font-mono">Google</span>
-                                        </button>
-                                        <button type="button" onclick="setComposerModel('Llama 3.1 8B')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-medium flex items-center justify-between cursor-pointer transition">
-                                            <div class="flex items-center space-x-2">
-                                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                                <span>Llama 3.1 8B</span>
-                                            </div>
-                                            <span class="text-[10px] text-slate-400 font-mono">Groq</span>
-                                        </button>
-                                        <button type="button" onclick="setComposerModel('GPT-4o Mini')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-medium flex items-center justify-between cursor-pointer transition">
-                                            <div class="flex items-center space-x-2">
-                                                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                                                <span>GPT-4o Mini</span>
-                                            </div>
-                                            <span class="text-[10px] text-slate-400 font-mono">OpenAI</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Sliders Equalizer Button (Opens Connected Tools popup) -->
-                                <button type="button" id="agent-tools-slider-btn" onclick="openAgentAppsModal()" class="h-7 w-7 rounded-lg text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition shadow-2xs cursor-pointer flex items-center justify-center" title="AI Tools & Connected Apps">
-                                    <i data-lucide="sliders" class="h-3.5 w-3.5"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </main>
@@ -1307,20 +1261,41 @@
     /**
      * Auto-resizes textarea as content expands and activates send button.
      */
-    window.autoResizeTextarea = function (textarea) {
-        textarea.style.height = 'auto';
-        const newHeight = Math.min(Math.max(textarea.scrollHeight, 28), 140);
-        textarea.style.height = newHeight + 'px';
+    let isSpaceKeyHeld = false;
+    let lastSpaceKeyPressTime = 0;
 
-        const form = document.getElementById('agent-composer-form');
-        if (form) {
-            if (newHeight > 42) {
-                form.classList.remove('rounded-full');
-                form.classList.add('rounded-[26px]');
-            } else {
-                form.classList.add('rounded-full');
-                form.classList.remove('rounded-[26px]');
-            }
+    document.addEventListener('keydown', function (e) {
+        if (e.code === 'Space' || e.key === ' ') {
+            isSpaceKeyHeld = true;
+            lastSpaceKeyPressTime = Date.now();
+        }
+    });
+
+    document.addEventListener('keyup', function (e) {
+        if (e.code === 'Space' || e.key === ' ') {
+            isSpaceKeyHeld = false;
+        }
+    });
+
+    /**
+     * Auto-resizes textarea as content expands up to 30% viewport height, then enables scroll.
+     */
+    window.autoResizeTextarea = function (textarea) {
+        if (!textarea) return;
+        textarea.style.height = 'auto';
+
+        // Dynamic 30% viewport height cap (at least 140px, up to 30% of screen height)
+        const viewport30vh = Math.round(window.innerHeight * 0.30);
+        const maxHeight = Math.max(viewport30vh, 140);
+        const scrollH = textarea.scrollHeight;
+
+        if (scrollH > maxHeight) {
+            textarea.style.height = maxHeight + 'px';
+            textarea.style.overflowY = 'auto';
+        } else {
+            const newHeight = Math.max(scrollH, 26);
+            textarea.style.height = newHeight + 'px';
+            textarea.style.overflowY = 'hidden';
         }
 
         const sendBtn = document.getElementById('agent-send-button');
@@ -1334,10 +1309,25 @@
     };
 
     /**
-     * Enter to send, Shift+Enter for newline.
+     * Enter to send. Space+Enter or Shift+Enter to go down to next line.
      */
     window.handleAgentTextareaKeydown = function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter') {
+            const isSpaceCombo = isSpaceKeyHeld || (Date.now() - lastSpaceKeyPressTime < 600);
+            if (e.shiftKey || isSpaceCombo || e.altKey || e.ctrlKey || e.metaKey) {
+                // New line insertion at current caret position
+                e.preventDefault();
+                const textarea = e.target;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const val = textarea.value;
+                textarea.value = val.substring(0, start) + "\n" + val.substring(end);
+                textarea.selectionStart = textarea.selectionEnd = start + 1;
+                autoResizeTextarea(textarea);
+                return;
+            }
+
+            // Normal Enter alone: send message
             e.preventDefault();
             handleAgentSendMessage(e);
         }

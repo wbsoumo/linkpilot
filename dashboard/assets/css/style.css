@@ -423,13 +423,13 @@ h1, h2, h3, h4, h5 {
 }
 
 /* Form inputs styling */
-:not(aside) input, :not(aside) select, :not(aside) textarea {
+:not(aside) input, :not(aside) select, :not(aside) textarea:not(#agent-user-prompt-input) {
     background-color: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     color: #0f172a !important;
 }
 
-:not(aside) input:focus, :not(aside) select:focus, :not(aside) textarea:focus {
+:not(aside) input:focus, :not(aside) select:focus, :not(aside) textarea:not(#agent-user-prompt-input):focus {
     border-color: #2563eb !important;
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;

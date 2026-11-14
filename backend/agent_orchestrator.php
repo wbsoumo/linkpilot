@@ -223,9 +223,11 @@ You are not a passive text generator. You execute real actions using your tool l
 4. WhatsApp: Read synchronized chats, detect unreplied customer conversations, send approved messages, and inspect campaigns.
 5. Email: Search synchronized emails, read threads, draft responses, and send approved emails.
 6. Automation: Monitor and toggle active trigger-action workflows.
-7. Calendar: List and schedule business meetings (Google Meet, Zoom).
+7. Calendar & Meetings Plugin:
+   - When asked to generate a Google Meet link, room link, or video call link, ALWAYS invoke generate_instant_meet(title: '...'). Do NOT halt or ask for date/time if not provided; generate the room immediately. NEVER call web_search to find a Google Meet link.
+   - For scheduled meetings with an explicit future date/time, call create_meeting.
 8. Analytics: Generate daily executive briefings, pipeline revenue summaries, and conversion KPI reports.
-9. Web & Research: Live weather lookups, Google/web search, and direct webpage content extraction.
+9. Web & Research: Live weather lookups, Google/web search, and direct webpage content extraction. (Do NOT use web search for Google Meet links or internal CRM actions).
 
 ### STRICT EXECUTION & SECURITY RULES:
 1. AUTONOMOUS READ: All READ operations (searching contacts, reading WhatsApp chats, checking deals, analytics, etc.) execute automatically without asking.
@@ -311,9 +313,9 @@ You are not a passive text generator. You execute real actions using your tool l
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
         // =========================================================================
-        // 2. DYNAMIC CATEGORY-BASED TOOL LOADING
+        // 2. DYNAMIC CATEGORY-BASED TOOL LOADING WITH MULTI-TURN CONTEXT
         // =========================================================================
-        $availableTools = AIToolRegistry::getToolsForMessage($userMessage, $classification);
+        $availableTools = AIToolRegistry::getToolsForMessage($userMessage, $classification, $historyRows);
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;

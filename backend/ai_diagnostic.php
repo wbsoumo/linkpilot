@@ -15,48 +15,21 @@ require_once __DIR__ . '/config.php';
 if (isset($_GET['sync'])) {
     echo "=== DIRECT GITHUB SYNC ===\n";
     $syncFiles = [
-        '.cpanel.yml',
-        'backend/agent_ai_client.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
-        'backend/web_search_helper.php',
-        'backend/config.php',
-        'backend/git_pull.php',
-        'backend/ai_diagnostic.php',
         'backend/api/crm/agent.php',
         'dashboard/assets/js/agent.js',
-        'dashboard/assets/css/agent.css',
-        'dashboard/assets/css/style.css',
-        'dashboard/index.html',
-        'dashboard/assets/img/apps/whatsapp.png',
-        'dashboard/assets/img/apps/google_calendar.png',
-        'dashboard/assets/img/apps/google_meet.png',
-        'dashboard/assets/img/apps/gmail.png',
-        'dashboard/assets/img/apps/zoom.png',
-        'dashboard/assets/img/apps/meta.png',
-        'dashboard/assets/img/apps/linkpilot_crm.png',
-        'dashboard/assets/img/apps/deals.png',
-        'dashboard/assets/img/apps/zapier.png',
-        'dashboard/assets/img/apps/google.png',
-        'dashboard/assets/img/apps/ollama.png',
-        'dashboard/assets/img/apps/web_scraper.png'
+        'backend/ai_diagnostic.php'
     ];
     $root = dirname(__DIR__);
-    $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");
-    curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
-    curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($chCommit, CURLOPT_TIMEOUT, 3);
-    $commitData = json_decode(curl_exec($chCommit), true);
-    $sha = $commitData['sha'] ?? 'main';
-    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/{$sha}/";
+    $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/main/";
     $synced = 0;
     foreach ($syncFiles as $f) {
         $ch = curl_init($baseUrl . $f . '?_t=' . time());
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
         $c = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);

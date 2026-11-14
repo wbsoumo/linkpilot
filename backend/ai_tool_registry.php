@@ -1208,6 +1208,88 @@ class AIToolRegistry {
         ]);
 
         self::registerTool([
+            'id' => 'generate_instant_meet',
+            'name' => 'Generate Google Meet Room Link',
+            'description' => 'Instantly generate an official Google Meet room video link (e.g. for meetings, calls, demos, or sales presentations). Creates the meeting immediately and returns the actual https://meet.google.com/xxx-yyyy-zzz link. Does not require a start time (defaults to now).',
+            'category' => 'calendar',
+            'risk_level' => 'WRITE',
+            'approval_required' => false,
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'title' => ['type' => 'string', 'description' => 'Topic, title, or purpose of the meeting (e.g. "Quarterly Sales Presentation").'],
+                    'duration_minutes' => ['type' => 'integer', 'description' => 'Meeting duration in minutes (default 30).'],
+                    'attendee_email' => ['type' => 'string', 'description' => 'Optional participant email to invite or send the link to.']
+                ],
+                'required' => ['title']
+            ],
+            'handler' => function($userId, array $params, PDO $db) {
+                $title = trim($params['title'] ?? 'Google Meet Room');
+                if (empty($title)) $title = 'Quick Discussion Meeting';
+                $duration = max(15, min(240, (int)($params['duration_minutes'] ?? 30)));
+                $startTime = date('Y-m-d H:i:s');
+                $endTime = date('Y-m-d H:i:s', time() + ($duration * 60));
+                $location = 'Google Meet';
+                $attendeeEmail = trim($params['attendee_email'] ?? '');
+                $contactId = null;
+
+                if (!empty($attendeeEmail)) {
+                    $stmtC = $db->prepare("SELECT id FROM crm_contacts WHERE user_id = ? AND email = ? LIMIT 1");
+                    $stmtC->execute([$userId, $attendeeEmail]);
+                    $contactId = $stmtC->fetchColumn() ?: null;
+                }
+
+                $stmt = $db->prepare("INSERT INTO crm_meetings (user_id, contact_id, title, description, start_time, end_time, location, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'scheduled', NOW())");
+                $stmt->execute([$userId, $contactId, $title, "Generated instantly via LinkPilot AI Google Meet Plugin.", $startTime, $endTime, $location]);
+                $meetingId = $db->lastInsertId();
+
+                $meetLink = null;
+                $eventId = null;
+
+                if (class_exists('ExternalAppsHelper') && ExternalAppsHelper::isGoogleConnected($userId)) {
+                    try {
+                        $res = ExternalAppsHelper::createGoogleCalendarEvent($userId, $meetingId, $title, "Google Meet Room for: " . $title, $startTime, $endTime, $location, $contactId);
+                        if (is_array($res)) {
+                            $meetLink = $res['meet_link'] ?? null;
+                            $eventId = $res['event_id'] ?? null;
+                        }
+                    } catch (Throwable $e) {
+                        error_log("Generate instant meet error: " . $e->getMessage());
+                    }
+                }
+
+                if (!$meetLink) {
+                    $isGoogleConn = class_exists('ExternalAppsHelper') && ExternalAppsHelper::isGoogleConnected($userId);
+                    if (!$isGoogleConn) {
+                        return [
+                            'success' => false,
+                            'connected' => false,
+                            'meeting_id' => (int)$meetingId,
+                            'title' => $title,
+                            'error' => "Google Workspace / Google Calendar is not connected yet. Please connect your Google account in Plugins to generate live Google Meet room links.",
+                            'connect_url' => "/backend/api/external_apps/auth.php?type=calendar"
+                        ];
+                    }
+                }
+
+                return [
+                    'success' => true,
+                    'connected' => true,
+                    'meeting_id' => (int)$meetingId,
+                    'title' => $title,
+                    'meet_link' => $meetLink,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'location' => $meetLink ?: 'Google Meet',
+                    'attendee' => $attendeeEmail,
+                    'message' => $meetLink 
+                        ? "Google Meet room generated successfully: {$meetLink}" 
+                        : "Meeting scheduled locally for {$startTime}."
+                ];
+            }
+        ]);
+
+        self::registerTool([
             'id' => 'create_meeting',
             'name' => 'Schedule Meeting',
             'description' => 'Schedule a calendar meeting with title, description, start time, end time, location (Zoom/Google Meet), and optional contact.',
@@ -1218,17 +1300,17 @@ class AIToolRegistry {
                 'type' => 'object',
                 'properties' => [
                     'title' => ['type' => 'string', 'description' => 'Title or topic of the meeting.'],
-                    'start_time' => ['type' => 'string', 'description' => 'Start timestamp in YYYY-MM-DD HH:MM:SS format.'],
+                    'start_time' => ['type' => 'string', 'description' => 'Start timestamp in YYYY-MM-DD HH:MM:SS format (defaults to now if empty).'],
                     'end_time' => ['type' => 'string', 'description' => 'End timestamp in YYYY-MM-DD HH:MM:SS format.'],
                     'description' => ['type' => 'string', 'description' => 'Agenda or meeting details.'],
                     'location' => ['type' => 'string', 'description' => 'Location (e.g. "Google Meet", "Zoom Meeting", or physical address).'],
                     'contact_id' => ['type' => 'integer', 'description' => 'Contact ID of invitee.']
                 ],
-                'required' => ['title', 'start_time']
+                'required' => ['title']
             ],
             'handler' => function($userId, array $params, PDO $db) {
                 $title = trim($params['title'] ?? '');
-                $startTime = trim($params['start_time'] ?? '');
+                $startTime = !empty($params['start_time']) ? trim($params['start_time']) : date('Y-m-d H:i:s');
                 $endTime = !empty($params['end_time']) ? trim($params['end_time']) : date('Y-m-d H:i:s', strtotime($startTime . ' +30 minutes'));
                 $location = trim($params['location'] ?? 'Google Meet');
                 $contactId = !empty($params['contact_id']) ? (int)$params['contact_id'] : null;
@@ -1237,10 +1319,14 @@ class AIToolRegistry {
                 $stmt->execute([$userId, $contactId, $title, $params['description'] ?? '', $startTime, $endTime, $location]);
                 $meetingId = $db->lastInsertId();
 
+                $meetLink = null;
                 // Sync to Google Calendar if connected
                 if (ExternalAppsHelper::isGoogleConnected($userId)) {
                     try {
-                        ExternalAppsHelper::createGoogleCalendarEvent($userId, $meetingId, $title, $params['description'] ?? '', $startTime, $endTime, $location, $contactId);
+                        $res = ExternalAppsHelper::createGoogleCalendarEvent($userId, $meetingId, $title, $params['description'] ?? '', $startTime, $endTime, $location, $contactId);
+                        if (is_array($res) && !empty($res['meet_link'])) {
+                            $meetLink = $res['meet_link'];
+                        }
                     } catch (Exception $e) {}
                 }
 
@@ -1249,8 +1335,9 @@ class AIToolRegistry {
                     'title' => $title,
                     'start_time' => $startTime,
                     'end_time' => $endTime,
-                    'location' => $location,
-                    'message' => "Meeting '{$title}' scheduled successfully for {$startTime}."
+                    'location' => $meetLink ?: $location,
+                    'meet_link' => $meetLink,
+                    'message' => "Meeting '{$title}' scheduled successfully for {$startTime}." . ($meetLink ? " Join URL: {$meetLink}" : "")
                 ];
             }
         ]);
@@ -1426,7 +1513,7 @@ class AIToolRegistry {
         self::registerTool([
             'id' => 'web_search',
             'name' => 'Search Google & Web',
-            'description' => 'Search Google and the live web for real-time information, current news, facts, market research, or competitor details.',
+            'description' => 'Search Google and the live web for real-time external information, current news, facts, market research, or competitor details. NEVER use this tool to generate Google Meet or Zoom meeting links or internal CRM actions.',
             'category' => 'web',
             'risk_level' => 'READ',
             'approval_required' => false,
@@ -1445,7 +1532,13 @@ class AIToolRegistry {
                 'required' => ['query']
             ],
             'handler' => function($userId, array $params, PDO $db) {
-                return WebSearchHelper::searchWeb($params['query'] ?? '', $params['limit'] ?? 5);
+                $query = trim($params['query'] ?? '');
+                if (preg_match('/\b(google\s*meet|zoom|meeting\s*link|calendar\s*link|room\s*link)\b/i', $query)) {
+                    return [
+                        'error' => "Do not use web_search for meeting rooms. Use the generate_instant_meet or create_meeting plugin tool instead."
+                    ];
+                }
+                return WebSearchHelper::searchWeb($query, $params['limit'] ?? 5);
             }
         ]);
 
@@ -1577,7 +1670,7 @@ class AIToolRegistry {
      * Dynamically filters tools based on query intent or router classification.
      * Prevents massive 37KB payload dumps (43 tools) to external LLMs, eliminating timeouts and cutting latency by 80%.
      */
-    public static function getToolsForMessage($userMessage, ?array $routerClassification = null) {
+    public static function getToolsForMessage($userMessage, ?array $routerClassification = null, array $recentHistory = []) {
         // If router classification is provided, obey execution path directly
         if ($routerClassification !== null) {
             $path = $routerClassification['path'] ?? '';
@@ -1592,6 +1685,17 @@ class AIToolRegistry {
 
         $msg = strtolower($userMessage);
         $clean = preg_replace('/[^\w\s]/u', ' ', $msg);
+        
+        // Multi-turn context synthesis: examine previous turns
+        $historyText = "";
+        if (!empty($recentHistory) && is_array($recentHistory)) {
+            foreach ($recentHistory as $h) {
+                $historyText .= " " . ($h['content'] ?? '');
+            }
+        }
+        $combinedText = strtolower($userMessage . " " . $historyText);
+        $cleanCombined = preg_replace('/[^\w\s]/u', ' ', $combinedText);
+
         $all = self::getOpenAITools();
         $selectedCategories = [];
 
@@ -1599,10 +1703,10 @@ class AIToolRegistry {
         if (preg_match('/\b(weather|temperature|forecast|rain|climate|humidity|degrees?\s*(?:c|f)?|celsius|fahrenheit)\b/i', $clean)) {
             $selectedCategories[] = 'web';
         }
-        if (preg_match('/\b(search\s+google|google\s+search|web\s+search|search\s+the\s+web|latest\s+(?:news|stocks|market|crypto))\b/i', $clean)) {
+        if (preg_match('/\b(search\s+google|google\s+search|web\s+search|search\s+the\s+web|search\s+online|latest\s+(?:news|stocks|market|crypto))\b/i', $clean)) {
             $selectedCategories[] = 'web';
         }
-        if (preg_match('/https?:\/\/[^\s]+/i', $userMessage) || preg_match('/\b(url|website|link|page|scrape|summarize\s+this\s+page)\b/i', $clean)) {
+        if (preg_match('/https?:\/\/[^\s]+/i', $userMessage) || preg_match('/\b(scrape|summarize\s+this\s+page|fetch\s+url|crawl|website\s+content)\b/i', $clean)) {
             $selectedCategories[] = 'web';
         }
 
@@ -1617,7 +1721,7 @@ class AIToolRegistry {
         }
 
         // 4. Tasks Intent
-        if (preg_match('/\b(task|tasks|todo|to-do|reminder|reminders|schedule|pending|overdue)\b/i', $clean)) {
+        if (preg_match('/\b(task|tasks|todo|to-do|reminder|reminders|schedule\s+task|pending|overdue)\b/i', $clean)) {
             $selectedCategories[] = 'tasks';
         }
 
@@ -1627,12 +1731,15 @@ class AIToolRegistry {
         }
 
         // 6. Email Intent
-        if (preg_match('/\b(email|emails|mail|inbox|thread|draft|send\s+email)\b/i', $clean)) {
+        if (preg_match('/\b(email|emails|mail|inbox|thread|draft|send\s+email|send\s+to\s+[\w\.-]+@)\b/i', $clean)) {
             $selectedCategories[] = 'email';
         }
 
-        // 7. Calendar Intent
-        if (preg_match('/\b(meeting|meetings|calendar|schedule\s+meeting|zoom|google\s+meet|appointment)\b/i', $clean)) {
+        // 7. Calendar & Meetings Intent
+        if (preg_match('/\b(meeting|meetings|calendar|schedule\s+meeting|zoom|google\s+meet|meet\s+link|meeting\s+link|appointment|conference\s+room|video\s+call)\b/i', $clean)) {
+            $selectedCategories[] = 'meetings';
+        } elseif (preg_match('/\b(create\s+a?\s*link|generate\s+a?\s*link|send\s+the\s+link|get\s+link|room\s+link)\b/i', $clean) && preg_match('/\b(meet|meeting|calendar|zoom)\b/i', $cleanCombined)) {
+            // Multi-turn context preservation: user refers to the meeting link discussed earlier in chat!
             $selectedCategories[] = 'meetings';
         }
 

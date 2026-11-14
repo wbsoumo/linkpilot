@@ -285,6 +285,12 @@
 
                         <!-- Right: Actions -->
                         <div class="flex items-center space-x-2 shrink-0">
+                            <!-- Plugins & Integrations Hub Button -->
+                            <button onclick="openAgentAppsModal()" id="agent-header-plugins-btn" class="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50/90 hover:bg-indigo-100 border border-indigo-200/90 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="Manage AI Plugins & Connected Apps">
+                                <i data-lucide="puzzle" class="h-3.5 w-3.5 text-indigo-600"></i>
+                                <span class="hidden sm:inline">Plugins</span>
+                                <span id="agent-plugins-badge-count" class="h-4 px-1.5 rounded-full bg-indigo-600 text-[10px] text-white font-bold flex items-center justify-center">...</span>
+                            </button>
                             <button onclick="createNewAgentChat()" class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="New conversation">
                                 <i data-lucide="plus" class="h-3.5 w-3.5"></i>
                                 <span class="hidden sm:inline">New Chat</span>
@@ -465,6 +471,7 @@
         // Load settings and render initial scheduled tasks
         renderScheduledTasksList();
         await loadAgentSettings();
+        await loadAgentPlugins();
 
         // Load conversation list and active conversation
         await loadAgentConversations(params.id || null);
@@ -1153,7 +1160,10 @@
                                     <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                                         <span>${escapeHtml(app.name)}</span>
                                     </h4>
-                                    <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">${escapeHtml(app.badge || app.category)}</span>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">${escapeHtml(app.badge || app.category)}</span>
+                                        ${app.account ? `<span class="text-[10px] text-slate-500 font-medium truncate max-w-[140px]">· ${escapeHtml(app.account)}</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
 
@@ -1198,18 +1208,80 @@
         if (window.lucide) lucide.createIcons();
     }
 
-    window.toggleAppConnection = function (appId) {
+    async function loadAgentPlugins() {
+        try {
+            const token = localStorage.getItem('token') || '';
+            const res = await fetch('backend/api/crm/agent.php?action=get_plugins', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const json = await res.json();
+            if (json.status === 'success' && json.data && json.data.plugins) {
+                const liveList = json.data.plugins;
+                liveList.forEach(lp => {
+                    const local = agentAppsList.find(a => a.id === lp.id);
+                    if (local) {
+                        local.connected = !!lp.connected;
+                        if (lp.account) local.account = lp.account;
+                        local.connect_url = lp.connect_url;
+                        local.disconnect_url = lp.disconnect_url;
+                    }
+                });
+
+                const countBadge = document.getElementById('agent-plugins-badge-count');
+                if (countBadge) {
+                    const activeCount = agentAppsList.filter(a => a.connected).length;
+                    countBadge.textContent = activeCount;
+                }
+            }
+        } catch (err) {
+            console.warn('loadAgentPlugins notice:', err);
+        }
+    }
+
+    window.toggleAppConnection = async function (appId) {
         const app = agentAppsList.find(a => a.id === appId);
         if (!app) return;
 
-        app.connected = !app.connected;
-        if (typeof showNotification === 'function') {
-            if (app.connected) {
-                showNotification('success', `${app.name} connected successfully!`);
+        if (app.connected) {
+            if (app.disconnect_url) {
+                if (confirm(`Are you sure you want to disconnect ${app.name}?`)) {
+                    try {
+                        const token = localStorage.getItem('token') || '';
+                        await fetch(app.disconnect_url, {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        app.connected = false;
+                        if (typeof showNotification === 'function') {
+                            showNotification('info', `${app.name} disconnected.`);
+                        }
+                    } catch (e) {
+                        app.connected = false;
+                    }
+                }
             } else {
-                showNotification('info', `${app.name} disconnected.`);
+                app.connected = false;
+                if (typeof showNotification === 'function') {
+                    showNotification('info', `${app.name} toggled off.`);
+                }
+            }
+        } else {
+            if (app.connect_url) {
+                window.location.href = app.connect_url;
+                return;
+            } else {
+                app.connected = true;
+                if (typeof showNotification === 'function') {
+                    showNotification('success', `${app.name} activated!`);
+                }
             }
         }
+
+        const countBadge = document.getElementById('agent-plugins-badge-count');
+        if (countBadge) {
+            countBadge.textContent = agentAppsList.filter(a => a.connected).length;
+        }
+
         const searchInput = document.getElementById('agent-apps-search-input');
         renderAgentAppsList(searchInput ? searchInput.value : '');
     };

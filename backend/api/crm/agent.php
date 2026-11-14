@@ -297,6 +297,140 @@ try {
         sendJsonResponse('success', 'Action cancelled and rejected successfully.');
     }
 
+    // 7b. Get Connected Plugins & Status
+    elseif ($action === 'get_plugins') {
+        require_once __DIR__ . '/../../external_apps_helper.php';
+        require_once __DIR__ . '/../../smtp_helper.php';
+
+        $isGoogle = ExternalAppsHelper::isGoogleConnected($userId);
+        $isZoom = ExternalAppsHelper::isZoomConnected($userId);
+
+        $googleEmail = null;
+        $googleScopes = [];
+        if ($isGoogle) {
+            $stmtG = $db->prepare("SELECT email, connected_email, scopes FROM external_app_connections WHERE user_id = ? AND provider = 'google' LIMIT 1");
+            $stmtG->execute([$userId]);
+            $gRow = $stmtG->fetch(PDO::FETCH_ASSOC);
+            if ($gRow) {
+                $googleEmail = !empty($gRow['connected_email']) ? $gRow['connected_email'] : $gRow['email'];
+                $googleScopes = !empty($gRow['scopes']) ? explode(',', $gRow['scopes']) : [];
+            }
+        }
+
+        $isCalendar = $isGoogle && in_array('https://www.googleapis.com/auth/calendar.events', $googleScopes);
+        $isGmail = $isGoogle && (in_array('https://www.googleapis.com/auth/gmail.send', $googleScopes) || in_array('https://mail.google.com/', $googleScopes));
+
+        $smtp = SMTPHelper::getSMTPConfig($userId);
+        $isEmailConnected = ($isGmail || !empty($smtp));
+        $emailAddress = $isGmail ? $googleEmail : ($smtp['sender_email'] ?? null);
+
+        // WhatsApp
+        $stmtWa = $db->prepare("SELECT id, business_name, phone_number, status FROM whatsapp_accounts WHERE user_id = ? AND status = 'connected' LIMIT 1");
+        $stmtWa->execute([$userId]);
+        $wa = $stmtWa->fetch(PDO::FETCH_ASSOC);
+
+        // Zoom
+        $zoomEmail = null;
+        if ($isZoom) {
+            $stmtZ = $db->prepare("SELECT email, connected_email FROM external_app_connections WHERE user_id = ? AND provider = 'zoom' LIMIT 1");
+            $stmtZ->execute([$userId]);
+            $zRow = $stmtZ->fetch(PDO::FETCH_ASSOC);
+            $zoomEmail = $zRow ? ($zRow['connected_email'] ?: $zRow['email']) : null;
+        }
+
+        $plugins = [
+            [
+                'id' => 'google_meet',
+                'name' => 'Google Meet',
+                'category' => 'meetings',
+                'badge' => 'HD Video',
+                'description' => '1-Click encrypted Google Meet room creation, instant video links, and calendar invitation dispatch.',
+                'connected' => $isCalendar,
+                'account' => $isCalendar ? $googleEmail : null,
+                'connect_url' => '/backend/api/external_apps/auth.php?type=calendar',
+                'disconnect_url' => '/backend/api/external_apps/disconnect.php?provider=google',
+                'suggested_prompt' => 'Generate a Google Meet room link for our upcoming quarterly sales presentation.'
+            ],
+            [
+                'id' => 'google_calendar',
+                'name' => 'Google Calendar',
+                'category' => 'meetings',
+                'badge' => 'Calendar 31',
+                'description' => 'Autonomous business meeting scheduling, conflict detection, and agenda synchronization.',
+                'connected' => $isCalendar,
+                'account' => $isCalendar ? $googleEmail : null,
+                'connect_url' => '/backend/api/external_apps/auth.php?type=calendar',
+                'disconnect_url' => '/backend/api/external_apps/disconnect.php?provider=google',
+                'suggested_prompt' => 'Schedule a 30-minute discovery call with Alex Rivera for tomorrow at 3:00 PM.'
+            ],
+            [
+                'id' => 'email',
+                'name' => 'Gmail & Business Email',
+                'category' => 'messaging',
+                'badge' => $isGmail ? 'Gmail OAuth' : ($smtp ? 'SMTP / IMAP' : 'Email API'),
+                'description' => 'Autonomous inbox monitoring, email draft authoring, automated follow-ups, and thread summarization.',
+                'connected' => $isEmailConnected,
+                'account' => $emailAddress,
+                'connect_url' => '/dashboard/smtp.html',
+                'disconnect_url' => $isGmail ? '/backend/api/external_apps/disconnect.php?provider=google' : null,
+                'suggested_prompt' => 'Draft a compelling cold outreach email offering LinkPilot AI CRM to fintech founders.'
+            ],
+            [
+                'id' => 'whatsapp',
+                'name' => 'WhatsApp Cloud API',
+                'category' => 'messaging',
+                'badge' => 'Official API',
+                'description' => 'Instant customer engagement, automated lead follow-ups, template broadcasting, and chat sync.',
+                'connected' => !empty($wa),
+                'account' => $wa ? ($wa['business_name'] . ' (' . $wa['phone_number'] . ')') : null,
+                'connect_url' => '/dashboard/setup.html',
+                'disconnect_url' => null,
+                'suggested_prompt' => 'Check WhatsApp for any customer inquiries that are still unreplied.'
+            ],
+            [
+                'id' => 'zoom',
+                'name' => 'Zoom Video Meetings',
+                'category' => 'meetings',
+                'badge' => 'Cloud Video',
+                'description' => 'Instant meeting creation, client calendar invitations, and meeting recording transcript access.',
+                'connected' => $isZoom,
+                'account' => $zoomEmail,
+                'connect_url' => '/backend/api/external_apps/zoom_auth.php',
+                'disconnect_url' => '/backend/api/external_apps/disconnect.php?provider=zoom',
+                'suggested_prompt' => 'Create a Zoom meeting room for customer onboarding and prepare meeting notes template.'
+            ],
+            [
+                'id' => 'linkpilot_crm',
+                'name' => 'LinkPilot CRM Contacts & Deals',
+                'category' => 'crm',
+                'badge' => 'Core Database',
+                'description' => 'Lead profiles, custom tags, sales pipeline stages, deal size, and company intelligence.',
+                'connected' => true,
+                'account' => 'Active Workspace',
+                'connect_url' => null,
+                'disconnect_url' => null,
+                'suggested_prompt' => 'List top 5 deals in the pipeline currently in negotiation stage.'
+            ],
+            [
+                'id' => 'web_scraper',
+                'name' => 'Live Web Scraper & Google Search',
+                'category' => 'ai',
+                'badge' => 'Chromium Engine',
+                'description' => 'Real-time online competitor research, market price lookup, and live webpage content extraction.',
+                'connected' => true,
+                'account' => 'Active Search Engine',
+                'connect_url' => null,
+                'disconnect_url' => null,
+                'suggested_prompt' => 'Scrape pricing tiers and key marketing headlines from https://stripe.com/pricing'
+            ]
+        ];
+
+        sendJsonResponse('success', 'Plugins retrieved successfully.', [
+            'plugins' => $plugins,
+            'active_count' => count(array_filter($plugins, function($p) { return !empty($p['connected']); }))
+        ]);
+    }
+
     // 8. Chat Execution (Streaming or Standard JSON)
     elseif ($action === 'chat') {
         $convId = trim($input['conversation_id'] ?? ($_GET['conversation_id'] ?? ''));

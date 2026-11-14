@@ -1391,8 +1391,17 @@
      * Maps tool metadata to vivid, human-like action labels.
      */
     function getHumanToolActionLabel(toolName, toolId) {
-        const lower = ((toolName || '') + ' ' + (toolId || '')).toLowerCase();
-        if (lower.includes('google') || lower.includes('web') || lower.includes('search')) {
+        const tId = (toolId || '').toLowerCase();
+        const tName = (toolName || '').toLowerCase();
+        const lower = (tName + ' ' + tId);
+
+        if (tId === 'search_leads' || tName.includes('pipeline leads')) {
+            return 'Searching CRM Leads';
+        }
+        if (tId === 'search_contacts' || tName.includes('contacts')) {
+            return 'Searching Contacts';
+        }
+        if (tId.includes('web_search') || tName.includes('web') || tName.includes('google')) {
             return 'Searching Google & Web';
         }
         if (lower.includes('lead') || lower.includes('finder')) {

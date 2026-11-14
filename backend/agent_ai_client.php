@@ -173,7 +173,7 @@ class AgentAIClient {
         ];
 
         $pathCatalog = $modelCatalog[$executionPath] ?? $modelCatalog['business_ops'];
-        $timeoutSeconds = ($executionPath === 'complex_autonomous') ? 14 : 8;
+        $timeoutSeconds = ($executionPath === 'complex_autonomous') ? 45 : 30;
 
         foreach ($providers as $cfg) {
             $provider = $cfg['provider'];
@@ -217,18 +217,21 @@ class AgentAIClient {
 
             $endpoint = "https://openrouter.ai/api/v1/chat/completions";
             $headers = [
-                "Authorization: Bearer " . $apiKey,
                 "Content-Type: application/json"
             ];
 
-            if ($provider === 'github_models') {
-                $endpoint = "https://models.inference.ai.azure.com/chat/completions";
-                $headers[] = "User-Agent: LinkPilot-AI";
-            } elseif ($provider === 'google_ai_studio') {
+            if ($provider === 'google_ai_studio') {
                 $endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+                $headers[] = "x-goog-api-key: " . $apiKey;
+            } elseif ($provider === 'github_models') {
+                $endpoint = "https://models.inference.ai.azure.com/chat/completions";
+                $headers[] = "Authorization: Bearer " . $apiKey;
+                $headers[] = "User-Agent: LinkPilot-AI";
             } elseif ($provider === 'groq') {
                 $endpoint = "https://api.groq.com/openai/v1/chat/completions";
+                $headers[] = "Authorization: Bearer " . $apiKey;
             } else {
+                $headers[] = "Authorization: Bearer " . $apiKey;
                 $headers[] = "HTTP-Referer: https://linkpilot.work";
                 $headers[] = "X-Title: LinkPilot AI Agent";
             }
@@ -413,17 +416,32 @@ class AgentAIClient {
         }
 
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "x-goog-api-key: " . $apiKey
+        ]);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/2.0');
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 9);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 6);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+
+        if ($curlError) {
+            error_log("Google Native cURL error ({$cleanModel}): " . $curlError);
+        }
+        if ($httpCode !== 200 && !empty($response)) {
+            $errData = json_decode($response, true);
+            $errMsg = $errData['error']['message'] ?? "HTTP error {$httpCode}";
+            error_log("Google Native HTTP {$httpCode} ({$cleanModel}): " . $errMsg);
+        }
 
         if ($httpCode === 200 && !empty($response)) {
             $data = json_decode($response, true);

@@ -1051,9 +1051,10 @@
                                 <div>
                                     <label class="block text-slate-600 font-semibold mb-1">Gemini Model</label>
                                     <select id="admin_u_google_model" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
-                                        <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite (Gemini 3.1 Flash Lite) - Recommended</option>
-                                        <option value="gemini-3.6-flash">gemini-3.6-flash (Gemini 3.6 Flash)</option>
-                                        <option value="gemini-2.5-flash">gemini-2.5-flash (Gemini 2.5 Flash)</option>
+                                        <option value="gemini-2.5-flash">gemini-2.5-flash (Gemini 2.5 Flash) - Recommended</option>
+                                        <option value="gemini-1.5-flash">gemini-1.5-flash (Gemini 1.5 Flash)</option>
+                                        <option value="gemini-2.5-pro">gemini-2.5-pro (Gemini 2.5 Pro)</option>
+                                        <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini 1.5 Pro)</option>
                                         <option value="gemini-flash-latest">gemini-flash-latest (Gemini Flash Alias)</option>
                                     </select>
                                 </div>
@@ -1068,16 +1069,21 @@
                                 <div>
                                     <label class="block text-slate-600 font-semibold mb-1">Groq Model</label>
                                     <select id="admin_u_groq_model" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800">
-                                        <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (GPT-OSS 120B) - Recommended</option>
-                                        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Llama 3.3 70B)</option>
+                                        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Llama 3.3 70B) - Recommended</option>
                                         <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Llama 3.1 8B Instant)</option>
+                                        <option value="openai/gpt-oss-120b">openai/gpt-oss-120b (GPT-OSS 120B)</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-sm">
-                                Apply & Save Provider Selection
-                            </button>
+                            <div class="flex items-center space-x-3 pt-1">
+                                <button type="button" onclick="testActiveAdminAIKey(this)" id="admin-test-connection-btn" class="px-4 py-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold rounded-lg transition shadow-xs flex items-center space-x-1.5">
+                                    <span>🧪 Test Connection</span>
+                                </button>
+                                <button type="submit" id="admin-save-provider-btn" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition shadow-sm flex items-center space-x-1.5">
+                                    <span>💾 Test & Save Provider</span>
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -1111,9 +1117,9 @@
                                 <p class="text-[10px] text-slate-400">Track daily request usage & quota thresholds per key</p>
                             </div>
                             <div class="flex space-x-2">
-                                <button onclick="syncAllAdminAIKeys(this)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-sm flex items-center space-x-1.5" id="admin-sync-all-btn" style="color: #ffffff !important;">
+                                <button onclick="syncAllAdminAIKeys(this)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-sm flex items-center space-x-1.5" id="admin-sync-all-btn" style="color: #ffffff !important;" title="Tests all saved keys. If any key fails, it automatically pauses it.">
                                     <i data-lucide="refresh-cw" class="h-3.5 w-3.5 text-white"></i>
-                                    <span>Sync All</span>
+                                    <span>Test & Verify All</span>
                                 </button>
                                 <button onclick="toggleAdminAddKeyForm()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition shadow-sm" id="admin-add-key-toggle-btn" style="color: #ffffff !important;">
                                     <span>Add API Key</span>
@@ -1123,28 +1129,14 @@
 
                         <!-- Inline Add Key Form -->
                         <div id="admin-add-key-form-container" class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4 hidden">
-                            <span class="block text-slate-650 font-bold text-[10px] uppercase tracking-wider">Connect New Central API Key</span>
-                            <input type="hidden" id="admin-new-key-provider-hidden" value="openrouter">
+                            <span class="block text-slate-650 font-bold text-[10px] uppercase tracking-wider">Connect New Central API Key (Auto-Verified)</span>
+                            <input type="hidden" id="admin-new-key-provider-hidden" value="google_ai_studio">
                             
                             <!-- Provider Card Selector Row -->
                             <div class="space-y-1.5">
                                 <label class="block text-[9px] font-bold text-slate-400 uppercase">Select AI Provider</label>
                                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                                    <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
-                                        <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
-                                        <div>
-                                            <span class="block font-bold text-slate-800 text-[11px]">OpenRouter</span>
-                                            <span class="text-[9px] text-slate-400 font-semibold">Free & Premium</span>
-                                        </div>
-                                    </div>
-                                    <div onclick="selectAdminNewKeyProvider('github_models')" id="admin-provider-card-github_models" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
-                                        <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
-                                        <div>
-                                            <span class="block font-bold text-slate-800 text-[11px]">GitHub Models</span>
-                                            <span class="text-[9px] text-slate-400 font-semibold">Developer Tokens</span>
-                                        </div>
-                                    </div>
-                                    <div onclick="selectAdminNewKeyProvider('google_ai_studio')" id="admin-provider-card-google_ai_studio" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
+                                    <div onclick="selectAdminNewKeyProvider('google_ai_studio')" id="admin-provider-card-google_ai_studio" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-indigo-600 shadow-sm">
                                         <img src="https://aistudio.google.com/static/images/favicon.png" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
                                         <div>
                                             <span class="block font-bold text-slate-800 text-[11px]">Gemini Studio</span>
@@ -1158,6 +1150,20 @@
                                             <span class="text-[9px] text-slate-400 font-semibold">Ultra Fast Llama 3.3</span>
                                         </div>
                                     </div>
+                                    <div onclick="selectAdminNewKeyProvider('openrouter')" id="admin-provider-card-openrouter" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
+                                        <img src="https://openrouter.ai/favicon.ico" class="h-6 w-6 rounded-md object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                        <div>
+                                            <span class="block font-bold text-slate-800 text-[11px]">OpenRouter</span>
+                                            <span class="text-[9px] text-slate-400 font-semibold">Free & Premium</span>
+                                        </div>
+                                    </div>
+                                    <div onclick="selectAdminNewKeyProvider('github_models')" id="admin-provider-card-github_models" class="border-2 p-3 rounded-xl cursor-pointer hover:bg-slate-50 transition flex items-center space-x-3 bg-white border-slate-200">
+                                        <img src="https://github.githubassets.com/favicons/favicon.svg" class="h-6 w-6 rounded-md object-contain shrink-0">
+                                        <div>
+                                            <span class="block font-bold text-slate-800 text-[11px]">GitHub Models</span>
+                                            <span class="text-[9px] text-slate-400 font-semibold">Developer Tokens</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1165,7 +1171,9 @@
                                 <label class="block text-[9px] font-bold text-slate-400 uppercase">API Key Value / Token</label>
                                 <div class="flex space-x-2">
                                     <input type="password" id="admin-new-key-value" placeholder="Paste your API Key or Personal Access Token here..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-xs">
-                                    <button onclick="submitAdminNewKey()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition whitespace-nowrap">Save Key</button>
+                                    <button onclick="submitAdminNewAIKey(this)" id="admin-new-key-submit-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition whitespace-nowrap flex items-center space-x-1.5">
+                                        <span>🧪 Test & Save Key</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1176,9 +1184,10 @@
                                 <thead>
                                     <tr class="border-b border-slate-200 text-slate-450 font-bold uppercase tracking-wider text-[9px]">
                                         <th class="py-2">Provider</th>
-                                        <th class="py-2">API Key (Masked)</th>
+                                        <th class="py-2">API Key</th>
+                                        <th class="py-2 text-center">System On/Off</th>
                                         <th class="py-2">Status</th>
-                                        <th class="py-2">Daily Quota Usage</th>
+                                        <th class="py-2">Daily Quota</th>
                                         <th class="py-2 text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -2956,21 +2965,99 @@
             else if (provider === 'google_ai_studio') modelVal = document.getElementById('admin_u_google_model').value;
             else if (provider === 'groq') modelVal = document.getElementById('admin_u_groq_model').value;
 
+            const saveBtn = document.getElementById('admin-save-provider-btn');
+            const origText = saveBtn ? saveBtn.innerHTML : '';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Validating & Saving...';
+            }
+
             const payload = {
                 active_ai_provider: provider,
                 active_ai_model: modelVal,
                 openrouter_key: document.getElementById('admin_u_openrouter_key').value.trim(),
                 github_key: document.getElementById('admin_u_github_key').value.trim(),
                 google_key: document.getElementById('admin_u_google_key').value.trim(),
-                groq_key: document.getElementById('admin_u_groq_key').value.trim()
+                groq_key: document.getElementById('admin_u_groq_key').value.trim(),
+                test_and_save: true
             };
 
             try {
-                await apiCall('profile/save_openrouter.php', 'POST', payload);
-                showNotification('success', 'User AI Provider & Model updated successfully!');
+                const res = await apiCall('profile/save_openrouter.php', 'POST', payload);
+                showNotification('success', res.message || 'AI Provider & Model verified and saved successfully!');
                 loadAdminAISettingsData();
             } catch (err) {
-                showNotification('error', err.message || 'Failed to update provider.');
+                showNotification('error', err.message || 'Failed to validate and save provider.');
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = origText;
+                }
+            }
+        };
+
+        window.testActiveAdminAIKey = async function(btn) {
+            const provider = document.getElementById('admin_u_active_provider').value;
+            let keyVal = '';
+            if (provider === 'openrouter') keyVal = document.getElementById('admin_u_openrouter_key').value.trim();
+            else if (provider === 'github_models') keyVal = document.getElementById('admin_u_github_key').value.trim();
+            else if (provider === 'google_ai_studio') keyVal = document.getElementById('admin_u_google_key').value.trim();
+            else if (provider === 'groq') keyVal = document.getElementById('admin_u_groq_key').value.trim();
+
+            const origContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Testing...';
+            }
+
+            const payload = {
+                action: 'test_connection',
+                test_only: true,
+                active_ai_provider: provider,
+                openrouter_key: (provider === 'openrouter') ? keyVal : '',
+                github_key: (provider === 'github_models') ? keyVal : '',
+                google_key: (provider === 'google_ai_studio') ? keyVal : '',
+                groq_key: (provider === 'groq') ? keyVal : ''
+            };
+
+            try {
+                const res = await apiCall('profile/save_openrouter.php', 'POST', payload);
+                showNotification('success', res.message || `Connection to ${provider} verified successfully!`);
+            } catch (err) {
+                showNotification('error', err.message || `Connection test to ${provider} failed.`);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origContent;
+                }
+            }
+        };
+
+        window.toggleAdminProviderStatus = async function(provider, isChecked) {
+            try {
+                showNotification('info', `Toggling ${provider} ${isChecked ? 'ON' : 'OFF'}...`);
+                const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    action: 'toggle_provider',
+                    provider: provider,
+                    enabled: isChecked ? 1 : 0
+                });
+                showNotification('success', res.message);
+                loadAdminAISettingsData();
+            } catch (err) {
+                showNotification('error', err.message);
+                loadAdminAISettingsData(); // Reload to reset switch UI
+            }
+        };
+
+        window.setPrimaryProvider = async function(provider) {
+            try {
+                const res = await apiCall('profile/save_openrouter.php', 'POST', {
+                    active_ai_provider: provider
+                });
+                showNotification('success', `Active primary provider set to ${provider}`);
+                loadAdminAISettingsData();
+            } catch (err) {
+                showNotification('error', err.message);
             }
         };
 
@@ -2981,7 +3068,9 @@
                 if (profileRes && profileRes.user) {
                     const u = profileRes.user;
                     const activeP = u.active_ai_provider || 'google_ai_studio';
-                    const activeM = u.active_ai_model || 'gemini-3.1-flash-lite';
+                    const activeM = (u.active_ai_model && u.active_ai_model.indexOf('gemini-3.1') === -1) 
+                        ? u.active_ai_model 
+                        : 'gemini-2.5-flash';
                     
                     const formatP = activeP === 'openrouter' ? 'OpenRouter' :
                                     activeP === 'github_models' ? 'GitHub Models' :
@@ -2997,28 +3086,65 @@
                     if (activeP === 'google_ai_studio' && document.getElementById('admin_u_google_model')) document.getElementById('admin_u_google_model').value = activeM;
                     if (activeP === 'groq' && document.getElementById('admin_u_groq_model')) document.getElementById('admin_u_groq_model').value = activeM;
 
-                    // Render mini provider summary grid
+                    // Render mini provider summary grid with interactive ON / OFF switches & health badges
                     const gridContainer = document.getElementById('admin-user-configured-list-container');
                     if (gridContainer) {
+                        const provStatuses = u.provider_statuses || {};
                         const allProviders = [
                             { id: 'google_ai_studio', name: 'Google Gemini', hasKey: u.has_google_key, icon: 'https://aistudio.google.com/static/images/favicon.png' },
+                            { id: 'groq', name: 'Groq Cloud', hasKey: u.has_groq_key, icon: 'https://groq.com/wp-content/uploads/2024/03/groq-favicon.png' },
                             { id: 'openrouter', name: 'OpenRouter', hasKey: u.has_openrouter_key, icon: 'https://openrouter.ai/favicon.ico' },
-                            { id: 'github_models', name: 'GitHub Models', hasKey: u.has_github_key, icon: 'https://github.githubassets.com/favicons/favicon.svg' },
-                            { id: 'groq', name: 'Groq Cloud', hasKey: u.has_groq_key, icon: 'https://groq.com/wp-content/uploads/2024/03/groq-favicon.png' }
+                            { id: 'github_models', name: 'GitHub Models', hasKey: u.has_github_key, icon: 'https://github.githubassets.com/favicons/favicon.svg' }
                         ];
 
-                        gridContainer.innerHTML = allProviders.map(p => `
-                            <div class="p-3 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
-                                <div class="flex items-center space-x-2.5">
-                                    <img src="${p.icon}" class="h-5 w-5 rounded object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
-                                    <div>
-                                        <span class="block font-bold text-slate-800 text-xs">${p.name}</span>
-                                        <span class="text-[10px] ${p.hasKey ? 'text-emerald-600 font-semibold' : 'text-slate-400'}">${p.hasKey ? 'Key Available' : 'No Key'}</span>
+                        gridContainer.innerHTML = allProviders.map(p => {
+                            const pInfo = provStatuses[p.id] || {};
+                            const hasKey = p.hasKey;
+                            const isPaused = (pInfo.status === 'paused');
+                            const isFailed = (pInfo.status === 'invalid');
+                            const isOn = hasKey && !isPaused && !isFailed;
+                            const isActivePrimary = (activeP === p.id);
+
+                            let statusBadge = '<span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded-md font-semibold text-[9px]">No Key</span>';
+                            if (hasKey) {
+                                if (isPaused) {
+                                    statusBadge = `<span class="px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-200 rounded-md font-bold text-[9px]" title="${pInfo.error_message ? pInfo.error_message.replace(/"/g, '&quot;') : 'Provider Paused'}">PAUSED</span>`;
+                                } else if (isFailed) {
+                                    statusBadge = `<span class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-md font-bold text-[9px]" title="${pInfo.error_message ? pInfo.error_message.replace(/"/g, '&quot;') : 'Verification Failed'}">FAILED</span>`;
+                                } else {
+                                    statusBadge = '<span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-md font-bold text-[9px]">ONLINE</span>';
+                                }
+                            }
+
+                            return `
+                                <div class="p-3.5 bg-white border ${isActivePrimary ? 'border-indigo-500 ring-2 ring-indigo-50 shadow-sm' : 'border-slate-200'} rounded-xl space-y-2.5 transition">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <img src="${p.icon}" class="h-5 w-5 rounded object-contain shrink-0" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
+                                            <span class="font-bold text-slate-800 text-xs">${p.name}</span>
+                                        </div>
+                                        ${isActivePrimary ? '<span class="px-2 py-0.5 bg-indigo-600 text-white rounded-full font-extrabold text-[9px] tracking-wide">PRIMARY</span>' : ''}
+                                    </div>
+                                    <div class="flex items-center justify-between pt-1 border-t border-slate-100">
+                                        <div>
+                                            ${statusBadge}
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <label class="relative inline-flex items-center ${hasKey ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}" title="${hasKey ? 'Toggle System Provider ON/OFF' : 'Add API key first to turn ON'}">
+                                                <input type="checkbox" onchange="toggleAdminProviderStatus('${p.id}', this.checked)" class="sr-only peer" ${isOn ? 'checked' : ''} ${!hasKey ? 'disabled' : ''}>
+                                                <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
+                                                <span class="ml-1.5 text-[9px] font-bold ${isOn ? 'text-emerald-600' : 'text-slate-400'}">${isOn ? 'ON' : 'OFF'}</span>
+                                            </label>
+                                            ${(!isActivePrimary && hasKey) ? `
+                                                <button onclick="setPrimaryProvider('${p.id}')" class="text-[9px] px-1.5 py-0.5 text-indigo-600 hover:bg-indigo-50 rounded border border-indigo-200 font-semibold transition" title="Set as primary generation engine">
+                                                    Make Primary
+                                                </button>
+                                            ` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                                ${activeP === p.id ? '<span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 border border-indigo-200 rounded-full font-bold text-[9px]">ACTIVE</span>' : ''}
-                            </div>
-                        `).join('');
+                            `;
+                        }).join('');
                     }
                 }
             } catch (errProfile) {
@@ -3049,20 +3175,27 @@
                 if (tbody) {
                     if (keysList.length > 0) {
                         tbody.innerHTML = keysList.map(k => {
+                            const isPaused = (k.status === 'paused');
+                            const isInvalid = (k.status === 'invalid');
+                            const isActive = (k.status === 'active');
+                            const isOn = isActive;
+
                             let badgeColor = 'bg-emerald-50 text-emerald-600 border border-emerald-200';
-                            if (k.status === 'limit_exceeded') {
-                                badgeColor = 'bg-amber-50 text-amber-600 border border-amber-200';
-                            } else if (k.status === 'invalid') {
+                            let statusText = 'ACTIVE';
+                            if (isPaused) {
+                                badgeColor = 'bg-amber-50 text-amber-700 border border-amber-200';
+                                statusText = 'PAUSED';
+                            } else if (isInvalid) {
                                 badgeColor = 'bg-red-50 text-red-600 border border-red-200';
-                            } else if (k.status === 'paused') {
-                                badgeColor = 'bg-slate-100 text-slate-500 border border-slate-200';
+                                statusText = 'INVALID';
+                            } else if (k.status === 'limit_exceeded') {
+                                badgeColor = 'bg-rose-50 text-rose-600 border border-rose-200';
+                                statusText = 'QUOTA EXCEEDED';
                             }
                             
                             let providerLabel = k.provider === 'openrouter' ? 'OpenRouter' : 
                                                 k.provider === 'github_models' ? 'GitHub Models' : 
                                                 k.provider === 'groq' ? 'Groq Cloud' : 'Google Gemini';
-
-                            let pausePlayTitle = k.status === 'paused' ? 'Resume Key' : 'Pause Key';
 
                             const dailyLimit = k.daily_quota || 1000;
                             const callsToday = k.calls_24h || 0;
@@ -3072,11 +3205,19 @@
                             if (quotaPercent >= 95) barColor = 'bg-rose-500';
 
                             return `
-                                <tr>
+                                <tr class="hover:bg-slate-50/50 transition">
                                     <td class="py-2.5 px-4 font-bold text-slate-800">${providerLabel}</td>
                                     <td class="py-2.5 px-4 font-mono text-slate-500">${k.masked_key}</td>
+                                    <td class="py-2.5 px-4 text-center">
+                                        <label class="relative inline-flex items-center cursor-pointer" title="Toggle System Key ON / OFF">
+                                            <input type="checkbox" onchange="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="sr-only peer" ${isOn ? 'checked' : ''}>
+                                            <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
+                                            <span class="ml-1.5 text-[9px] font-bold ${isOn ? 'text-emerald-600' : 'text-slate-400'}">${isOn ? 'ON' : 'OFF'}</span>
+                                        </label>
+                                    </td>
                                     <td class="py-2.5 px-4">
-                                        <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}" title="${k.error_message ? k.error_message.replace(/"/g, '&quot;') : 'Key is active and working'}">${k.status.replace('_', ' ')}</span>
+                                        <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${badgeColor}" title="${k.error_message ? k.error_message.replace(/"/g, '&quot;') : 'Key is active and verified'}">${statusText}</span>
+                                        ${k.error_message ? `<span class="block text-[8px] text-rose-500 truncate max-w-xs" title="${k.error_message.replace(/"/g, '&quot;')}">${k.error_message.substring(0, 40)}...</span>` : ''}
                                     </td>
                                     <td class="py-2.5 px-4">
                                         <div class="space-y-1">
@@ -3090,179 +3231,52 @@
                                         </div>
                                     </td>
                                     <td class="py-2.5 px-4 text-right">
-                                        <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-1.5">
-                                            Test
+                                        <button onclick="testAdminAIKey(${k.id}, this)" class="text-[10px] px-2 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded hover:bg-indigo-100 transition mr-1.5" title="Test Key (auto-pauses if connection fails)">
+                                            🧪 Test
                                         </button>
-                                        <button onclick="toggleAdminAIKeyStatus(${k.id}, '${k.status}')" class="text-[10px] px-2 py-1 bg-white border border-slate-200 rounded text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition mr-1.5">
-                                            ${k.status === 'paused' ? 'Resume' : 'Pause'}
+                                        <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">
+                                            🗑️ Delete
                                         </button>
-                                        <button onclick="deleteAdminAIKey(${k.id})" class="text-[10px] px-2 py-1 bg-red-50 text-red-600 border border-red-200 rounded hover:bg-red-100 transition">Delete</button>
                                     </td>
                                 </tr>
                             `;
                         }).join('');
                     } else {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-500">No Central AI API Keys configured. Click "Add API Key" above to connect one!</td></tr>';
                     }
                 }
             } catch (errKeys) {
                 console.warn('Keys load warning:', errKeys);
                 const tbody = document.getElementById('admin-ai-keys-tbody');
-                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-400">No API keys found.</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-slate-400">No API keys found.</td></tr>';
             }
         };
 
-        window.renderFallbackChainList = function(chainStr) {
-            const container = document.getElementById('fallback-chain-list');
-            if (!container) return;
-
-            const providerMap = {
-                'google_ai_studio': { name: 'Google Gemini', icon: 'https://aistudio.google.com/static/images/favicon.png' },
-                'groq': { name: 'Groq Cloud', icon: 'https://groq.com/wp-content/uploads/2024/03/groq-favicon.png' },
-                'openrouter': { name: 'OpenRouter', icon: 'https://openrouter.ai/favicon.ico' },
-                'github_models': { name: 'GitHub Models', icon: 'https://github.githubassets.com/favicons/favicon.svg' }
-            };
-
-            let chain = chainStr.split(',').map(s => s.trim()).filter(Boolean);
-            Object.keys(providerMap).forEach(p => {
-                if (!chain.includes(p)) chain.push(p);
-            });
-
-            container.innerHTML = chain.map((pId, idx) => {
-                const info = providerMap[pId] || { name: pId, icon: '' };
-                return `
-                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between" data-provider-id="${pId}">
-                        <div class="flex items-center space-x-2.5">
-                            <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 font-bold text-[10px] flex items-center justify-center">${idx + 1}</span>
-                            <img src="${info.icon}" class="h-4 w-4 rounded object-contain" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2103/2103633.png'">
-                            <span class="font-bold text-slate-800 text-xs">${info.name}</span>
-                        </div>
-                        <div class="flex items-center space-x-1">
-                            ${idx > 0 ? `<button onclick="moveFallbackChainItem('${pId}', 'up')" class="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded hover:bg-slate-100 font-bold text-[10px]">▲</button>` : ''}
-                            ${idx < chain.length - 1 ? `<button onclick="moveFallbackChainItem('${pId}', 'down')" class="px-1.5 py-0.5 bg-white border border-slate-200 text-slate-600 rounded hover:bg-slate-100 font-bold text-[10px]">▼</button>` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        };
-
-        window.moveFallbackChainItem = function(providerId, dir) {
-            const container = document.getElementById('fallback-chain-list');
-            const items = Array.from(container.querySelectorAll('[data-provider-id]')).map(el => el.getAttribute('data-provider-id'));
-            const idx = items.indexOf(providerId);
-            if (idx === -1) return;
-
-            if (dir === 'up' && idx > 0) {
-                const temp = items[idx];
-                items[idx] = items[idx - 1];
-                items[idx - 1] = temp;
-            } else if (dir === 'down' && idx < items.length - 1) {
-                const temp = items[idx];
-                items[idx] = items[idx + 1];
-                items[idx + 1] = temp;
-            }
-            renderFallbackChainList(items.join(','));
-        };
-
-        window.saveFallbackChainPriority = async function() {
-            try {
-                const container = document.getElementById('fallback-chain-list');
-                const items = Array.from(container.querySelectorAll('[data-provider-id]')).map(el => el.getAttribute('data-provider-id'));
-                const chainStr = items.join(',');
-
-                await apiCall('admin/crm_settings.php', 'POST', {
-                    ai_fallback_chain: chainStr
-                });
-                showNotification('success', 'Fallback chain priority updated: ' + items.join(' ➔ '));
-            } catch (err) {
-                showNotification('error', 'Failed to save priority order: ' + err.message);
-            }
-        };
-
-        window.runAIPromptPlaygroundTest = async function() {
-            const systemPrompt = document.getElementById('playground-system-prompt').value;
-            const leadMsg = document.getElementById('playground-lead-message').value;
-            const outputEl = document.getElementById('playground-ai-response');
-            const statusTag = document.getElementById('playground-status-tag');
-            const btn = document.getElementById('run-ai-playground-btn');
-
-            if (!systemPrompt || !leadMsg) {
-                showNotification('error', 'Please provide both system prompt instructions and mock lead context.');
-                return;
-            }
-
-            try {
-                btn.disabled = true;
-                statusTag.className = 'text-[9px] px-2 py-0.5 bg-amber-950 text-amber-300 rounded font-mono animate-pulse';
-                statusTag.textContent = 'Generating...';
-                outputEl.textContent = 'Contacting active AI engine provider...';
-
-                // Call test endpoint via crm_settings POST action
-                const res = await apiCall('admin/crm_settings.php', 'POST', {
-                    action: 'test_ai_prompt',
-                    system_prompt: systemPrompt,
-                    lead_message: leadMsg
-                });
-
-                outputEl.textContent = res.ai_response || res.message || 'No response generated.';
-                statusTag.className = 'text-[9px] px-2 py-0.5 bg-emerald-950 text-emerald-300 rounded font-mono';
-                statusTag.textContent = 'Success (HTTP 200)';
-            } catch (err) {
-                outputEl.textContent = 'AI Playground Execution Error:\n' + err.message;
-                statusTag.className = 'text-[9px] px-2 py-0.5 bg-rose-950 text-rose-300 rounded font-mono';
-                statusTag.textContent = 'Failed';
-            } finally {
-                btn.disabled = false;
-            }
-        };
-
-        window.toggleAdminAddKeyForm = function() {
-            const el = document.getElementById('admin-add-key-form-container');
-            const btn = document.getElementById('admin-add-key-toggle-btn');
-            if (el.classList.contains('hidden')) {
-                el.classList.remove('hidden');
-                btn.innerHTML = '<span>Cancel</span>';
-            } else {
-                el.classList.add('hidden');
-                btn.innerHTML = '<span>Add API Key</span>';
-            }
-        };
-
-        window.selectAdminNewKeyProvider = function(provider) {
-            document.getElementById('admin-new-key-provider-hidden').value = provider;
-            
-            const cards = ['openrouter', 'github_models', 'google_ai_studio', 'groq'];
-            cards.forEach(c => {
-                const cardEl = document.getElementById(`admin-provider-card-${c}`);
-                if (cardEl) {
-                    if (c === provider) {
-                        cardEl.classList.remove('border-slate-200');
-                        cardEl.classList.add('border-indigo-600', 'shadow-sm');
-                    } else {
-                        cardEl.classList.remove('border-indigo-600', 'shadow-sm');
-                        cardEl.classList.add('border-slate-200');
-                    }
-                }
-            });
-        };
-
-        window.submitAdminNewAIKey = async function() {
+        window.submitAdminNewAIKey = async function(btn) {
             const provider = document.getElementById('admin-new-key-provider-hidden').value;
-            const apiKey = document.getElementById('admin-new-key-value-input').value.trim();
+            const apiKey = document.getElementById('admin-new-key-value').value.trim();
             if (!apiKey) {
                 showNotification('error', 'Please enter an API Key value.');
                 return;
             }
 
+            const origContent = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Verifying & Saving...';
+            }
+
             try {
+                // Backend automatically validates connection first
                 const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
+                    action: 'add',
                     provider: provider,
                     api_key: apiKey
                 });
                 
                 if (res.status === 'success') {
-                    showNotification('success', 'API Key added successfully.');
-                    document.getElementById('admin-new-key-value-input').value = '';
+                    showNotification('success', res.message || 'API Key verified and added successfully.');
+                    document.getElementById('admin-new-key-value').value = '';
                     document.getElementById('admin-add-key-form-container').classList.add('hidden');
                     document.getElementById('admin-add-key-toggle-btn').innerHTML = '<span>Add API Key</span>';
                     loadAdminAISettingsData();
@@ -3270,26 +3284,34 @@
                     showNotification('error', res.message || 'Failed to add key.');
                 }
             } catch (err) {
-                showNotification('error', 'Connection error: ' + err.message);
+                showNotification('error', 'Validation failed: ' + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origContent;
+                }
             }
         };
 
         window.toggleAdminAIKeyStatus = async function(keyId, currentStatus) {
-            const nextStatus = currentStatus === 'paused' ? 'active' : 'paused';
+            const nextStatus = (currentStatus === 'paused' || currentStatus === 'invalid') ? 'active' : 'paused';
             try {
+                showNotification('info', `Switching key to ${nextStatus}...`);
                 const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
-                    action: 'update',
+                    action: 'toggle_status',
                     id: keyId,
                     status: nextStatus
                 });
                 if (res.status === 'success') {
-                    showNotification('success', `Key status changed to ${nextStatus}.`);
+                    showNotification('success', res.message || `Key status changed to ${nextStatus}.`);
                     loadAdminAISettingsData();
                 } else {
                     showNotification('error', res.message || 'Failed to toggle status.');
+                    loadAdminAISettingsData();
                 }
             } catch (err) {
                 showNotification('error', err.message);
+                loadAdminAISettingsData();
             }
         };
 
@@ -3306,11 +3328,11 @@
                     showNotification('success', res.message || 'API Key is working successfully.');
                     loadAdminAISettingsData();
                 } else {
-                    showNotification('error', res.message || 'API Key validation failed.');
+                    showNotification('error', res.message || 'API Key validation failed and has been paused.');
                     loadAdminAISettingsData();
                 }
             } catch (err) {
-                showNotification('error', 'Connection error: ' + err.message);
+                showNotification('error', err.message || 'Connection test failed. Key paused.');
                 loadAdminAISettingsData();
             } finally {
                 btn.disabled = false;
@@ -3321,13 +3343,13 @@
         window.syncAllAdminAIKeys = async function(btn) {
             const originalContent = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Syncing...';
+            btn.innerHTML = '<span class="inline-block animate-spin mr-1">🔄</span> Testing All...';
             try {
                 const res = await apiCall('profile/manage_ai_keys.php', 'POST', {
                     action: 'test_all'
                 });
                 if (res.status === 'success') {
-                    showNotification('success', res.message || 'All API Keys tested and synced successfully.');
+                    showNotification('success', res.message || 'All keys tested. Broken keys were automatically paused.');
                     loadAdminAISettingsData();
                 } else {
                     showNotification('error', res.message || 'Sync failed.');
@@ -3339,7 +3361,7 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalContent;
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         };
 

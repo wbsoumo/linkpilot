@@ -84,15 +84,64 @@ try {
                 sendJsonResponse('error', 'Invalid AI Provider specified.', [], 400);
             }
 
+            // Test and Validate key before saving ("always check while taking an API key, like test and save")
+            try {
+                testAIKeyConnection($provider, $apiKey);
+            } catch (Throwable $e) {
+                sendJsonResponse('error', "API Key verification failed for {$provider}: " . $e->getMessage() . " The key was not saved.", [
+                    'provider' => $provider,
+                    'error' => $e->getMessage()
+                ], 400);
+            }
+
             // Encrypt and insert key
             $encrypted = encryptData($apiKey);
-            $stmt = $db->prepare("INSERT INTO user_ai_keys (user_id, provider, api_key, status) VALUES (?, ?, ?, 'active')");
+            $stmt = $db->prepare("INSERT INTO user_ai_keys (user_id, provider, api_key, status, error_message) VALUES (?, ?, ?, 'active', NULL)");
             $stmt->execute([$userId, $provider, $encrypted]);
 
-            logActivity($userId, "Added new API key for provider: {$provider}");
-            sendJsonResponse('success', 'API Key added successfully.');
+            logActivity($userId, "Added and verified new API key for provider: {$provider}");
+            sendJsonResponse('success', "API Key verified and saved successfully! Provider is now active.");
 
-        } elseif ($action === 'update') {
+        } elseif ($action === 'toggle_provider') {
+            $provider = isset($input['provider']) ? trim($input['provider']) : '';
+            $enabled = !empty($input['enabled']); // boolean true (ON) or false (OFF)
+            $newStatus = $enabled ? 'active' : 'paused';
+
+            if (!in_array($provider, ['openrouter', 'github_models', 'google_ai_studio', 'groq'])) {
+                sendJsonResponse('error', 'Invalid provider.', [], 400);
+            }
+
+            // If enabling, test existing keys for this provider first!
+            if ($enabled) {
+                $stmtCheck = $db->prepare("SELECT id, api_key FROM user_ai_keys WHERE user_id = ? AND provider = ? ORDER BY id DESC LIMIT 1");
+                $stmtCheck->execute([$userId, $provider]);
+                $keyRow = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                if (!$keyRow) {
+                    sendJsonResponse('error', "Cannot turn ON {$provider}: No API key configured. Please add an API key first.", [], 400);
+                }
+
+                $decrypted = decryptData($keyRow['api_key']);
+                $apiKey = ($decrypted !== false) ? $decrypted : $keyRow['api_key'];
+
+                try {
+                    testAIKeyConnection($provider, $apiKey);
+                } catch (Throwable $e) {
+                    // Update error message and keep paused
+                    $stmtErr = $db->prepare("UPDATE user_ai_keys SET status = 'paused', error_message = ? WHERE id = ?");
+                    $stmtErr->execute([$e->getMessage(), $keyRow['id']]);
+                    sendJsonResponse('error', "Cannot turn ON {$provider}: Verification test failed: " . $e->getMessage(), [], 400);
+                }
+            }
+
+            // Update status
+            $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = ?, error_message = NULL WHERE user_id = ? AND provider = ?");
+            $stmtUpdate->execute([$newStatus, $userId, $provider]);
+
+            logActivity($userId, "Toggled provider {$provider} to {$newStatus}");
+            sendJsonResponse('success', "Provider {$provider} turned " . ($enabled ? 'ON (Active)' : 'OFF (Paused)') . ".");
+
+        } elseif ($action === 'update' || $action === 'toggle_status') {
             if (empty($input['id'])) {
                 sendJsonResponse('error', 'Invalid input parameters.', [], 400);
             }
@@ -100,7 +149,7 @@ try {
             $keyId = (int)$input['id'];
 
             // Verify key ownership
-            $stmtCheck = $db->prepare("SELECT provider FROM user_ai_keys WHERE id = ? AND user_id = ?");
+            $stmtCheck = $db->prepare("SELECT provider, api_key, status FROM user_ai_keys WHERE id = ? AND user_id = ?");
             $stmtCheck->execute([$keyId, $userId]);
             $keyRow = $stmtCheck->fetch();
             if (!$keyRow) {
@@ -110,10 +159,21 @@ try {
             $updates = [];
             $params = [];
 
-            // Toggle status (Pause/Play)
+            // Toggle status (Pause/Active)
             if (isset($input['status'])) {
                 $status = trim($input['status']);
                 if (in_array($status, ['active', 'paused', 'limit_exceeded', 'invalid'])) {
+                    // If activating, test connection first!
+                    if ($status === 'active') {
+                        $decrypted = decryptData($keyRow['api_key']);
+                        $apiKey = ($decrypted !== false) ? $decrypted : $keyRow['api_key'];
+                        try {
+                            testAIKeyConnection($keyRow['provider'], $apiKey);
+                            $updates[] = "error_message = NULL";
+                        } catch (Throwable $e) {
+                            sendJsonResponse('error', "Cannot activate key: Verification test failed: " . $e->getMessage(), [], 400);
+                        }
+                    }
                     $updates[] = "status = ?";
                     $params[] = $status;
                 } else {
@@ -125,6 +185,13 @@ try {
             if (isset($input['api_key'])) {
                 $apiKey = trim($input['api_key']);
                 if (!empty($apiKey)) {
+                    // Test key before saving
+                    try {
+                        testAIKeyConnection($keyRow['provider'], $apiKey);
+                    } catch (Throwable $e) {
+                        sendJsonResponse('error', "Cannot save key: Verification failed: " . $e->getMessage(), [], 400);
+                    }
+
                     $updates[] = "api_key = ?";
                     $params[] = encryptData($apiKey);
                     $updates[] = "status = 'active'";
@@ -143,7 +210,7 @@ try {
                 $stmtUpdate->execute($params);
 
                 logActivity($userId, "Updated API key details for key ID: {$keyId}");
-                sendJsonResponse('success', 'API Key updated successfully.');
+                sendJsonResponse('success', 'API Key updated and verified successfully.');
             } else {
                 sendJsonResponse('error', 'No updates specified.', [], 400);
             }
@@ -196,30 +263,30 @@ try {
                 $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE id = ?");
                 $stmtUpdate->execute([$keyId]);
 
-                sendJsonResponse('success', 'API Key connection test succeeded. Key is working!');
-            } catch (Exception $ex) {
+                sendJsonResponse('success', "API Key connection test succeeded! Key is active and working.");
+            } catch (Throwable $ex) {
                 $errMessage = $ex->getMessage();
                 
-                // Determine error status
-                $status = 'limit_exceeded';
-                if (strpos($errMessage, '401') !== false || strpos(strtolower($errMessage), 'unauthorized') !== false) {
-                    $status = 'invalid';
-                }
+                // Requirement: "and presaved always test, if not working pause"
+                $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'paused', error_message = ? WHERE id = ?");
+                $stmtUpdate->execute([$errMessage, $keyId]);
 
-                // Update status in DB
-                $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = ?, error_message = ? WHERE id = ?");
-                $stmtUpdate->execute([$status, $errMessage, $keyId]);
-
-                sendJsonResponse('error', 'API Key connection test failed: ' . $errMessage);
+                sendJsonResponse('error', "API Key test failed and has been automatically PAUSED: " . $errMessage, [
+                    'status' => 'paused',
+                    'error' => $errMessage
+                ]);
             }
 
         } elseif ($action === 'test_all') {
             // Retrieve all keys for the current user
-            $stmt = $db->prepare("SELECT id, provider, api_key FROM user_ai_keys WHERE user_id = ?");
+            $stmt = $db->prepare("SELECT id, provider, api_key, status FROM user_ai_keys WHERE user_id = ?");
             $stmt->execute([$userId]);
             $keys = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             $results = [];
+            $activeCount = 0;
+            $pausedCount = 0;
+
             foreach ($keys as $k) {
                 $keyId = $k['id'];
                 $decrypted = decryptData($k['api_key']);
@@ -228,24 +295,28 @@ try {
                 try {
                     testAIKeyConnection($k['provider'], $apiKey);
 
-                    // Update DB
+                    // Update DB to active
                     $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE id = ?");
                     $stmtUpdate->execute([$keyId]);
-                    $results[$keyId] = ['success' => true];
-                } catch (Exception $ex) {
+                    $results[$keyId] = ['success' => true, 'provider' => $k['provider'], 'status' => 'active'];
+                    $activeCount++;
+                } catch (Throwable $ex) {
                     $errMessage = $ex->getMessage();
-                    $status = 'limit_exceeded';
-                    if (strpos($errMessage, '401') !== false || strpos(strtolower($errMessage), 'unauthorized') !== false) {
-                        $status = 'invalid';
-                    }
 
-                    // Update DB
-                    $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = ?, error_message = ? WHERE id = ?");
-                    $stmtUpdate->execute([$status, $errMessage, $keyId]);
-                    $results[$keyId] = ['success' => false, 'error' => $errMessage];
+                    // If not working, automatically pause it!
+                    $stmtUpdate = $db->prepare("UPDATE user_ai_keys SET status = 'paused', error_message = ? WHERE id = ?");
+                    $stmtUpdate->execute([$errMessage, $keyId]);
+                    $results[$keyId] = ['success' => false, 'provider' => $k['provider'], 'status' => 'paused', 'error' => $errMessage];
+                    $pausedCount++;
                 }
             }
-            sendJsonResponse('success', 'All API Keys synchronized and validated successfully.', ['results' => $results]);
+
+            $summaryMsg = "Sync complete: {$activeCount} active, {$pausedCount} paused due to errors.";
+            sendJsonResponse('success', $summaryMsg, [
+                'active_count' => $activeCount,
+                'paused_count' => $pausedCount,
+                'results' => $results
+            ]);
 
         } else {
             sendJsonResponse('error', 'Invalid action specified.', [], 400);

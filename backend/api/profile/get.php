@@ -27,19 +27,35 @@ try {
         $userData = ['id' => $userId, 'name' => $user['name'] ?? 'Admin', 'email' => $user['email'] ?? '', 'role' => $user['role'] ?? 'admin'];
     }
     
-    // Check if there is at least one key in user_ai_keys table for each provider (non-invalid)
+    // Check provider keys and their active/paused status in user_ai_keys table
     $keysCounts = [];
+    $providerStatuses = [];
     try {
-        $stmtKeysCount = $db->prepare("SELECT provider, COUNT(*) as cnt FROM user_ai_keys WHERE user_id = ? AND status != 'invalid' GROUP BY provider");
-        $stmtKeysCount->execute([$userId]);
-        $keysCounts = $stmtKeysCount->fetchAll(PDO::FETCH_KEY_PAIR);
+        $stmtKeys = $db->prepare("SELECT provider, status, error_message FROM user_ai_keys WHERE user_id = ? ORDER BY id DESC");
+        $stmtKeys->execute([$userId]);
+        $allKeys = $stmtKeys->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($allKeys as $kRow) {
+            $p = $kRow['provider'];
+            if (!isset($providerStatuses[$p])) {
+                $providerStatuses[$p] = [
+                    'status' => $kRow['status'],
+                    'error_message' => $kRow['error_message'],
+                    'is_on' => ($kRow['status'] === 'active')
+                ];
+            }
+            if ($kRow['status'] !== 'invalid') {
+                $keysCounts[$p] = ($keysCounts[$p] ?? 0) + 1;
+            }
+        }
     } catch (Exception $ex) {}
 
     $userData['has_openrouter_key'] = !empty($keysCounts['openrouter']);
     $userData['has_github_key'] = !empty($keysCounts['github_models']);
     $userData['has_google_key'] = !empty($keysCounts['google_ai_studio']);
-    $userData['active_ai_provider'] = $userData['active_ai_provider'] ?? 'github_models';
-    $userData['active_ai_model'] = $userData['active_ai_model'];
+    $userData['has_groq_key'] = !empty($keysCounts['groq']);
+    $userData['provider_statuses'] = $providerStatuses;
+    $userData['active_ai_provider'] = $userData['active_ai_provider'] ?? 'google_ai_studio';
+    $userData['active_ai_model'] = $userData['active_ai_model'] ?? 'gemini-2.5-flash';
     unset($userData['openrouter_key']);
     unset($userData['github_key']);
     unset($userData['google_key']);

@@ -104,9 +104,9 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// Test Google native with gemini-flash-latest and gemini-3.1-flash-lite
-echo "\n--- TESTING GOOGLE NATIVE WITH gemini-flash-latest ---\n";
-foreach (['gemini-flash-latest', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'] as $testModel) {
+// Test Google native with gemini-2.5-flash and gemini-flash-latest
+echo "\n--- TESTING GOOGLE NATIVE WITH gemini-2.5-flash ---\n";
+foreach (['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'] as $testModel) {
     echo "Testing $testModel: ";
     $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($candidates[0]['api_key']);
     $ch = curl_init($nativeUrl);

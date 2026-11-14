@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../jwt_helper.php';
+require_once __DIR__ . '/../../wallet_helper.php';
 
 // Require Auth
 $user = JWTHelper::requireAuth();
@@ -22,13 +23,50 @@ if (!$input) {
 $openrouterKey = isset($input['openrouter_key']) ? trim($input['openrouter_key']) : null;
 $githubKey = isset($input['github_key']) ? trim($input['github_key']) : null;
 $googleKey = isset($input['google_key']) ? trim($input['google_key']) : null;
+$groqKey = isset($input['groq_key']) ? trim($input['groq_key']) : null;
 $activeProvider = isset($input['active_ai_provider']) ? trim($input['active_ai_provider']) : null;
 $activeModel = isset($input['active_ai_model']) ? trim($input['active_ai_model']) : null;
+$isTestOnly = !empty($input['test_only']) || ($input['action'] ?? '') === 'test_connection';
+$testBeforeSave = !empty($input['test_and_save']) || $isTestOnly || true; // Always validate keys on save
+
+// Sanitize active model if obsolete
+if ($activeModel) {
+    if (strpos($activeModel, 'gemini-3.1') !== false || strpos($activeModel, 'gemini-3.6') !== false) {
+        $activeModel = 'gemini-2.5-flash';
+    }
+}
 
 $db = Database::getConnection();
 
 try {
-    // Start building update query
+    // 1. Validation / Test Key Check
+    // If user is testing or providing a new key, test connectivity before saving
+    $keyTestTargets = [
+        'google_ai_studio' => $googleKey,
+        'groq' => $groqKey,
+        'openrouter' => $openrouterKey,
+        'github_models' => $githubKey
+    ];
+
+    foreach ($keyTestTargets as $prov => $kVal) {
+        if (!empty($kVal) && strpos($kVal, '•') === false && strpos($kVal, 'placeholder') === false) {
+            try {
+                testAIKeyConnection($prov, $kVal);
+            } catch (Throwable $e) {
+                sendJsonResponse('error', "Validation failed for {$prov}: " . $e->getMessage() . " Please check your key and try again.", [
+                    'provider' => $prov,
+                    'error' => $e->getMessage()
+                ], 400);
+            }
+        }
+    }
+
+    // If test only, return success here
+    if ($isTestOnly) {
+        sendJsonResponse('success', 'API Key connectivity test succeeded! The key is working properly.');
+    }
+
+    // 2. Start building update query for users table
     $updates = [];
     $params = [];
     
@@ -36,9 +74,11 @@ try {
     if ($openrouterKey !== null) {
         if ($openrouterKey === '') {
             $updates[] = "openrouter_key = NULL";
-        } elseif ($openrouterKey !== '••••••••') {
+        } elseif (strpos($openrouterKey, '•') === false) {
             $updates[] = "openrouter_key = ?";
             $params[] = encryptData($openrouterKey);
+            // Upsert into user_ai_keys
+            upsertUserAIKey($db, $userId, 'openrouter', $openrouterKey);
         }
     }
     
@@ -46,9 +86,10 @@ try {
     if ($githubKey !== null) {
         if ($githubKey === '') {
             $updates[] = "github_key = NULL";
-        } elseif ($githubKey !== '••••••••') {
+        } elseif (strpos($githubKey, '•') === false) {
             $updates[] = "github_key = ?";
             $params[] = encryptData($githubKey);
+            upsertUserAIKey($db, $userId, 'github_models', $githubKey);
         }
     }
     
@@ -56,9 +97,17 @@ try {
     if ($googleKey !== null) {
         if ($googleKey === '') {
             $updates[] = "google_key = NULL";
-        } elseif ($googleKey !== '••••••••') {
+        } elseif (strpos($googleKey, '•') === false) {
             $updates[] = "google_key = ?";
             $params[] = encryptData($googleKey);
+            upsertUserAIKey($db, $userId, 'google_ai_studio', $googleKey);
+        }
+    }
+
+    // Process Groq Key
+    if ($groqKey !== null) {
+        if ($groqKey !== '' && strpos($groqKey, '•') === false) {
+            upsertUserAIKey($db, $userId, 'groq', $groqKey);
         }
     }
     
@@ -90,10 +139,26 @@ try {
         $stmt->execute($params);
     }
     
-    logActivity($userId, "Updated AI Settings & Configurations.");
+    logActivity($userId, "Updated AI Settings & Configurations (Tested & Verified).");
     
-    sendJsonResponse('success', 'AI settings saved successfully.');
+    sendJsonResponse('success', 'AI settings tested and saved successfully.');
     
 } catch (Exception $e) {
     sendJsonResponse('error', 'Server error saving AI settings: ' . $e->getMessage(), [], 500);
+}
+
+function upsertUserAIKey(PDO $db, int $userId, string $provider, string $rawKey) {
+    try {
+        $encrypted = encryptData($rawKey);
+        $stmtCheck = $db->prepare("SELECT id FROM user_ai_keys WHERE user_id = ? AND provider = ? LIMIT 1");
+        $stmtCheck->execute([$userId, $provider]);
+        $existingId = $stmtCheck->fetchColumn();
+        if ($existingId) {
+            $stmtUp = $db->prepare("UPDATE user_ai_keys SET api_key = ?, status = 'active', error_message = NULL, updated_at = NOW() WHERE id = ?");
+            $stmtUp->execute([$encrypted, $existingId]);
+        } else {
+            $stmtIns = $db->prepare("INSERT INTO user_ai_keys (user_id, provider, api_key, status) VALUES (?, ?, ?, 'active')");
+            $stmtIns->execute([$userId, $provider, $encrypted]);
+        }
+    } catch (Throwable $e) {}
 }

@@ -562,10 +562,9 @@ if (!function_exists('testAIKeyConnection')) {
 
         if ($provider === 'groq') {
             $modelsToTry = [
-                'openai/gpt-oss-120b',
                 'llama-3.3-70b-versatile',
                 'llama-3.1-8b-instant',
-                'deepseek-r1-distill-llama-70b'
+                'openai/gpt-oss-120b'
             ];
             $lastException = null;
 
@@ -590,7 +589,7 @@ if (!function_exists('testAIKeyConnection')) {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
 
                 $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -602,7 +601,7 @@ if (!function_exists('testAIKeyConnection')) {
                 }
 
                 if ($httpCode === 401) {
-                    throw new Exception("401: Unauthorized: Invalid Groq API Key.");
+                    throw new Exception("Unauthorized: Invalid Groq API Key.");
                 }
 
                 if ($error) {
@@ -641,7 +640,7 @@ if (!function_exists('testAIKeyConnection')) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -649,7 +648,7 @@ if (!function_exists('testAIKeyConnection')) {
             curl_close($ch);
             
             if ($error) {
-                throw new Exception("Connection failed: " . $error);
+                throw new Exception("GitHub Models connection failed: " . $error);
             }
             $data = json_decode($response, true);
             if ($httpCode !== 200) {
@@ -660,13 +659,10 @@ if (!function_exists('testAIKeyConnection')) {
             
         } elseif ($provider === 'google_ai_studio') {
             $lastException = null;
-            $modelsToTry = ['gemini-3.1-flash-lite', 'gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-flash-latest'];
+            // Test official active models (gemini-2.5-flash is current production default)
+            $modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
             
-            // Retry loop up to 3 attempts across models/endpoints
-            for ($attempt = 1; $attempt <= 3; $attempt++) {
-                $currentModel = $modelsToTry[($attempt - 1) % count($modelsToTry)];
-                
-                // Attempt via native v1beta generateContent endpoint
+            foreach ($modelsToTry as $currentModel) {
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($apiKey);
                 $postFields = [
                     "contents" => [
@@ -679,13 +675,11 @@ if (!function_exists('testAIKeyConnection')) {
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-                curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-                curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+                curl_setopt($ch, CURLOPT_USERAGENT, 'LinkPilot-AI/2.0');
                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 8);
                 
                 $response = curl_exec($ch);
                 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -697,15 +691,23 @@ if (!function_exists('testAIKeyConnection')) {
                 }
                 
                 if ($error) {
-                    $lastException = new Exception("Connection attempt {$attempt} failed ({$currentModel}): " . $error);
+                    $lastException = new Exception("Connection error ({$currentModel}): " . $error);
                 } else {
                     $data = json_decode($response, true);
                     $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
+                    if ($httpCode === 400 && stripos($msg, 'key not valid') !== false) {
+                        throw new Exception("Invalid Gemini API Key: Please check your key at aistudio.google.com");
+                    }
+                    if ($httpCode === 403) {
+                        throw new Exception("Gemini API Forbidden: Quota or API permissions error: {$msg}");
+                    }
                     $lastException = new Exception("HTTP {$httpCode} ({$currentModel}): {$msg}");
                 }
                 
-                // Small 300ms pause before retry
-                usleep(300000);
+                // If invalid key, do not loop
+                if ($httpCode === 400 && stripos($response, 'key not valid') !== false) {
+                    throw new Exception("Invalid Gemini API Key: " . ($data['error']['message'] ?? 'Key not valid'));
+                }
             }
             
             if ($lastException) {
@@ -714,7 +716,7 @@ if (!function_exists('testAIKeyConnection')) {
             return true;
             
         } else { // openrouter
-            $model = "google/gemini-2.5-flash";
+            $model = "google/gemini-2.5-flash:free";
             $headers = [
                 "Authorization: Bearer " . $apiKey,
                 "Content-Type: application/json",

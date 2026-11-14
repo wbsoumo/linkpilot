@@ -60,14 +60,23 @@ if (isset($_GET['sync'])) {
 $db = Database::getConnection();
 $adminId = 1;
 
-// Live Agent Orchestrator Test
-echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('hello') ---\n";
+// 0. Auto-heal DB records for active AI models
+try {
+    $db->exec("UPDATE users SET active_ai_model = 'gemini-3-flash-preview' WHERE active_ai_model LIKE 'gemini-3.5%' OR active_ai_model LIKE 'gemini-2%' OR active_ai_model LIKE 'gemini-1.5%'");
+    $db->exec("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE provider = 'google_ai_studio'");
+    echo "[OK] Auto-healed users and user_ai_keys in database.\n";
+} catch (Throwable $e) {
+    echo "[!] DB heal error: " . $e->getMessage() . "\n";
+}
+
+// Live Agent Orchestrator Test (WhatsApp query from user screenshot)
+echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('Who sent the latest WhatsApp message?') ---\n";
 require_once __DIR__ . '/agent_orchestrator.php';
 try {
-    $conv = AgentOrchestrator::createConversation($adminId, 'Diag Test', $db);
+    $conv = AgentOrchestrator::createConversation($adminId, 'Diag Test WhatsApp', $db);
     $convId = $conv['id'] ?? uniqid('conv_');
     $t0 = microtime(true);
-    $orchRes = AgentOrchestrator::processChat($adminId, $convId, 'hello', [], null, $db);
+    $orchRes = AgentOrchestrator::processChat($adminId, $convId, 'Who sent the latest WhatsApp message?', [], null, $db);
     $orchTook = round(microtime(true) - $t0, 2);
     echo "Orchestrator responded in {$orchTook}s:\n";
     echo "Status: " . ($orchRes['status'] ?? 'unknown') . "\n";
@@ -104,9 +113,9 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// Test Google native with gemini-2.5-flash and gemini-flash-latest
-echo "\n--- TESTING GOOGLE NATIVE WITH gemini-2.5-flash ---\n";
-foreach (['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'] as $testModel) {
+// Test Google native with gemini-3-flash-preview and gemini-3.8-flash
+echo "\n--- TESTING GOOGLE NATIVE WITH gemini-3-flash-preview ---\n";
+foreach (['gemini-3-flash-preview', 'gemini-3.8-flash'] as $testModel) {
     echo "Testing $testModel: ";
     $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($candidates[0]['api_key']);
     $ch = curl_init($nativeUrl);
@@ -117,7 +126,8 @@ foreach (['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-flash-latest'] as $tes
     ]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
     $t0 = microtime(true);
     $nRes = curl_exec($ch);
     $took = round(microtime(true) - $t0, 2);

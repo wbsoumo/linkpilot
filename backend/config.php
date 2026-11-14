@@ -55,7 +55,7 @@ define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 
 // Google AI Studio API Configuration
 define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
-define('GOOGLE_AI_STUDIO_MODEL', 'gemini-3.5-flash');
+define('GOOGLE_AI_STUDIO_MODEL', 'gemini-3-flash-preview');
 
 // Groq API Configuration
 define('GROQ_API_KEY', getenv('GROQ_API_KEY') ?: '');
@@ -182,6 +182,9 @@ class Database {
                     if (!$stmt->fetch()) {
                         self::$instance->exec("ALTER TABLE `users` ADD COLUMN `active_ai_model` VARCHAR(100) DEFAULT NULL");
                     }
+                    // Auto-heal obsolete/deprecated model names in DB to active gemini-3-flash-preview
+                    self::$instance->exec("UPDATE `users` SET `active_ai_model` = 'gemini-3-flash-preview' WHERE `active_ai_model` LIKE 'gemini-3.5%' OR `active_ai_model` LIKE 'gemini-2%' OR `active_ai_model` LIKE 'gemini-1.5%'");
+                    self::$instance->exec("UPDATE `user_ai_keys` SET `status` = 'active', `error_message` = NULL WHERE `provider` = 'google_ai_studio' AND `status` = 'paused'");
                 } catch (Exception $e) {}
 
                 try {

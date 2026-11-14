@@ -97,17 +97,23 @@ class AgentAIClient {
 
         // 5. Default model mappings with verified active model IDs
         $modelMap = [
-            'google_ai_studio' => 'gemini-3.5-flash',
+            'google_ai_studio' => 'gemini-3-flash-preview',
             'openrouter' => 'meta-llama/llama-3.1-8b-instruct',
             'groq' => 'llama-3.1-8b-instant',
             'github_models' => 'gpt-4o-mini'
         ];
 
-        // Sanitize activeModel: if it contains obsolete strings, use known good default
+        // Sanitize activeModel: if it contains obsolete strings or non-existent 3.5/2.x/1.5 models, use verified default
         $safeActiveModel = $activeModel;
         if (!empty($safeActiveModel)) {
-            if (strpos($safeActiveModel, '2.0-flash') !== false || strpos($safeActiveModel, '2.5-flash:free') !== false) {
-                $safeActiveModel = $modelMap[$activeProvider] ?? 'gemini-flash-latest';
+            if (
+                strpos($safeActiveModel, '3.5-flash') !== false ||
+                strpos($safeActiveModel, '2.0-flash') !== false ||
+                strpos($safeActiveModel, '2.5-flash') !== false ||
+                strpos($safeActiveModel, '1.5-flash') !== false ||
+                strpos($safeActiveModel, '1.5-pro') !== false
+            ) {
+                $safeActiveModel = 'gemini-3-flash-preview';
             }
         }
 
@@ -117,7 +123,7 @@ class AgentAIClient {
 
         foreach ($providerOrder as $prov) {
             if (!empty($dbKeys[$prov])) {
-                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-flash-latest');
+                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-3-flash-preview');
                 $candidates[] = [
                     'provider' => $prov,
                     'model' => $provModel,
@@ -155,22 +161,22 @@ class AgentAIClient {
         $providers = self::getAllAvailableProviders($userId);
         $lastError = null;
 
-        // Model catalogs structured by execution path complexity
+        // Model catalogs structured by execution path complexity with verified active models
         $modelCatalog = [
             'simple_ai' => [
-                'google_ai_studio' => ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest'],
+                'google_ai_studio' => ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'],
                 'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
                 'groq' => ['llama-3.1-8b-instant', 'llama3-8b-8192'],
                 'github_models' => ['gpt-4o-mini']
             ],
             'business_ops' => [
-                'google_ai_studio' => ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'],
+                'google_ai_studio' => ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'],
                 'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
                 'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192'],
                 'github_models' => ['gpt-4o-mini', 'gpt-4o']
             ],
             'complex_autonomous' => [
-                'google_ai_studio' => ['gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-flash-latest'],
+                'google_ai_studio' => ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'],
                 'openrouter' => ['meta-llama/llama-3.3-70b-instruct', 'meta-llama/llama-3.1-8b-instruct'],
                 'groq' => ['llama3-70b-8192', 'llama-3.1-8b-instant'],
                 'github_models' => ['gpt-4o', 'gpt-4o-mini']
@@ -236,7 +242,11 @@ class AgentAIClient {
 
             // Build ordered candidate models for this provider
             $candidateModels = [];
-            if (!empty($cfg['model']) && strpos($cfg['model'], '3.1-flash-lite') === false && strpos($cfg['model'], '3.8-flash') === false) {
+            if (!empty($cfg['model']) && 
+                strpos($cfg['model'], '3.5-flash') === false && 
+                strpos($cfg['model'], '2.0-flash') === false && 
+                strpos($cfg['model'], '2.5-flash') === false && 
+                strpos($cfg['model'], '1.5-flash') === false) {
                 $candidateModels[] = $cfg['model'];
             }
             if (!empty($pathCatalog[$provider])) {
@@ -247,8 +257,8 @@ class AgentAIClient {
                 }
             }
 
-            // Cap model attempts to at most 2 fast attempts per provider
-            $candidateModels = array_slice($candidateModels, 0, 2);
+            // Cap model attempts to at most 3 fast attempts per provider
+            $candidateModels = array_slice($candidateModels, 0, 3);
 
             // For Google AI Studio, try native v1beta generateContent endpoint first
             if ($provider === 'google_ai_studio') {

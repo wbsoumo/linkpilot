@@ -666,11 +666,11 @@ if (!function_exists('testAIKeyConnection')) {
                 }
             }
 
-            // Test active official models (gemini-3.5-flash and gemini-3.5-flash-lite are current active production models)
-            $availableModels = ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+            // Test active official models (gemini-3-flash-preview and gemini-3.8-flash are current active production models)
+            $availableModels = ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
             $modelsToTry = ($model && in_array($model, $availableModels))
                 ? [$model]
-                : ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
+                : ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'];
             
             foreach ($modelsToTry as $currentModel) {
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($apiKey);

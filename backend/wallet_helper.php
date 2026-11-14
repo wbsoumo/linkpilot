@@ -659,9 +659,11 @@ if (!function_exists('testAIKeyConnection')) {
             
         } elseif ($provider === 'google_ai_studio') {
             $lastException = null;
-            // Pre-validation: Google AI Studio API keys strictly start with AIzaSy
-            if (!empty($apiKey) && strpos($apiKey, '•') === false && !str_starts_with($apiKey, 'AIzaSy')) {
-                throw new Exception("Invalid Gemini API Key format: The key must start with 'AIzaSy'. Please generate a free API key at https://aistudio.google.com/app/apikey");
+            // Pre-validation: Gemini API keys are typically >= 25 characters
+            if (!empty($apiKey) && strpos($apiKey, '•') === false) {
+                if (strlen($apiKey) < 20) {
+                    throw new Exception("Invalid Gemini API Key format: Key appears too short. Please copy the complete key from https://aistudio.google.com/app/apikey");
+                }
             }
 
             // Test active official models (gemini-2.5-flash is current production default)
@@ -679,7 +681,10 @@ if (!function_exists('testAIKeyConnection')) {
                 ];
                 
                 $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "Content-Type: application/json",
+                    "x-goog-api-key: " . $apiKey
+                ]);
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postFields));
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -706,8 +711,10 @@ if (!function_exists('testAIKeyConnection')) {
 
                     // Catch unauthenticated / invalid key errors (HTTP 400, 401)
                     if ($httpCode === 400 || $httpCode === 401) {
-                        if (stripos($msg, 'key not valid') !== false || stripos($response, 'UNAUTHENTICATED') !== false || stripos($response, 'API_KEY_INVALID') !== false || stripos($response, 'ACCESS_TOKEN') !== false) {
-                            throw new Exception("Invalid Gemini API Key: Your API key was rejected by Google AI Studio. Please verify or create your key at https://aistudio.google.com/app/apikey (keys start with 'AIzaSy').");
+                        if (stripos($response, 'ACCESS_TOKEN_TYPE_UNSUPPORTED') !== false) {
+                            throw new Exception("Gemini API Key Rejected (ACCESS_TOKEN_TYPE_UNSUPPORTED): This occurs when API restrictions are set to 'Gemini API' in Google Cloud Console instead of 'Generative Language API'. In Google Cloud Console > Credentials, edit this key and change API restrictions to 'Don't restrict key' or 'Generative Language API'. Or create a fresh key in a new project in Google AI Studio.");
+                        } elseif (stripos($msg, 'key not valid') !== false || stripos($response, 'UNAUTHENTICATED') !== false || stripos($response, 'API_KEY_INVALID') !== false) {
+                            throw new Exception("Invalid Gemini API Key: Your API key was rejected by Google AI Studio. Please verify or re-generate your key at https://aistudio.google.com/app/apikey");
                         }
                     }
                     if ($httpCode === 403) {

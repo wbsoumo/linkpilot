@@ -996,7 +996,7 @@
                                     </a>
                                 </div>
                                 <div class="relative">
-                                    <input type="password" id="admin_u_google_key" placeholder="AIzaSy••••••••••••••••••••••••••••••••" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-xs font-mono pr-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                    <input type="password" id="admin_u_google_key" placeholder="Paste Gemini Key (starts with AIzaSy... or AQ...)" class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-slate-800 text-xs font-mono pr-10 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                                     <button type="button" onclick="toggleKeyVisibility('admin_u_google_key', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1" title="Show/Hide Key">
                                         <i data-lucide="eye" class="h-4 w-4"></i>
                                     </button>
@@ -1067,7 +1067,7 @@
                         <div class="space-y-1.5">
                             <label class="block text-[9px] font-bold text-slate-400 uppercase">Google Gemini API Key Value</label>
                             <div class="flex space-x-2">
-                                <input type="password" id="admin-new-key-value" placeholder="Paste your Google Gemini API Key (AIzaSy...) here..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-xs font-mono">
+                                <input type="password" id="admin-new-key-value" placeholder="Paste your Google Gemini API Key (AIzaSy... or AQ...)" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-800 text-xs font-mono">
                                 <button onclick="submitAdminNewAIKey(this)" id="admin-new-key-submit-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition whitespace-nowrap flex items-center space-x-1.5" style="color: #ffffff !important;">
                                     <span>🧪 Test & Save Key</span>
                                 </button>
@@ -2860,8 +2860,8 @@
             const modelVal = modelSelect ? modelSelect.value : 'gemini-2.5-flash';
             const keyVal = document.getElementById('admin_u_google_key') ? document.getElementById('admin_u_google_key').value.trim() : '';
 
-            if (keyVal && !keyVal.startsWith('AIzaSy')) {
-                showNotification('error', "Invalid key format: Google Gemini API keys strictly start with 'AIzaSy'. Please generate a free key at https://aistudio.google.com/app/apikey");
+            if (keyVal && keyVal.length < 20) {
+                showNotification('error', "Invalid key format: Gemini API keys should be at least 25 characters long. Please copy your complete key from https://aistudio.google.com/app/apikey");
                 return;
             }
 
@@ -2903,8 +2903,8 @@
             const modelVal = modelSelect ? modelSelect.value : 'gemini-2.5-flash';
             const keyVal = document.getElementById('admin_u_google_key') ? document.getElementById('admin_u_google_key').value.trim() : '';
 
-            if (keyVal && !keyVal.startsWith('AIzaSy')) {
-                showNotification('error', "Invalid key format: Google Gemini API keys strictly start with 'AIzaSy'. Please generate a free key at https://aistudio.google.com/app/apikey");
+            if (keyVal && keyVal.length < 20) {
+                showNotification('error', "Invalid key format: Gemini API keys should be at least 25 characters long. Please copy your complete key from https://aistudio.google.com/app/apikey");
                 return;
             }
 
@@ -3010,9 +3010,9 @@
                     const keyInput = document.getElementById('admin_u_google_key');
                     if (keyInput) {
                         if (hasKey) {
-                            keyInput.placeholder = 'AIzaSy•••••••••••••••••••••••••••••••• (Encrypted Key Saved)';
+                            keyInput.placeholder = '•••••••••••••••••••••••••••••••• (Encrypted Key Saved)';
                         } else {
-                            keyInput.placeholder = 'Paste your Google Gemini API Key (AIzaSy...) here';
+                            keyInput.placeholder = 'Paste your Google Gemini API Key (AIzaSy... or AQ...)';
                         }
                     }
                 }

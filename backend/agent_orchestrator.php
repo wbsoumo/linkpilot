@@ -386,9 +386,11 @@ You are not a passive text generator. You execute real actions using your tool l
                     $stepStatus = 'failed';
                 } else {
                     $isApprovalReq = $toolDef['approval_required'] ?? false;
+                    $stepId = ($tc['id'] ?? '') ?: ($toolId . '_' . bin2hex(random_bytes(4)));
 
                     if ($streamEmitter) {
                         $streamEmitter('tool_start', [
+                            'step_id' => $stepId,
                             'tool_id' => $toolId,
                             'tool_name' => $toolDef['name'],
                             'arguments' => $toolArgs
@@ -419,6 +421,7 @@ You are not a passive text generator. You execute real actions using your tool l
                     } catch (Throwable $e) {}
 
                     $toolExecutionSteps[] = [
+                        'step_id' => $stepId,
                         'tool_id' => $toolId,
                         'tool_name' => $toolDef['name'],
                         'status' => $stepStatus,
@@ -428,6 +431,7 @@ You are not a passive text generator. You execute real actions using your tool l
 
                     if ($streamEmitter) {
                         $streamEmitter('tool_complete', [
+                            'step_id' => $stepId,
                             'tool_id' => $toolId,
                             'tool_name' => $toolDef['name'],
                             'status' => $stepStatus,

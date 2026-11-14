@@ -1325,13 +1325,15 @@
             msg.tool_calls.forEach(tc => {
                 const isSuccess = tc.status === 'completed';
                 toolsHTML += `
-                    <div class="agent-tool-card flex items-center justify-between text-xs">
-                        <div class="flex items-center space-x-2 min-w-0">
-                            <i data-lucide="${isSuccess ? 'check' : 'alert-circle'}" class="h-3.5 w-3.5 shrink-0 ${isSuccess ? 'text-emerald-600' : 'text-rose-500'}"></i>
-                            <span class="font-semibold text-slate-800 truncate">${escapeHtml(tc.tool_name || tc.tool_id)}</span>
+                    <div class="agent-tool-card is-completed flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <span class="w-4 h-4 rounded-full ${isSuccess ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'} flex items-center justify-center shrink-0">
+                                <i data-lucide="${isSuccess ? 'check' : 'alert-circle'}" class="h-3 w-3"></i>
+                            </span>
+                            <span class="font-bold text-slate-800 truncate">${escapeHtml(tc.tool_name || tc.tool_id)}</span>
                         </div>
-                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${isSuccess ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
-                            ${isSuccess ? '<i data-lucide="check" class="h-3 w-3"></i> Done' : tc.status}
+                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase shrink-0 ${isSuccess ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-2xs' : 'bg-rose-50 text-rose-700 border border-rose-200'}">
+                            ${isSuccess ? '<i data-lucide="check" class="h-3 w-3"></i> Completed' : tc.status}
                         </span>
                     </div>
                 `;
@@ -1386,6 +1388,35 @@
     }
 
     /**
+     * Maps tool metadata to vivid, human-like action labels.
+     */
+    function getHumanToolActionLabel(toolName, toolId) {
+        const lower = ((toolName || '') + ' ' + (toolId || '')).toLowerCase();
+        if (lower.includes('google') || lower.includes('web') || lower.includes('search')) {
+            return 'Searching Google & Web';
+        }
+        if (lower.includes('lead') || lower.includes('finder')) {
+            return 'Qualifying Live Leads';
+        }
+        if (lower.includes('whatsapp')) {
+            return 'Composing WhatsApp';
+        }
+        if (lower.includes('email') || lower.includes('mail')) {
+            return 'Drafting Outreach Email';
+        }
+        if (lower.includes('deal') || lower.includes('pipeline')) {
+            return 'Auditing Deal Pipeline';
+        }
+        if (lower.includes('crm') || lower.includes('contact')) {
+            return 'Querying CRM Database';
+        }
+        if (lower.includes('task') || lower.includes('schedule') || lower.includes('calendar')) {
+            return 'Scheduling Operations';
+        }
+        return 'Executing Action';
+    }
+
+    /**
      * Submit user message & stream response.
      */
     window.handleAgentSendMessage = async function (e) {
@@ -1426,13 +1457,28 @@
                     <img src="${AGENT_AVATAR_THINKING}" alt="${escapeHtml(agentCustomName)}" class="agent-live-avatar h-full w-full object-cover">
                 </div>
                 <div class="flex-1 min-w-0 bg-white border border-slate-200/80 rounded-2xl rounded-tl-xs p-4 md:p-5 shadow-2xs">
-                    <div class="agent-live-tools space-y-1.5 mb-2"></div>
+                    <div class="agent-live-tools space-y-2 mb-2.5"></div>
                     <div class="agent-live-approval"></div>
-                    <div class="agent-live-content agent-markdown-content agent-streaming-cursor">
-                        <span class="inline-flex items-center text-xs text-slate-500 font-medium">
-                            <span class="mr-1">thinking</span><span class="agent-thinking-dots">...</span>
-                        </span>
+                    <div class="agent-live-thinking-stage mb-2">
+                        <div class="agent-human-thinking-card flex items-center justify-between text-xs animate-fade-in">
+                            <div class="flex items-center space-x-2.5 min-w-0">
+                                <div class="flex items-end space-x-0.75 h-4 pl-0.5 shrink-0">
+                                    <span class="thought-equalizer-bar bar-1"></span>
+                                    <span class="thought-equalizer-bar bar-2"></span>
+                                    <span class="thought-equalizer-bar bar-3"></span>
+                                    <span class="thought-equalizer-bar bar-4"></span>
+                                </div>
+                                <span class="font-bold text-indigo-950 text-xs agent-human-thought-text truncate">
+                                    Reviewing request & evaluating workspace sources...
+                                </span>
+                            </div>
+                            <span class="text-[9px] font-extrabold uppercase tracking-wider text-indigo-700 bg-indigo-100/80 border border-indigo-200/80 px-2.5 py-0.5 rounded-full shrink-0 flex items-center gap-1.5 shadow-2xs">
+                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                                <span>Co-Pilot Working</span>
+                            </span>
+                        </div>
                     </div>
+                    <div class="agent-live-content agent-markdown-content agent-streaming-cursor"></div>
                     <div class="agent-live-proactive flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-100 hidden"></div>
                 </div>
             </div>
@@ -1446,6 +1492,24 @@
         const approvalContainer = card.querySelector('.agent-live-approval');
         const contentContainer = card.querySelector('.agent-live-content');
         const proactiveContainer = card.querySelector('.agent-live-proactive');
+
+        // Dynamic humanized thoughts rotation
+        const humanThoughts = [
+            "Reviewing request & evaluating workspace sources...",
+            "Searching live Google web results & verifying domains...",
+            "Scanning company profiles for decision makers & contact emails...",
+            "Filtering out unqualified leads without active websites...",
+            "Synthesizing structured results and next action steps..."
+        ];
+        let thoughtIdx = 0;
+        const thoughtTimer = setInterval(() => {
+            if (!card) return;
+            const thoughtEl = card.querySelector('.agent-human-thought-text');
+            if (thoughtEl) {
+                thoughtIdx = (thoughtIdx + 1) % humanThoughts.length;
+                thoughtEl.innerText = humanThoughts[thoughtIdx];
+            }
+        }, 2200);
 
         setGeneratingState(true);
 
@@ -1495,30 +1559,55 @@
                             const data = JSON.parse(jsonStr);
 
                             if (currentEvent === 'tool_start') {
+                                const actionLabel = getHumanToolActionLabel(data.tool_name, data.tool_id);
+                                const stepDomId = `tool-step-${escapeHtml(data.step_id || data.tool_id)}`;
+
                                 const toolHtml = `
-                                    <div class="agent-tool-card flex items-center justify-between text-xs animate-fade-in" id="tool-step-${escapeHtml(data.tool_id)}">
-                                        <div class="flex items-center space-x-2">
-                                            <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-indigo-600"></i>
-                                            <span class="font-bold text-slate-800">${escapeHtml(data.tool_name || data.tool_id)}</span>
+                                    <div class="agent-tool-card is-running flex items-center justify-between text-xs animate-fade-in" id="${stepDomId}" data-step-id="${escapeHtml(data.step_id || '')}" data-tool-id="${escapeHtml(data.tool_id)}">
+                                        <div class="flex items-center space-x-2.5 min-w-0">
+                                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-indigo-600 shrink-0"></i>
+                                            <span class="font-bold text-slate-800 truncate">${escapeHtml(data.tool_name || data.tool_id)}</span>
                                         </div>
-                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-indigo-50 text-indigo-700 flex items-center gap-1">
-                                            <span>thinking</span><span class="agent-thinking-dots">...</span>
+                                        <span class="agent-live-action-badge text-[10px] px-2.5 py-1 rounded-full font-bold uppercase flex items-center gap-1.5 shrink-0">
+                                            <span class="relative flex h-2 w-2">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80"></span>
+                                                <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                            </span>
+                                            <span>${escapeHtml(actionLabel)}</span>
                                         </span>
                                     </div>
                                 `;
                                 toolsContainer.insertAdjacentHTML('beforeend', toolHtml);
                                 if (window.lucide) lucide.createIcons();
+
+                                // Update the active thought text to reflect this live step
+                                const thoughtEl = card.querySelector('.agent-human-thought-text');
+                                if (thoughtEl) {
+                                    thoughtEl.innerText = `${actionLabel}...`;
+                                }
                                 scrollAgentToBottom();
                             } else if (currentEvent === 'tool_complete') {
-                                const toolEl = document.getElementById(`tool-step-${escapeHtml(data.tool_id)}`);
+                                let toolEl = data.step_id ? document.getElementById(`tool-step-${escapeHtml(data.step_id)}`) : null;
+                                if (!toolEl && data.step_id) {
+                                    toolEl = toolsContainer.querySelector(`[data-step-id="${escapeHtml(data.step_id)}"]`);
+                                }
+                                if (!toolEl) {
+                                    toolEl = toolsContainer.querySelector(`.agent-tool-card.is-running[data-tool-id="${escapeHtml(data.tool_id)}"]`) || toolsContainer.querySelector('.agent-tool-card.is-running');
+                                }
+
                                 if (toolEl) {
+                                    toolEl.classList.remove('is-running');
+                                    toolEl.classList.add('is-completed');
+                                    const isError = data.status === 'failed' || (data.result && data.result.error);
                                     toolEl.innerHTML = `
-                                        <div class="flex items-center space-x-2">
-                                            <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-600"></i>
-                                            <span class="font-bold text-slate-800">${escapeHtml(data.tool_name || data.tool_id)}</span>
+                                        <div class="flex items-center space-x-2.5 min-w-0">
+                                            <span class="w-4 h-4 rounded-full ${isError ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'} flex items-center justify-center shrink-0">
+                                                <i data-lucide="${isError ? 'alert-circle' : 'check'}" class="h-3 w-3"></i>
+                                            </span>
+                                            <span class="font-bold text-slate-800 truncate">${escapeHtml(data.tool_name || data.tool_id)}</span>
                                         </div>
-                                        <span class="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                                            <i data-lucide="check" class="h-3 w-3"></i> Done
+                                        <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${isError ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'} flex items-center gap-1 shadow-2xs shrink-0">
+                                            <i data-lucide="${isError ? 'alert-circle' : 'check'}" class="h-3 w-3"></i> ${isError ? 'Failed' : 'Completed'}
                                         </span>
                                     `;
                                     if (window.lucide) lucide.createIcons();
@@ -1550,6 +1639,11 @@
                                 `;
                                 if (window.lucide) lucide.createIcons();
                             } else if (currentEvent === 'token') {
+                                clearInterval(thoughtTimer);
+                                const thinkingStage = card.querySelector('.agent-live-thinking-stage');
+                                if (thinkingStage) {
+                                    thinkingStage.remove();
+                                }
                                 accumulatedContent = data.content;
                                 contentContainer.innerHTML = renderMarkdown(accumulatedContent);
                                 scrollAgentToBottom();
@@ -1566,6 +1660,12 @@
                         } catch (err) {}
                     }
                 }
+            }
+
+            clearInterval(thoughtTimer);
+            const thinkingStage = card.querySelector('.agent-live-thinking-stage');
+            if (thinkingStage) {
+                thinkingStage.remove();
             }
 
             contentContainer.classList.remove('agent-streaming-cursor');
@@ -1608,11 +1708,16 @@
                 if (window.lucide) lucide.createIcons();
             }
         } finally {
-            setGeneratingState(false);
+            clearInterval(thoughtTimer);
             if (card) {
+                const thinkingStage = card.querySelector('.agent-live-thinking-stage');
+                if (thinkingStage) {
+                    thinkingStage.remove();
+                }
                 const liveAvatar = card.querySelector('.agent-live-avatar');
                 if (liveAvatar) liveAvatar.src = AGENT_AVATAR_STATIC;
             }
+            setGeneratingState(false);
             scrollAgentToBottom();
         }
     };

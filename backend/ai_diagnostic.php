@@ -110,6 +110,13 @@ $aiKeys = $stmtKeys->fetchAll(PDO::FETCH_ASSOC);
 echo "\nUser AI Keys in DB:\n";
 print_r($aiKeys);
 
+// 2b. Check external app connections
+$stmtAppConns = $db->prepare("SELECT id, user_id, provider, email, connected_email, scopes, status, updated_at FROM external_app_connections WHERE user_id = ?");
+$stmtAppConns->execute([$adminId]);
+$appConns = $stmtAppConns->fetchAll(PDO::FETCH_ASSOC);
+echo "\nExternal App Connections in DB:\n";
+print_r($appConns);
+
 // 3. Resolve candidates using getAllAvailableProviders
 require_once __DIR__ . '/agent_ai_client.php';
 $candidates = AgentAIClient::getAllAvailableProviders($adminId);

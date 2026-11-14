@@ -113,31 +113,55 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// Test Google native with gemini-3-flash-preview and gemini-3.8-flash
-echo "\n--- TESTING GOOGLE NATIVE WITH gemini-3-flash-preview ---\n";
-foreach (['gemini-3-flash-preview', 'gemini-3.8-flash'] as $testModel) {
-    echo "Testing $testModel: ";
-    $nativeUrl = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($candidates[0]['api_key']);
-    $ch = curl_init($nativeUrl);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-        "contents" => [["parts" => [["text" => "Reply with exact word: PONG"]]]]
-    ]));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 12);
+// Test Google native with gemini-3-flash-preview and tools
+echo "\n--- TESTING GOOGLE NATIVE WITH TOOLS ('Who sent the latest WhatsApp message?') ---\n";
+require_once __DIR__ . '/ai_tool_registry.php';
+$testTools = AIToolRegistry::getToolsForMessage('Who sent the latest WhatsApp message?', ['path' => 'business_ops']);
+echo "Tool count: " . count($testTools) . "\n";
+$systemMsg = [['role' => 'system', 'content' => AgentOrchestrator::buildSystemPrompt($adminId, $db)]];
+$userMsgs = [['role' => 'user', 'content' => 'Who sent the latest WhatsApp message?']];
+$fullMsgs = array_merge($systemMsg, $userMsgs);
+
+$refMethod = new ReflectionMethod('AgentAIClient', 'callGoogleNative');
+$refMethod->setAccessible(true);
+try {
     $t0 = microtime(true);
-    $nRes = curl_exec($ch);
+    $gnRes = $refMethod->invoke(null, $candidates[0]['api_key'], 'gemini-3-flash-preview', $fullMsgs, $testTools);
     $took = round(microtime(true) - $t0, 2);
-    $nCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    echo "HTTP $nCode in {$took}s\n";
-    $nData = json_decode($nRes, true);
-    $reply = $nData['candidates'][0]['content']['parts'][0]['text'] ?? ('ERROR: ' . substr($nRes, 0, 150));
-    echo "  Reply: " . trim($reply) . "\n";
+    echo "callGoogleNative returned in {$took}s:\n";
+    print_r($gnRes);
+} catch (Throwable $e) {
+    echo "callGoogleNative threw exception: " . $e->getMessage() . "\n";
 }
+
+$cleanModel = 'gemini-3-flash-preview';
+$url = "https://generativelanguage.googleapis.com/v1beta/models/{$cleanModel}:generateContent?key=" . urlencode($candidates[0]['api_key']);
+$funcDecls = [];
+foreach ($testTools as $t) {
+    if (!empty($t['function'])) {
+        $fn = $t['function'];
+        $decl = ['name' => $fn['name'], 'description' => $fn['description'] ?? ''];
+        if (!empty($fn['parameters'])) $decl['parameters'] = $fn['parameters'];
+        $funcDecls[] = $decl;
+    }
+}
+$rawPayload = [
+    'contents' => [
+        ['role' => 'user', 'parts' => [['text' => 'Who sent the latest WhatsApp message?']]]
+    ],
+    'tools' => [['function_declarations' => $funcDecls]]
+];
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($rawPayload));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+$rawResp = curl_exec($ch);
+$rawCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+echo "Raw Google with tools HTTP $rawCode:\n" . substr($rawResp, 0, 1000) . "\n";
 
 // Query Groq models
 echo "\n--- CALLING Groq /v1/models ---\n";

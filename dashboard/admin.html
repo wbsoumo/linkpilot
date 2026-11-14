@@ -1016,7 +1016,6 @@
                                     <option value="gemini-2.5-flash">gemini-2.5-flash (Gemini 2.5 Flash — Fast & State-of-the-Art) [Recommended]</option>
                                     <option value="gemini-1.5-flash">gemini-1.5-flash (Gemini 1.5 Flash — High Throughput, Low Latency)</option>
                                     <option value="gemini-2.5-pro">gemini-2.5-pro (Gemini 2.5 Pro — Deep Reasoning & Advanced Logic)</option>
-                                    <option value="gemini-1.5-pro">gemini-1.5-pro (Gemini 1.5 Pro — Complex Analysis & Long Context)</option>
                                 </select>
                                 <p class="text-[10px] text-slate-400">Selected model is verified live against Google AI Studio before saving.</p>
                             </div>
@@ -2861,6 +2860,11 @@
             const modelVal = modelSelect ? modelSelect.value : 'gemini-2.5-flash';
             const keyVal = document.getElementById('admin_u_google_key') ? document.getElementById('admin_u_google_key').value.trim() : '';
 
+            if (keyVal && !keyVal.startsWith('AIzaSy')) {
+                showNotification('error', "Invalid key format: Google Gemini API keys strictly start with 'AIzaSy'. Please generate a free key at https://aistudio.google.com/app/apikey");
+                return;
+            }
+
             const saveBtn = document.getElementById('admin-save-provider-btn');
             const origText = saveBtn ? saveBtn.innerHTML : '';
             if (saveBtn) {
@@ -2898,6 +2902,11 @@
             const modelSelect = document.getElementById('admin_u_google_model');
             const modelVal = modelSelect ? modelSelect.value : 'gemini-2.5-flash';
             const keyVal = document.getElementById('admin_u_google_key') ? document.getElementById('admin_u_google_key').value.trim() : '';
+
+            if (keyVal && !keyVal.startsWith('AIzaSy')) {
+                showNotification('error', "Invalid key format: Google Gemini API keys strictly start with 'AIzaSy'. Please generate a free key at https://aistudio.google.com/app/apikey");
+                return;
+            }
 
             const origContent = btn ? btn.innerHTML : '';
             if (btn) {

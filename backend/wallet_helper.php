@@ -659,11 +659,16 @@ if (!function_exists('testAIKeyConnection')) {
             
         } elseif ($provider === 'google_ai_studio') {
             $lastException = null;
-            // Test official active models (gemini-2.5-flash is current production default)
-            $availableModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'];
+            // Pre-validation: Google AI Studio API keys strictly start with AIzaSy
+            if (!empty($apiKey) && strpos($apiKey, '•') === false && !str_starts_with($apiKey, 'AIzaSy')) {
+                throw new Exception("Invalid Gemini API Key format: The key must start with 'AIzaSy'. Please generate a free API key at https://aistudio.google.com/app/apikey");
+            }
+
+            // Test active official models (gemini-2.5-flash is current production default)
+            $availableModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
             $modelsToTry = ($model && in_array($model, $availableModels))
-                ? array_values(array_unique(array_merge([$model], $availableModels)))
-                : $availableModels;
+                ? [$model]
+                : ['gemini-2.5-flash', 'gemini-1.5-flash'];
             
             foreach ($modelsToTry as $currentModel) {
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($apiKey);
@@ -698,18 +703,17 @@ if (!function_exists('testAIKeyConnection')) {
                 } else {
                     $data = json_decode($response, true);
                     $msg = $data['error']['message'] ?? "HTTP error {$httpCode}";
-                    if ($httpCode === 400 && stripos($msg, 'key not valid') !== false) {
-                        throw new Exception("Invalid Gemini API Key: Please check your key at aistudio.google.com");
+
+                    // Catch unauthenticated / invalid key errors (HTTP 400, 401)
+                    if ($httpCode === 400 || $httpCode === 401) {
+                        if (stripos($msg, 'key not valid') !== false || stripos($response, 'UNAUTHENTICATED') !== false || stripos($response, 'API_KEY_INVALID') !== false || stripos($response, 'ACCESS_TOKEN') !== false) {
+                            throw new Exception("Invalid Gemini API Key: Your API key was rejected by Google AI Studio. Please verify or create your key at https://aistudio.google.com/app/apikey (keys start with 'AIzaSy').");
+                        }
                     }
                     if ($httpCode === 403) {
-                        throw new Exception("Gemini API Forbidden: Quota or API permissions error: {$msg}");
+                        throw new Exception("Gemini API Permission/Quota error ({$currentModel}): {$msg}");
                     }
                     $lastException = new Exception("HTTP {$httpCode} ({$currentModel}): {$msg}");
-                }
-                
-                // If invalid key, do not loop
-                if ($httpCode === 400 && stripos($response, 'key not valid') !== false) {
-                    throw new Exception("Invalid Gemini API Key: " . ($data['error']['message'] ?? 'Key not valid'));
                 }
             }
             

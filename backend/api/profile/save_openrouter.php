@@ -48,10 +48,13 @@ try {
         'github_models' => $githubKey
     ];
 
+    $testedAny = false;
     foreach ($keyTestTargets as $prov => $kVal) {
         if (!empty($kVal) && strpos($kVal, '•') === false && strpos($kVal, 'placeholder') === false) {
             try {
-                testAIKeyConnection($prov, $kVal);
+                $testModel = ($prov === 'google_ai_studio') ? $activeModel : null;
+                testAIKeyConnection($prov, $kVal, $testModel);
+                $testedAny = true;
             } catch (Throwable $e) {
                 sendJsonResponse('error', "Validation failed for {$prov}: " . $e->getMessage() . " Please check your key and try again.", [
                     'provider' => $prov,
@@ -61,9 +64,51 @@ try {
         }
     }
 
-    // If test only, return success here
+    // If test only, check if we need to test existing key if no raw key was passed
     if ($isTestOnly) {
-        sendJsonResponse('success', 'API Key connectivity test succeeded! The key is working properly.');
+        $prov = $activeProvider ?: 'google_ai_studio';
+        $kVal = $keyTestTargets[$prov] ?? null;
+        if (empty($kVal) || strpos($kVal, '•') !== false) {
+            // Retrieve existing key from DB to test
+            if ($prov === 'google_ai_studio') {
+                $stmtK = $db->prepare("SELECT google_key FROM users WHERE id = ?");
+                $stmtK->execute([$userId]);
+                $encK = $stmtK->fetchColumn();
+                if ($encK) {
+                    $kVal = decryptData($encK);
+                }
+            }
+        }
+        if (empty($kVal)) {
+            sendJsonResponse('error', "No API key configured to test. Please enter a valid Google Gemini API Key.", [], 400);
+        }
+        $testModel = ($prov === 'google_ai_studio') ? $activeModel : null;
+        try {
+            testAIKeyConnection($prov, $kVal, $testModel);
+            sendJsonResponse('success', "API Key connectivity test succeeded! Model '" . ($testModel ?: 'gemini-2.5-flash') . "' is responding normally.");
+        } catch (Throwable $e) {
+            sendJsonResponse('error', "Connectivity test failed: " . $e->getMessage(), [
+                'provider' => $prov,
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    // If saving and no new key passed, verify existing saved key against selected model
+    if (!$testedAny && ($activeProvider === 'google_ai_studio' || empty($activeProvider)) && !empty($activeModel)) {
+        $stmtK = $db->prepare("SELECT google_key FROM users WHERE id = ?");
+        $stmtK->execute([$userId]);
+        $encK = $stmtK->fetchColumn();
+        if ($encK) {
+            $existingK = decryptData($encK);
+            if ($existingK) {
+                try {
+                    testAIKeyConnection('google_ai_studio', $existingK, $activeModel);
+                } catch (Throwable $e) {
+                    sendJsonResponse('error', "Verification failed for model {$activeModel} with saved Gemini key: " . $e->getMessage(), [], 400);
+                }
+            }
+        }
     }
 
     // 2. Start building update query for users table

@@ -556,7 +556,7 @@ if (!function_exists('callOpenRouter')) {
 }
 
 if (!function_exists('testAIKeyConnection')) {
-    function testAIKeyConnection($provider, $apiKey) {
+    function testAIKeyConnection($provider, $apiKey, $model = null) {
         $systemPrompt = "You are a connectivity test bot. Reply with one word: Success.";
         $userPrompt = "ping";
 
@@ -619,14 +619,14 @@ if (!function_exists('testAIKeyConnection')) {
             return true;
 
         } elseif ($provider === 'github_models') {
-            $model = "gpt-4o-mini";
+            $modelName = $model ?: "gpt-4o-mini";
             $headers = [
                 "Authorization: Bearer " . $apiKey,
                 "Content-Type: application/json",
                 "User-Agent: LinkPilot-AI"
             ];
             $postFields = [
-                "model" => $model,
+                "model" => $modelName,
                 "messages" => [
                     ["role" => "system", "content" => $systemPrompt],
                     ["role" => "user", "content" => $userPrompt]
@@ -660,7 +660,10 @@ if (!function_exists('testAIKeyConnection')) {
         } elseif ($provider === 'google_ai_studio') {
             $lastException = null;
             // Test official active models (gemini-2.5-flash is current production default)
-            $modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro'];
+            $availableModels = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.5-pro', 'gemini-1.5-pro'];
+            $modelsToTry = ($model && in_array($model, $availableModels))
+                ? array_values(array_unique(array_merge([$model], $availableModels)))
+                : $availableModels;
             
             foreach ($modelsToTry as $currentModel) {
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/{$currentModel}:generateContent?key=" . urlencode($apiKey);

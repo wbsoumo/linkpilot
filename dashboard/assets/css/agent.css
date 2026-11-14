@@ -404,47 +404,120 @@
     color: #0f172a !important;
 }
 
-/* 3. Bottom Floating Composer Bar (Borderless container matching screenshot) */
+/* 3. Bottom Floating Composer Bar & Ultra-Premium Text Area */
 #agent-composer-bar {
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.95) 30%, #f8fafc 100%) !important;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0) 0%, rgba(248, 250, 252, 0.85) 25%, #f8fafc 100%) !important;
     border-top: none !important;
     box-shadow: none !important;
+    padding-bottom: 1.25rem !important;
 }
 
 #agent-composer-form {
-    background-color: #f1f5f9 !important;
-    border: none !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
-}
-#agent-composer-form:hover {
-    background-color: #edf2f7 !important;
-}
-#agent-composer-form:focus-within {
-    background-color: #ffffff !important;
-    border: none !important;
-    box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12), 0 4px 16px -2px rgba(15, 23, 42, 0.08) !important;
+    background: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 22px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    position: relative !important;
 }
 
-#agent-user-prompt-input {
-    background: transparent !important;
-    color: #0f172a !important;
+#agent-composer-form:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 8px 26px -3px rgba(15, 23, 42, 0.1), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
 }
+
+#agent-composer-form:focus-within {
+    border-color: #6366f1 !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18), 0 12px 32px -4px rgba(99, 102, 241, 0.14) !important;
+}
+
+/* Explicitly override :not(aside) textarea from style.css */
+#agent-composer-form textarea#agent-user-prompt-input,
+#agent-user-prompt-input,
+:not(aside) #agent-composer-form textarea {
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    font-size: 0.935rem !important;
+    line-height: 1.55 !important;
+    color: #0f172a !important;
+    padding: 6px 6px 4px 6px !important;
+    min-height: 42px !important;
+    max-height: 160px !important;
+    resize: none !important;
+    width: 100% !important;
+}
+
+#agent-composer-form textarea#agent-user-prompt-input:focus,
+#agent-user-prompt-input:focus,
+:not(aside) #agent-composer-form textarea:focus {
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 #agent-user-prompt-input::placeholder {
     color: #94a3b8 !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.01em !important;
 }
 
+/* Tools pill button */
+.agent-tools-pill {
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    user-select: none !important;
+}
+
+.agent-tools-pill:hover {
+    background: #f5f3ff !important;
+    border-color: #c7d2fe !important;
+    transform: translateY(-0.5px) !important;
+    box-shadow: 0 2px 8px -2px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Send button */
 #agent-send-button {
-    background: #000000 !important;
+    background: #0f172a !important;
     color: #ffffff !important;
     border: none !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12) !important;
 }
+
+#agent-send-button:hover:not(:disabled) {
+    background: #4f46e5 !important;
+    transform: scale(1.06) !important;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
+}
+
+#agent-send-button:active:not(:disabled) {
+    transform: scale(0.92) !important;
+}
+
+#agent-send-button.agent-send-active {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45) !important;
+}
+
 #agent-send-button * {
     color: #ffffff !important;
     stroke: #ffffff !important;
 }
-#agent-send-button:hover {
-    background: #1e293b !important;
+
+/* Tools Modal & Brand Cards */
+.agent-tool-brand-card {
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.agent-tool-brand-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: #c7d2fe !important;
+    box-shadow: 0 8px 24px -4px rgba(99, 102, 241, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.04) !important;
 }
 
 /* 4. Right Side Agent Profile & Tasks Sidebar */

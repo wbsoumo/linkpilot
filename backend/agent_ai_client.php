@@ -92,7 +92,7 @@ class AgentAIClient {
 
         // 5. Default model mappings with verified active model IDs
         $modelMap = [
-            'google_ai_studio' => 'gemini-flash-latest',
+            'google_ai_studio' => 'gemini-3.5-flash',
             'openrouter' => 'meta-llama/llama-3.1-8b-instruct',
             'groq' => 'llama-3.1-8b-instant',
             'github_models' => 'gpt-4o-mini'
@@ -153,19 +153,19 @@ class AgentAIClient {
         // Model catalogs structured by execution path complexity
         $modelCatalog = [
             'simple_ai' => [
-                'google_ai_studio' => ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-1.5-flash'],
+                'google_ai_studio' => ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-flash-latest'],
                 'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
                 'groq' => ['llama-3.1-8b-instant', 'llama3-8b-8192'],
                 'github_models' => ['gpt-4o-mini']
             ],
             'business_ops' => [
-                'google_ai_studio' => ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-pro-latest'],
+                'google_ai_studio' => ['gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-flash-latest'],
                 'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
                 'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192'],
                 'github_models' => ['gpt-4o-mini', 'gpt-4o']
             ],
             'complex_autonomous' => [
-                'google_ai_studio' => ['gemini-pro-latest', 'gemini-flash-latest', 'gemini-2.5-flash'],
+                'google_ai_studio' => ['gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-flash-latest'],
                 'openrouter' => ['meta-llama/llama-3.3-70b-instruct', 'meta-llama/llama-3.1-8b-instruct'],
                 'groq' => ['llama3-70b-8192', 'llama-3.1-8b-instant'],
                 'github_models' => ['gpt-4o', 'gpt-4o-mini']

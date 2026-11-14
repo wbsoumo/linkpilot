@@ -119,6 +119,54 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
+if (isset($_GET['test_providers'])) {
+    echo "\n=== DIRECT PROVIDER RAW API TESTS ===\n";
+    foreach ($candidates as $idx => $c) {
+        $p = $c['provider'];
+        $m = $c['model'];
+        $k = $c['api_key'];
+        echo "Testing [$idx] $p with model $m...\n";
+        if ($p === 'google_ai_studio') {
+            foreach (array_unique([$m, 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-exp']) as $testModel) {
+                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($k);
+                $body = json_encode(['contents' => [['parts' => [['text' => 'Hi']]]]]);
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+                $res = curl_exec($ch);
+                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                curl_close($ch);
+                echo "  Google Native ($testModel) -> HTTP $code | Response: " . substr($res, 0, 150) . "\n";
+            }
+        } elseif ($p === 'groq') {
+            $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $k]);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => $m, 'messages' => [['role' => 'user', 'content' => 'Hi']], 'max_tokens' => 10]));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            $res = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            echo "  Groq ($m) -> HTTP $code | Response: " . substr($res, 0, 150) . "\n";
+        } elseif ($p === 'openrouter') {
+            $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $k]);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => $m, 'messages' => [['role' => 'user', 'content' => 'Hi']], 'max_tokens' => 10]));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+            $res = curl_exec($ch);
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            echo "  OpenRouter ($m) -> HTTP $code | Response: " . substr($res, 0, 150) . "\n";
+        }
+    }
+}
+
 if (isset($_GET['run_tests'])) {
     // Live Agent Orchestrator Test (WhatsApp query from user screenshot)
     echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('Who sent the latest WhatsApp message?') ---\n";

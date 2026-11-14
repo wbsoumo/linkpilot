@@ -80,7 +80,7 @@ $adminId = 1;
 
 // 0. Auto-heal DB records for active AI models
 try {
-    $db->exec("UPDATE users SET active_ai_model = 'gemini-3-flash-preview' WHERE active_ai_model LIKE 'gemini-3.5%' OR active_ai_model LIKE 'gemini-2%' OR active_ai_model LIKE 'gemini-1.5%'");
+    $db->exec("UPDATE users SET active_ai_model = 'gemini-flash-lite-latest' WHERE role = 'admin' OR active_ai_model LIKE 'gemini%'");
     $db->exec("UPDATE user_ai_keys SET status = 'active', error_message = NULL WHERE provider = 'google_ai_studio'");
     if (class_exists('AgentCache')) {
         AgentCache::flush();

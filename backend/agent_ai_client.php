@@ -97,13 +97,13 @@ class AgentAIClient {
 
         // 5. Default model mappings with verified active model IDs
         $modelMap = [
-            'google_ai_studio' => 'gemini-3-flash-preview',
-            'openrouter' => 'meta-llama/llama-3.1-8b-instruct',
-            'groq' => 'llama-3.1-8b-instant',
+            'google_ai_studio' => 'gemini-flash-lite-latest',
+            'openrouter' => 'google/gemini-2.0-flash-001',
+            'groq' => 'qwen/qwen3.8-27b',
             'github_models' => 'gpt-4o-mini'
         ];
 
-        // Sanitize activeModel: if it contains obsolete strings or non-existent 3.5/2.x/1.5 models, use verified default
+        // Sanitize activeModel: if it contains obsolete strings or non-existent 3.5/2.x/1.5 models, use verified active default
         $safeActiveModel = $activeModel;
         if (!empty($safeActiveModel)) {
             if (
@@ -113,7 +113,7 @@ class AgentAIClient {
                 strpos($safeActiveModel, '1.5-flash') !== false ||
                 strpos($safeActiveModel, '1.5-pro') !== false
             ) {
-                $safeActiveModel = 'gemini-3-flash-preview';
+                $safeActiveModel = 'gemini-flash-lite-latest';
             }
         }
 
@@ -123,7 +123,7 @@ class AgentAIClient {
 
         foreach ($providerOrder as $prov) {
             if (!empty($dbKeys[$prov])) {
-                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-3-flash-preview');
+                $provModel = ($prov === $activeProvider && !empty($safeActiveModel)) ? $safeActiveModel : ($modelMap[$prov] ?? 'gemini-flash-lite-latest');
                 $candidates[] = [
                     'provider' => $prov,
                     'model' => $provModel,
@@ -136,7 +136,7 @@ class AgentAIClient {
         if (empty($candidates)) {
             $candidates[] = [
                 'provider' => 'openrouter',
-                'model' => 'meta-llama/llama-3.1-8b-instruct',
+                'model' => 'google/gemini-2.0-flash-001',
                 'api_key' => defined('OPENROUTER_API_KEY') ? OPENROUTER_API_KEY : ''
             ];
         }
@@ -164,21 +164,21 @@ class AgentAIClient {
         // Model catalogs structured by execution path complexity with verified active models
         $modelCatalog = [
             'simple_ai' => [
-                'google_ai_studio' => ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'],
-                'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
-                'groq' => ['llama-3.1-8b-instant', 'llama3-8b-8192'],
+                'google_ai_studio' => ['gemini-flash-lite-latest', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview'],
+                'openrouter' => ['google/gemini-2.0-flash-001', 'meta-llama/llama-3.1-8b-instruct'],
+                'groq' => ['qwen/qwen3.8-27b', 'openai/gpt-oss-20b'],
                 'github_models' => ['gpt-4o-mini']
             ],
             'business_ops' => [
-                'google_ai_studio' => ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'],
-                'openrouter' => ['meta-llama/llama-3.1-8b-instruct', 'google/gemini-flash-1.5'],
-                'groq' => ['llama-3.1-8b-instant', 'llama3-70b-8192'],
+                'google_ai_studio' => ['gemini-flash-lite-latest', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview'],
+                'openrouter' => ['google/gemini-2.0-flash-001', 'meta-llama/llama-3.1-8b-instruct'],
+                'groq' => ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b'],
                 'github_models' => ['gpt-4o-mini', 'gpt-4o']
             ],
             'complex_autonomous' => [
-                'google_ai_studio' => ['gemini-3-flash-preview', 'gemini-3.8-flash', 'gemini-flash-latest'],
-                'openrouter' => ['meta-llama/llama-3.3-70b-instruct', 'meta-llama/llama-3.1-8b-instruct'],
-                'groq' => ['llama3-70b-8192', 'llama-3.1-8b-instant'],
+                'google_ai_studio' => ['gemini-flash-lite-latest', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite-preview'],
+                'openrouter' => ['google/gemini-2.0-flash-001', 'meta-llama/llama-3.3-70b-instruct'],
+                'groq' => ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b'],
                 'github_models' => ['gpt-4o', 'gpt-4o-mini']
             ]
         ];
@@ -242,11 +242,7 @@ class AgentAIClient {
 
             // Build ordered candidate models for this provider
             $candidateModels = [];
-            if (!empty($cfg['model']) && 
-                strpos($cfg['model'], '3.5-flash') === false && 
-                strpos($cfg['model'], '2.0-flash') === false && 
-                strpos($cfg['model'], '2.5-flash') === false && 
-                strpos($cfg['model'], '1.5-flash') === false) {
+            if (!empty($cfg['model'])) {
                 $candidateModels[] = $cfg['model'];
             }
             if (!empty($pathCatalog[$provider])) {

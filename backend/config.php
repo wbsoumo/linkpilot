@@ -55,11 +55,18 @@ define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 
 // Google AI Studio API Configuration
 define('GEMINI_API_KEY', getenv('GEMINI_API_KEY') ?: '');
-define('GOOGLE_AI_STUDIO_MODEL', 'gemini-2.5-flash');
+define('GOOGLE_AI_STUDIO_MODEL', 'gemini-3.5-flash');
 
 // Groq API Configuration
 define('GROQ_API_KEY', getenv('GROQ_API_KEY') ?: '');
 define('GROQ_MODEL', getenv('GROQ_MODEL') ?: 'llama-3.1-8b-instant');
+
+// Local Lightweight LLM (AWS EC2 Ollama Bridge) Configuration
+define('LOCAL_AI_ENDPOINT', getenv('LOCAL_AI_ENDPOINT') ?: 'http://13.232.195.16/api/local-ai.php');
+define('LOCAL_AI_API_KEY', getenv('LOCAL_AI_API_KEY') ?: 'lp_local_ai_sec_99a8b1c4e2d3f0a7');
+define('LOCAL_AI_MODEL', getenv('LOCAL_AI_MODEL') ?: 'qwen2.5:0.5b');
+define('LOCAL_AI_TIMEOUT', (int)(getenv('LOCAL_AI_TIMEOUT') ?: 15));
+define('LOCAL_AI_ENABLED', getenv('LOCAL_AI_ENABLED') !== 'false');
 
 // Google OAuth 2.0 Configuration (for Google Sheets integration)
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: 'YOUR_GOOGLE_CLIENT_ID');

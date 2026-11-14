@@ -44,7 +44,14 @@ define('OPENROUTER_MODEL', 'google/gemini-2.0-flash-lite:free');
 define('GITHUB_MODELS_MODEL', 'gpt-4o-mini');
 
 // Google AI Studio API Configuration
-define('GOOGLE_AI_STUDIO_MODEL', 'gemini-2.0-flash');
+define('GOOGLE_AI_STUDIO_MODEL', 'gemini-3.5-flash');
+
+// Local Lightweight LLM (AWS EC2 Ollama Bridge) Configuration
+define('LOCAL_AI_ENDPOINT', 'http://YOUR_SERVER_IP/api/local-ai.php');
+define('LOCAL_AI_API_KEY', 'your_local_ai_api_key_here');
+define('LOCAL_AI_MODEL', 'qwen2.5:0.5b');
+define('LOCAL_AI_TIMEOUT', 15);
+define('LOCAL_AI_ENABLED', true);
 
 // Google OAuth 2.0 Configuration (for Google Sheets integration)
 define('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID');

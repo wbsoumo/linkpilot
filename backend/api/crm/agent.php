@@ -204,6 +204,12 @@ try {
         ]);
     }
 
+    // 6e. Check Local Model Health & Status
+    elseif ($action === 'local_ai_health') {
+        $health = AgentAIClient::checkLocalHealth();
+        sendJsonResponse('success', 'Local AI model health retrieved.', $health);
+    }
+
     // 7. Approve & Execute Pending Action
     elseif ($action === 'approve_action') {
         $convId = trim($input['conversation_id'] ?? '');

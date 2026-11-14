@@ -332,6 +332,8 @@ You are not a passive text generator. You execute real actions using your tool l
             $toolCalls = $aiResponse['tool_calls'] ?? [];
             $activeProvider = $aiResponse['provider'] ?? $activeProvider;
             $activeModel = $aiResponse['model'] ?? $activeModel;
+            $activeFallbackFrom = $aiResponse['fallback_from'] ?? null;
+            $activeFallbackReason = $aiResponse['fallback_reason'] ?? null;
             $totalAiLatency += (int)($aiResponse['latency_ms'] ?? 0);
             $totalTokensUsed += (int)($aiResponse['tokens_used'] ?? 0);
 
@@ -546,7 +548,9 @@ You are not a passive text generator. You execute real actions using your tool l
             0,
             $totalResponseTimeMs,
             $totalTokensUsed,
-            $db
+            $db,
+            $activeFallbackFrom ?? null,
+            $activeFallbackReason ?? null
         );
 
         $routingMeta = [
@@ -554,6 +558,8 @@ You are not a passive text generator. You execute real actions using your tool l
             'sub_type' => $classification['sub_type'] ?? '',
             'provider' => $activeProvider,
             'model' => $activeModel,
+            'fallback_from' => $activeFallbackFrom ?? null,
+            'fallback_reason' => $activeFallbackReason ?? null,
             'tools_loaded_count' => count($availableTools),
             'execution_time_ms' => $totalResponseTimeMs
         ];

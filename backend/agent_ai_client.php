@@ -10,12 +10,15 @@ class AgentAIClient {
      * Resolves all available providers with valid API keys across `user_ai_keys`, `users` table, and environment.
      */
     public static function getAllAvailableProviders($userId = null) {
-        $db = Database::getConnection();
+        $db = null;
+        try {
+            $db = Database::getConnection();
+        } catch (Throwable $e) {}
         $candidates = [];
 
         // 1. Fetch user & admin records from `users`
         $userRow = null;
-        if ($userId) {
+        if ($userId && $db) {
             try {
                 $stmtUser = $db->prepare("SELECT id, role, active_ai_provider, active_ai_model, openrouter_key, github_key, google_key FROM users WHERE id = ?");
                 $stmtUser->execute([$userId]);
@@ -24,10 +27,12 @@ class AgentAIClient {
         }
 
         $adminRow = null;
-        try {
-            $stmtAdmin = $db->query("SELECT id, role, active_ai_provider, active_ai_model, openrouter_key, github_key, google_key FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
-            $adminRow = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
-        } catch (Throwable $e) {}
+        if ($db) {
+            try {
+                $stmtAdmin = $db->query("SELECT id, role, active_ai_provider, active_ai_model, openrouter_key, github_key, google_key FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
+                $adminRow = $stmtAdmin->fetch(PDO::FETCH_ASSOC);
+            } catch (Throwable $e) {}
+        }
 
         $targetUser = $userRow ?: $adminRow;
         $activeProvider = (!empty($targetUser['active_ai_provider'])) ? $targetUser['active_ai_provider'] : 'google_ai_studio';
@@ -37,7 +42,7 @@ class AgentAIClient {
         $dbKeys = [];
         try {
             $userIds = array_unique(array_filter([$userId, $adminRow['id'] ?? null]));
-            if (!empty($userIds)) {
+            if (!empty($userIds) && $db) {
                 $inClause = implode(',', array_map('intval', $userIds));
                 // Allow keys unless explicitly paused by user
                 $stmt = $db->query("SELECT provider, api_key, status FROM user_ai_keys WHERE user_id IN ($inClause) AND status != 'paused' ORDER BY id ASC");
@@ -175,6 +180,54 @@ class AgentAIClient {
         $pathCatalog = $modelCatalog[$executionPath] ?? $modelCatalog['business_ops'];
         $timeoutSeconds = ($executionPath === 'complex_autonomous') ? 45 : 30;
 
+        // =========================================================================
+        // ROUTING: LOCAL LIGHTWEIGHT LLM WITH AUTOMATIC GOOGLE AI FALLBACK
+        // For basic general questions, greetings, simple explanations & conversations (simple_ai)
+        // Never routes CRM actions, WhatsApp, Email, Deals, or tools to lightweight model.
+        // =========================================================================
+        $localFallbackInfo = null;
+        $useLocal = (
+            defined('LOCAL_AI_ENABLED') && LOCAL_AI_ENABLED &&
+            defined('LOCAL_AI_ENDPOINT') && !empty(LOCAL_AI_ENDPOINT) &&
+            $executionPath === 'simple_ai' &&
+            empty($tools)
+        );
+
+        if ($useLocal) {
+            $localStart = microtime(true);
+            $localResult = self::callLocalOllama($messages, $userId, $maxTokens);
+
+            if (!empty($localResult['success']) && !empty($localResult['content'])) {
+                $validation = self::validateLocalResponse($localResult['content'], $localResult);
+                if ($validation['valid']) {
+                    return [
+                        'content' => $localResult['content'],
+                        'tool_calls' => [],
+                        'tokens_used' => $localResult['tokens_used'] ?? 0,
+                        'provider' => 'local_ollama',
+                        'model' => $localResult['model'] ?? (defined('LOCAL_AI_MODEL') ? LOCAL_AI_MODEL : 'qwen2.5:0.5b'),
+                        'latency_ms' => $localResult['latency_ms'] ?? (int)round((microtime(true) - $localStart) * 1000),
+                        'fallback' => false
+                    ];
+                } else {
+                    $localFallbackInfo = [
+                        'from' => 'local_ollama',
+                        'reason' => $validation['reason'],
+                        'latency_ms' => $localResult['latency_ms'] ?? 0
+                    ];
+                    error_log("Local LLM validation failed: " . $validation['reason'] . " -> Automatically triggering Google AI fallback.");
+                }
+            } else {
+                $localError = $localResult['error'] ?? 'Local inference failed or timed out';
+                $localFallbackInfo = [
+                    'from' => 'local_ollama',
+                    'reason' => $localError,
+                    'latency_ms' => $localResult['latency_ms'] ?? 0
+                ];
+                error_log("Local LLM service unavailable: " . $localError . " -> Automatically triggering Google AI fallback.");
+            }
+        }
+
         foreach ($providers as $cfg) {
             $provider = $cfg['provider'];
             $apiKey = $cfg['api_key'];
@@ -207,6 +260,10 @@ class AgentAIClient {
                             $nativeRes['provider'] = 'google_ai_studio';
                             $nativeRes['model'] = $model;
                             $nativeRes['latency_ms'] = $latencyMs;
+                            if ($localFallbackInfo) {
+                                $nativeRes['fallback_from'] = $localFallbackInfo['from'];
+                                $nativeRes['fallback_reason'] = $localFallbackInfo['reason'];
+                            }
                             return $nativeRes;
                         }
                     } catch (Throwable $e) {
@@ -301,6 +358,10 @@ class AgentAIClient {
                         $choice['provider'] = $provider;
                         $choice['model'] = $model;
                         $choice['latency_ms'] = $latencyMs;
+                        if ($localFallbackInfo) {
+                            $choice['fallback_from'] = $localFallbackInfo['from'];
+                            $choice['fallback_reason'] = $localFallbackInfo['reason'];
+                        }
                         return $choice;
                     }
                 } catch (Throwable $e) {
@@ -540,6 +601,201 @@ class AgentAIClient {
             'content' => $content,
             'tool_calls' => $toolCalls,
             'tokens_used' => $data['usage']['total_tokens'] ?? 0
+        ];
+    }
+
+    /**
+     * Executes inference on the Local Lightweight LLM (AWS EC2 Ollama Bridge).
+     * Accessible via secure PHP API endpoint on EC2 Free Tier.
+     */
+    public static function callLocalOllama(array $messages, $userId = null, $maxTokens = 512): array {
+        $endpoint = defined('LOCAL_AI_ENDPOINT') ? LOCAL_AI_ENDPOINT : 'http://13.232.195.16/api/local-ai.php';
+        $apiKey = defined('LOCAL_AI_API_KEY') ? LOCAL_AI_API_KEY : '';
+        $model = defined('LOCAL_AI_MODEL') ? LOCAL_AI_MODEL : 'qwen2.5:0.5b';
+        $timeout = defined('LOCAL_AI_TIMEOUT') ? (int)LOCAL_AI_TIMEOUT : 15;
+
+        $startTime = microtime(true);
+
+        // Sanitize messages for lightweight model: keep system concise and cap history to 4 turns
+        $trimmedMessages = [];
+        $systemText = "";
+        foreach ($messages as $m) {
+            if ($m['role'] === 'system') {
+                $systemText .= $m['content'] . "\n";
+            } else {
+                $trimmedMessages[] = $m;
+            }
+        }
+
+        if (count($trimmedMessages) > 4) {
+            $trimmedMessages = array_slice($trimmedMessages, -4);
+        }
+
+        $formattedMessages = [];
+        if (!empty($systemText)) {
+            $conciseSystem = "You are Muse, LinkPilot's helpful AI assistant. Answer clearly, accurately, and concisely in markdown.";
+            $formattedMessages[] = ['role' => 'system', 'content' => $conciseSystem];
+        }
+        foreach ($trimmedMessages as $tm) {
+            $formattedMessages[] = $tm;
+        }
+
+        $payload = [
+            'model' => $model,
+            'messages' => $formattedMessages,
+            'max_tokens' => min($maxTokens, 512),
+            'temperature' => 0.6,
+            'stream' => false
+        ];
+
+        $headers = [
+            'Content-Type: application/json'
+        ];
+        if (!empty($apiKey)) {
+            $headers[] = 'Authorization: Bearer ' . $apiKey;
+            $headers[] = 'X-API-Key: ' . $apiKey;
+        }
+
+        try {
+            $ch = curl_init($endpoint);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
+
+            $rawResponse = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErrNo = curl_errno($ch);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+
+            $latencyMs = (int)round((microtime(true) - $startTime) * 1000);
+
+            if ($curlErrNo !== 0) {
+                return [
+                    'success' => false,
+                    'error' => "cURL ({$curlErrNo}): {$curlError}",
+                    'latency_ms' => $latencyMs
+                ];
+            }
+
+            if ($httpCode !== 200 || empty($rawResponse)) {
+                return [
+                    'success' => false,
+                    'error' => "HTTP {$httpCode} from local AI endpoint",
+                    'latency_ms' => $latencyMs
+                ];
+            }
+
+            $decoded = json_decode($rawResponse, true);
+            if (!$decoded || empty($decoded['text'])) {
+                return [
+                    'success' => false,
+                    'error' => "Empty or invalid response from local AI",
+                    'latency_ms' => $latencyMs
+                ];
+            }
+
+            return [
+                'success' => true,
+                'content' => trim($decoded['text']),
+                'model' => $decoded['model'] ?? $model,
+                'latency_ms' => (int)($decoded['latency_ms'] ?? $latencyMs),
+                'tokens_used' => (int)(($decoded['prompt_eval_count'] ?? 0) + ($decoded['eval_count'] ?? 0)),
+                'provider' => 'local_ollama'
+            ];
+        } catch (Throwable $e) {
+            $latencyMs = (int)round((microtime(true) - $startTime) * 1000);
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'latency_ms' => $latencyMs
+            ];
+        }
+    }
+
+    /**
+     * Structured response validation for lightweight local model inference.
+     * Rejects empty, degenerate loops, trace errors, or raw token dumps before presenting to user.
+     */
+    public static function validateLocalResponse(string $text, array $meta = []): array {
+        $t = trim($text);
+
+        // 1. Minimum length
+        if (mb_strlen($t) < 3) {
+            return ['valid' => false, 'reason' => 'Response too short (under 3 characters)'];
+        }
+
+        // 2. Fatal error or trace markers
+        if (preg_match('/^(fatal error|uncaught exception|syntax error|cURL error|traceback \(most recent call last\):)/i', $t)) {
+            return ['valid' => false, 'reason' => 'Response contains fatal error or traceback signature'];
+        }
+
+        // 3. Raw prompt / tokenizer leak check (<|im_start|>, <|im_end|>, etc.)
+        if (preg_match('/<\|(?:im_start|im_end|endoftext)\|>/i', $t)) {
+            if (mb_strlen(preg_replace('/<\|[^>]+\|>/', '', $t)) < 5) {
+                return ['valid' => false, 'reason' => 'Response dominated by unparsed model tokenizer tags'];
+            }
+        }
+
+        // 4. Degenerative repetition check (e.g. repeated phrase appearing 3 or more times)
+        if (preg_match('/(\b[\w\s]{12,40}\b)(?:[\s,.-]+\1){2,}/iu', $t)) {
+            return ['valid' => false, 'reason' => 'Degenerative repetitive phrase loop detected'];
+        }
+
+        // Vocabulary entropy check for long responses (> 35 words)
+        $words = preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($t), -1, PREG_SPLIT_NO_EMPTY);
+        $totalWordCount = count($words);
+        if ($totalWordCount >= 35) {
+            $uniqueCount = count(array_unique($words));
+            $diversityRatio = $uniqueCount / $totalWordCount;
+            if ($diversityRatio < 0.28) {
+                return ['valid' => false, 'reason' => "Low vocabulary diversity ({$uniqueCount}/{$totalWordCount} unique words)"];
+            }
+        }
+
+        // 5. Abrupt mid-sentence truncation with trailing conjunction or preposition
+        if (mb_strlen($t) > 60 && preg_match('/\b(and|or|because|with|that|which|to|of|in|at|for|the|a|an)\s*$/i', $t)) {
+            return ['valid' => false, 'reason' => 'Response terminated abruptly with dangling conjunction or preposition'];
+        }
+
+        return ['valid' => true, 'reason' => 'Structured validation passed'];
+    }
+
+    /**
+     * Checks health and resource telemetry of the Local LLM endpoint.
+     */
+    public static function checkLocalHealth(): array {
+        $endpoint = defined('LOCAL_AI_ENDPOINT') ? LOCAL_AI_ENDPOINT : 'http://13.232.195.16/api/local-ai.php';
+        $apiKey = defined('LOCAL_AI_API_KEY') ? LOCAL_AI_API_KEY : '';
+        $url = $endpoint . '?action=health';
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+        if (!empty($apiKey)) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $apiKey]);
+        }
+        $res = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        curl_close($ch);
+
+        if ($httpCode === 200 && !empty($res)) {
+            $data = json_decode($res, true);
+            if (is_array($data)) {
+                return array_merge(['online' => true], $data);
+            }
+        }
+
+        return [
+            'online' => false,
+            'status' => 'offline',
+            'error' => $curlErr ?: "HTTP {$httpCode}",
+            'endpoint' => $endpoint
         ];
     }
 }

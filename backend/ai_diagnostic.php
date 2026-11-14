@@ -127,31 +127,34 @@ if (isset($_GET['test_providers'])) {
         $k = $c['api_key'];
         echo "Testing [$idx] $p with model $m...\n";
         if ($p === 'google_ai_studio') {
-            foreach (array_unique([$m, 'gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-2.0-flash-exp']) as $testModel) {
-                $url = "https://generativelanguage.googleapis.com/v1beta/models/{$testModel}:generateContent?key=" . urlencode($k);
-                $body = json_encode(['contents' => [['parts' => [['text' => 'Hi']]]]]);
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-                $res = curl_exec($ch);
-                $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                curl_close($ch);
-                echo "  Google Native ($testModel) -> HTTP $code | Response: " . substr($res, 0, 150) . "\n";
-            }
-        } elseif ($p === 'groq') {
-            $ch = curl_init("https://api.groq.com/openai/v1/chat/completions");
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $k]);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => $m, 'messages' => [['role' => 'user', 'content' => 'Hi']], 'max_tokens' => 10]));
+            $listUrl = "https://generativelanguage.googleapis.com/v1beta/models?key=" . urlencode($k);
+            $ch = curl_init($listUrl);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-            $res = curl_exec($ch);
-            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $listRes = curl_exec($ch);
+            $listData = json_decode($listRes, true);
             curl_close($ch);
-            echo "  Groq ($m) -> HTTP $code | Response: " . substr($res, 0, 150) . "\n";
+            echo "  Google Models List: ";
+            if (!empty($listData['models'])) {
+                $names = array_map(function($x) { return str_replace('models/', '', $x['name']); }, $listData['models']);
+                echo implode(', ', array_slice($names, 0, 20)) . "\n";
+            } else {
+                echo substr($listRes, 0, 150) . "\n";
+            }
+        } elseif ($p === 'groq') {
+            $chG = curl_init("https://api.groq.com/openai/v1/models");
+            curl_setopt($chG, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $k]);
+            curl_setopt($chG, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($chG, CURLOPT_TIMEOUT, 6);
+            $groqRes = curl_exec($chG);
+            $groqData = json_decode($groqRes, true);
+            curl_close($chG);
+            echo "  Groq Models List: ";
+            if (!empty($groqData['data'])) {
+                $gNames = array_map(function($x) { return $x['id']; }, $groqData['data']);
+                echo implode(', ', array_slice($gNames, 0, 15)) . "\n";
+            } else {
+                echo substr($groqRes, 0, 150) . "\n";
         } elseif ($p === 'openrouter') {
             $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $k]);

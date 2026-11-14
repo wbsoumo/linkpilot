@@ -197,6 +197,27 @@ if (isset($_GET['run_tests'])) {
     } catch (Throwable $e) {
         echo "Email Test Error: " . $e->getMessage() . "\n";
     }
+
+    echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('Generate a Google Meet room link for our upcoming quarterly sales presentation.') ---\n";
+    try {
+        $convMeet = AgentOrchestrator::createConversation($adminId, 'Diag Test Meet', $db);
+        $convMeetId = $convMeet['id'] ?? uniqid('conv_');
+        $t0 = microtime(true);
+        $orchMeet = AgentOrchestrator::processChat($adminId, $convMeetId, 'Generate a Google Meet room link for our upcoming quarterly sales presentation.', [], null, $db);
+        $orchTook = round(microtime(true) - $t0, 2);
+        echo "Meet test responded in {$orchTook}s:\n";
+        echo "Status: " . ($orchMeet['status'] ?? 'unknown') . "\n";
+        $replyText = $orchMeet['content'] ?? ($orchMeet['message']['content'] ?? 'NO CONTENT');
+        echo "Reply: " . $replyText . "\n";
+        if (!empty($orchMeet['steps'])) {
+            echo "Steps executed: " . count($orchMeet['steps']) . "\n";
+            foreach ($orchMeet['steps'] as $s) {
+                echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
+            }
+        }
+    } catch (Throwable $e) {
+        echo "Meet Test Error: " . $e->getMessage() . "\n";
+    }
 } else {
     echo "\n(To run live LLM test chats, pass &run_tests=1 in URL)\n";
 }

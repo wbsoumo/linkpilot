@@ -78,6 +78,19 @@ class AgentRouter {
         if (preg_match('/\b(workflow|workflows|automation|automations|trigger|active\s+workflow)\b/i', $clean)) {
             $businessCategories[] = 'automation';
         }
+        // File Generation & Export
+        if (preg_match('/\b(export|download|generate\s+(?:a\s+)?(?:file|excel|spreadsheet|sheet|csv|pdf|word|docx|report)|save\s+as\s+(?:excel|csv|pdf|word)|csv\s+file|excel\s+file|pdf\s+file|download\s+link|download\s+file)\b/i', $clean)) {
+            $businessCategories[] = 'export';
+            if (preg_match('/\b(contact|contacts|lead|leads|customer|customers)\b/i', $clean)) {
+                $businessCategories[] = 'crm';
+            }
+            if (preg_match('/\b(deal|deals|pipeline|sales)\b/i', $clean)) {
+                $businessCategories[] = 'deals';
+            }
+            if (preg_match('/\b(task|tasks|todo|to-do)\b/i', $clean)) {
+                $businessCategories[] = 'tasks';
+            }
+        }
 
         $businessCategories = array_values(array_unique($businessCategories));
         $hasBusinessIntent = !empty($businessCategories);

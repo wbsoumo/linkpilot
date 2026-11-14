@@ -162,6 +162,29 @@ class AgentDBMigration {
             }
         } catch (Throwable $e) {}
 
+        // 7. Temporary AI-Generated File Storage Tracking Table
+        try {
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_generated_files` (
+                `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+                `file_token` VARCHAR(64) NOT NULL UNIQUE,
+                `user_id` INT NOT NULL,
+                `conversation_id` VARCHAR(64) DEFAULT NULL,
+                `original_filename` VARCHAR(255) NOT NULL,
+                `stored_filename` VARCHAR(255) NOT NULL,
+                `file_format` VARCHAR(20) NOT NULL,
+                `mime_type` VARCHAR(100) NOT NULL,
+                `file_size_bytes` BIGINT NOT NULL DEFAULT 0,
+                `download_count` INT NOT NULL DEFAULT 0,
+                `created_at` DATETIME NOT NULL,
+                `expires_at` DATETIME NOT NULL,
+                `is_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+                `deleted_at` DATETIME DEFAULT NULL,
+                INDEX `idx_file_token` (`file_token`),
+                INDEX `idx_user_expires` (`user_id`, `expires_at`),
+                INDEX `idx_cleanup` (`expires_at`, `is_deleted`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        } catch (Throwable $e) {}
+
         self::$migrated = true;
     }
 }

@@ -15,9 +15,13 @@ require_once __DIR__ . '/config.php';
 if (isset($_GET['sync'])) {
     echo "=== DIRECT GITHUB SYNC ===\n";
     $syncFiles = [
+        'backend/agent_db_migration.php',
+        'backend/temp_file_service.php',
+        'backend/cron_cleanup_temp_files.php',
+        'backend/agent_router.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
-        'backend/api/crm/agent.php',
+        'backend/api/crm/download_temp_file.php',
         'dashboard/assets/js/agent.js',
         'backend/ai_diagnostic.php'
     ];
@@ -29,7 +33,7 @@ if (isset($_GET['sync'])) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Cache-Control: no-cache', 'Pragma: no-cache']);
         $c = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -47,6 +51,15 @@ if (isset($_GET['sync'])) {
     }
     if (file_exists($root . '/.htaccess')) @touch($root . '/.htaccess');
     echo "Sync finished. $synced files updated.\n\n";
+
+    try {
+        require_once __DIR__ . '/agent_db_migration.php';
+        $db = Database::getConnection();
+        AgentDBMigration::run($db);
+        echo "[OK] Ran AgentDBMigration on AWS server.\n";
+    } catch (Throwable $e) {
+        echo "[!] Migration error: " . $e->getMessage() . "\n";
+    }
 }
 
 $db = Database::getConnection();
@@ -234,6 +247,69 @@ if (isset($_GET['run_tests'])) {
     }
 } else {
     echo "\n(To run live LLM test chats, pass &run_tests=1 in URL)\n";
+}
+
+if (isset($_GET['test_temp_files'])) {
+    echo "\n=== LIVE TEMPORARY FILE DELIVERY SYSTEM TESTS ===\n";
+    require_once __DIR__ . '/temp_file_service.php';
+    require_once __DIR__ . '/ai_tool_registry.php';
+    require_once __DIR__ . '/agent_router.php';
+
+    // 1. Test creation of CSV, XLSX, DOCX, PDF, TXT, JSON
+    $formats = ['csv', 'xlsx', 'docx', 'pdf', 'txt', 'json'];
+    $sampleData = [
+        ['Lead ID' => 101, 'Name' => 'Sarah Connor', 'Email' => 'sarah@skynet.com', 'Company' => 'Cyberdyne', 'Status' => 'Qualified'],
+        ['Lead ID' => 102, 'Name' => 'John Wick', 'Email' => 'john@continental.hotel', 'Company' => 'Continental', 'Status' => 'Won'],
+        ['Lead ID' => 103, 'Name' => 'Bruce Wayne', 'Email' => 'bruce@wayne.corp', 'Company' => 'Wayne Enterprises', 'Status' => 'Negotiation']
+    ];
+
+    $tokens = [];
+    foreach ($formats as $fmt) {
+        $fileRes = TempFileService::createTempFile(
+            $adminId,
+            null,
+            $fmt,
+            "test_export_{$fmt}.{$fmt}",
+            "LinkPilot {$fmt} Report",
+            $sampleData,
+            "This is a detailed summary paragraph for {$fmt} export.",
+            "Diagnostic unit test",
+            $db
+        );
+        echo "[$fmt] Generated: " . ($fileRes['success'] ? 'SUCCESS' : 'FAIL') . " | Size: {$fileRes['size_formatted']} | Token: " . substr($fileRes['token'], 0, 16) . "... | URL: {$fileRes['download_url']}\n";
+        $tokens[$fmt] = $fileRes['token'];
+    }
+
+    // 2. Test download resolution
+    $dl = TempFileService::getDownloadFile($tokens['xlsx'], $adminId, $db);
+    echo "Download resolution for XLSX: " . ($dl['success'] ? 'SUCCESS' : 'FAIL') . " (File: {$dl['filename']}, Size: {$dl['size']} bytes)\n";
+
+    // 3. Test 30-minute expiration check
+    $testExp = TempFileService::createTempFile($adminId, null, 'csv', 'exp_test.csv', 'Exp Test', $sampleData, '', '', $db);
+    $expToken = $testExp['token'];
+    $db->prepare("UPDATE ai_generated_files SET expires_at = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE file_token = ?")->execute([$expToken]);
+    $expDl = TempFileService::getDownloadFile($expToken, $adminId, $db);
+    echo "Expired download rejection: " . (($expDl['error'] ?? '') === 'expired' ? 'PASSED (HTTP 410 / File deleted)' : 'FAIL') . "\n";
+
+    // 4. Test cron cleanup
+    $cleanStats = TempFileService::cleanupExpired($db);
+    echo "Cron cleanup sweep: Processed {$cleanStats['db_records_expired']} expired records, {$cleanStats['orphans_purged']} disk orphans.\n";
+
+    // 5. Test AI Tool Registry tool call
+    AIToolRegistry::init();
+    $toolRes = AIToolRegistry::executeTool('generate_export_file', $adminId, [
+        'format' => 'xlsx',
+        'filename' => 'crm_contacts_ai_export.xlsx',
+        'title' => 'AI Export Contacts',
+        'data_rows' => $sampleData
+    ], $db);
+    echo "AIToolRegistry tool execution: " . ($toolRes['success'] ? 'SUCCESS' : 'FAIL') . " | Download: {$toolRes['download_url']}\n";
+
+    // 6. Test Agent Router classification
+    $routeTest = AgentRouter::classify("Export my CRM contacts to Excel spreadsheet", $adminId, $db);
+    echo "Agent Router classification: Path={$routeTest['path']} | Categories=" . implode(',', $routeTest['categories'] ?? []) . "\n";
+} else {
+    echo "\n(To run live temporary file delivery tests, pass &test_temp_files=1 in URL)\n";
 }
 
 echo "\n=== END DIAGNOSTIC ===\n";

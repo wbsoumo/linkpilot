@@ -1835,6 +1835,9 @@
         if (lower.includes('task') || lower.includes('schedule') || lower.includes('calendar')) {
             return 'Scheduling Operations';
         }
+        if (tId.includes('export') || tId.includes('temp_file') || lower.includes('export') || lower.includes('file')) {
+            return 'Generating Downloadable File';
+        }
         return 'Executing Action';
     }
 
@@ -2119,6 +2122,7 @@
                 accumulatedContent = "I am connected to your workspace. You can ask me to search CRM contacts, review deals, check WhatsApp messages, or schedule tasks.";
                 contentContainer.innerHTML = renderMarkdown(accumulatedContent);
             }
+            if (window.lucide) lucide.createIcons();
 
             // Refresh conversation titles in sidebar without destroying active messages stream
             refreshConversationsSidebarOnly();
@@ -2139,6 +2143,7 @@
                 if (res && res.data && res.data.content && res.data.content.trim()) {
                     contentContainer.classList.remove('agent-streaming-cursor');
                     contentContainer.innerHTML = renderMarkdown(res.data.content);
+                    if (window.lucide) lucide.createIcons();
                 } else {
                     throw new Error("Empty response received");
                 }
@@ -2966,8 +2971,52 @@
         text = text.replace(/^\s*([0-9]+)\.\s+(.*$)/gim, '<ol><li>$2</li></ol>');
         text = text.replace(/<\/ol>\s*<ol>/gim, '');
 
-        // Clickable Links
+        // 1. Temporary AI-Generated File Download Button & Expiry Card
+        text = text.replace(/\[([^\]]+)\]\(([^)]*download_temp_file\.php[^)]*)\)/gi, function (match, label, url) {
+            let cleanLabel = label.replace(/^download\s*/i, '').trim();
+            let extMatch = cleanLabel.match(/\.(xlsx|csv|pdf|docx|txt|json)/i) || url.match(/\.(xlsx|csv|pdf|docx|txt|json)/i);
+            let ext = extMatch ? extMatch[1].toUpperCase() : 'FILE';
+
+            let badgeBg = 'bg-slate-100 text-slate-700 border-slate-200';
+            let formatName = 'File Document';
+            if (ext === 'XLSX') { badgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200'; formatName = 'Excel Spreadsheet'; }
+            else if (ext === 'CSV') { badgeBg = 'bg-teal-50 text-teal-700 border-teal-200'; formatName = 'CSV Data Export'; }
+            else if (ext === 'PDF') { badgeBg = 'bg-rose-50 text-rose-700 border-rose-200'; formatName = 'PDF Document'; }
+            else if (ext === 'DOCX') { badgeBg = 'bg-indigo-50 text-indigo-700 border-indigo-200'; formatName = 'Word Document'; }
+            else if (ext === 'TXT') { badgeBg = 'bg-slate-100 text-slate-700 border-slate-200'; formatName = 'Plain Text File'; }
+            else if (ext === 'JSON') { badgeBg = 'bg-amber-50 text-amber-700 border-amber-200'; formatName = 'JSON Export'; }
+
+            return `
+            <div class="agent-download-card my-3 p-3.5 bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-9 h-9 rounded-lg ${badgeBg} border flex items-center justify-center font-extrabold text-[10px] tracking-wider shrink-0 uppercase">
+                            ${ext}
+                        </span>
+                        <div class="min-w-0">
+                            <div class="text-xs md:text-sm font-semibold text-slate-900 truncate">${escapeHtml(cleanLabel || 'Generated File')}</div>
+                            <div class="text-[11px] text-slate-500 font-medium">${formatName}</div>
+                        </div>
+                    </div>
+                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" download="${escapeHtml(cleanLabel)}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded-lg shadow-2xs hover:shadow transition-all shrink-0 cursor-pointer">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Download</span>
+                    </a>
+                </div>
+                <div class="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-[11px] text-slate-500 font-normal">
+                    <i data-lucide="clock" class="w-3 h-3 text-amber-600 shrink-0"></i>
+                    <span>This download link is valid for 30 minutes. The file will be automatically deleted after expiry.</span>
+                </div>
+            </div>`;
+        });
+
+        // 2. Standard Clickable Links
         text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+        // Clean up any duplicate notice text if already placed in download card
+        if (text.includes('agent-download-card')) {
+            text = text.replace(/(?:<p>)?(?:\*|_)?\s*This download link is valid for 30 minutes\. The file will be automatically deleted after expiry\.\s*(?:\*|_)?(?:<\/p>)?/gi, '');
+        }
 
         // Paragraphs
         text = text.replace(/\n\n+/g, '</p><p>');

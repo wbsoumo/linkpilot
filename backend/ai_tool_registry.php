@@ -11,6 +11,7 @@ require_once __DIR__ . '/sales_copilot_engine.php';
 require_once __DIR__ . '/smtp_helper.php';
 require_once __DIR__ . '/external_apps_helper.php';
 require_once __DIR__ . '/web_search_helper.php';
+require_once __DIR__ . '/temp_file_service.php';
 
 class AIToolRegistry {
     private static $tools = [];
@@ -1567,6 +1568,143 @@ class AIToolRegistry {
                 return WebSearchHelper::fetchUrlContent($params['url'] ?? '', $params['instruction'] ?? '');
             }
         ]);
+
+        // ==========================================
+        // 10. FILE EXPORT & TEMPORARY STORAGE MODULE
+        // ==========================================
+
+        self::registerTool([
+            'id' => 'generate_export_file',
+            'name' => 'Generate Temporary File',
+            'description' => 'Generate a temporary downloadable file in Excel (.xlsx), PDF (.pdf), Word (.docx), CSV (.csv), or Text (.txt) format. Saves securely in isolated server storage and generates a 30-minute secure download link with automated deletion.',
+            'category' => 'export',
+            'risk_level' => 'READ',
+            'approval_required' => false,
+            'parameters' => [
+                'type' => 'object',
+                'properties' => [
+                    'format' => [
+                        'type' => 'string',
+                        'enum' => ['xlsx', 'csv', 'pdf', 'docx', 'txt', 'json'],
+                        'description' => 'Target file format. Options: xlsx (Excel spreadsheet), csv (Comma-separated values), pdf (PDF document), docx (Word document), txt (Plain text), json (Structured JSON).'
+                    ],
+                    'filename' => [
+                        'type' => 'string',
+                        'description' => 'Target filename with extension (e.g. "leads_export.xlsx", "sales_pipeline.pdf", "contacts.csv").'
+                    ],
+                    'title' => [
+                        'type' => 'string',
+                        'description' => 'Document title or header banner displayed inside the file.'
+                    ],
+                    'data_rows' => [
+                        'type' => 'array',
+                        'description' => 'Optional array of structured row objects with key-value pairs for spreadsheet or tabular generation. If exporting CRM data, pass rows here or specify source.',
+                        'items' => [
+                            'type' => 'object'
+                        ]
+                    ],
+                    'text_content' => [
+                        'type' => 'string',
+                        'description' => 'Body text, summary narrative, or markdown content to include in the document (especially for PDF, Word, or TXT).'
+                    ],
+                    'source' => [
+                        'type' => 'string',
+                        'description' => 'Optional source to auto-populate data if data_rows is empty: "contacts", "leads", "deals", "tasks", "lead_vault", or "whatsapp".'
+                    ],
+                    'description' => [
+                        'type' => 'string',
+                        'description' => 'Short summary description of what this generated file contains.'
+                    ]
+                ],
+                'required' => ['format', 'filename']
+            ],
+            'handler' => function($userId, array $params, PDO $db) {
+                require_once __DIR__ . '/temp_file_service.php';
+                $format = strtolower(trim($params['format'] ?? 'csv'));
+                $filename = trim($params['filename'] ?? ('LinkPilot_' . date('Ymd_His') . '.' . $format));
+                $title = trim($params['title'] ?? 'LinkPilot Generated Report');
+                $dataRows = $params['data_rows'] ?? [];
+                $textContent = $params['text_content'] ?? '';
+                $description = $params['description'] ?? '';
+
+                // If data_rows is empty, check if source is specified or inferable from filename
+                if (empty($dataRows)) {
+                    $source = strtolower(trim($params['source'] ?? ''));
+                    if (empty($source)) {
+                        $lowerName = strtolower($filename . ' ' . $title);
+                        if (strpos($lowerName, 'contact') !== false || strpos($lowerName, 'lead') !== false) {
+                            $source = 'contacts';
+                        } elseif (strpos($lowerName, 'deal') !== false || strpos($lowerName, 'pipeline') !== false) {
+                            $source = 'deals';
+                        } elseif (strpos($lowerName, 'task') !== false || strpos($lowerName, 'todo') !== false) {
+                            $source = 'tasks';
+                        }
+                    }
+
+                    if ($source === 'contacts' || $source === 'leads') {
+                        $rawContacts = CRMSyncHelper::searchContacts($userId, [], 100, 0, $db);
+                        $dataRows = [];
+                        foreach ($rawContacts as $c) {
+                            $dataRows[] = [
+                                'ID' => $c['id'] ?? '',
+                                'Name' => $c['name'] ?? '',
+                                'Email' => $c['email'] ?? '',
+                                'Phone' => $c['phone'] ?? '',
+                                'Company' => $c['company_name'] ?? '',
+                                'Designation' => $c['designation'] ?? '',
+                                'Tags' => $c['tags'] ?? '',
+                                'Created' => substr($c['created_at'] ?? '', 0, 10)
+                            ];
+                        }
+                    } elseif ($source === 'deals') {
+                        $stmt = $db->prepare("SELECT d.id, d.title, d.deal_value, d.currency, d.stage, d.closing_date, co.name AS company, c.name AS contact FROM crm_deals d LEFT JOIN crm_companies co ON d.company_id = co.id LEFT JOIN crm_contacts c ON d.contact_id = c.id WHERE d.user_id = ? ORDER BY d.closing_date ASC LIMIT 100");
+                        $stmt->execute([$userId]);
+                        $rawDeals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        $dataRows = [];
+                        foreach ($rawDeals as $d) {
+                            $dataRows[] = [
+                                'Deal ID' => $d['id'] ?? '',
+                                'Title' => $d['title'] ?? '',
+                                'Value' => ($d['currency'] ?? '$') . ' ' . number_format((float)($d['deal_value'] ?? 0), 2),
+                                'Stage' => $d['stage'] ?? '',
+                                'Company' => $d['company'] ?? '',
+                                'Contact' => $d['contact'] ?? '',
+                                'Closing Date' => $d['closing_date'] ?? ''
+                            ];
+                        }
+                    } elseif ($source === 'tasks') {
+                        $stmt = $db->prepare("SELECT t.id, t.title, t.priority, t.status, t.due_date, c.name AS contact_name FROM crm_tasks t LEFT JOIN crm_contacts c ON t.contact_id = c.id WHERE t.user_id = ? ORDER BY t.due_date ASC LIMIT 100");
+                        $stmt->execute([$userId]);
+                        $rawTasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        $dataRows = [];
+                        foreach ($rawTasks as $t) {
+                            $dataRows[] = [
+                                'Task ID' => $t['id'] ?? '',
+                                'Title' => $t['title'] ?? '',
+                                'Priority' => $t['priority'] ?? '',
+                                'Status' => $t['status'] ?? '',
+                                'Due Date' => $t['due_date'] ?? '',
+                                'Related Contact' => $t['contact_name'] ?? ''
+                            ];
+                        }
+                    }
+                }
+
+                $result = TempFileService::createTempFile(
+                    (int)$userId,
+                    null,
+                    $format,
+                    $filename,
+                    $title,
+                    $dataRows,
+                    $textContent,
+                    $description,
+                    $db
+                );
+
+                return $result;
+            }
+        ]);
     }
 
     public static function registerTool(array $tool) {
@@ -1746,6 +1884,23 @@ class AIToolRegistry {
         // 8. Analytics & Settings Intent
         if (preg_match('/\b(briefing|analytics|metric|metrics|kpi|credit|credits|balance|wallet|report)\b/i', $clean)) {
             $selectedCategories[] = 'analytics';
+        }
+
+        // 9. Export & Temporary File Generation Intent
+        if (preg_match('/\b(export|download|file|files|excel|xlsx|spreadsheet|sheet|csv|pdf|word|docx|doc|document|txt|text\s+file|json)\b/i', $clean)) {
+            $selectedCategories[] = 'export';
+            if (preg_match('/\b(contact|contacts|lead|leads|customer|customers|person)\b/i', $cleanCombined)) {
+                $selectedCategories[] = 'crm';
+            }
+            if (preg_match('/\b(deal|deals|pipeline|stage|revenue|sale|sales)\b/i', $cleanCombined)) {
+                $selectedCategories[] = 'deals';
+            }
+            if (preg_match('/\b(task|tasks|todo|to-do|reminder|reminders)\b/i', $cleanCombined)) {
+                $selectedCategories[] = 'tasks';
+            }
+            if (preg_match('/\b(whatsapp|chat|chats|message|messages)\b/i', $cleanCombined)) {
+                $selectedCategories[] = 'whatsapp';
+            }
         }
 
         if (!empty($selectedCategories)) {

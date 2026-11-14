@@ -155,6 +155,7 @@ if (isset($_GET['test_providers'])) {
                 echo implode(', ', array_slice($gNames, 0, 15)) . "\n";
             } else {
                 echo substr($groqRes, 0, 150) . "\n";
+            }
         } elseif ($p === 'openrouter') {
             $ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
             curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $k]);

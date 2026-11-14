@@ -220,6 +220,33 @@ try {
             sendJsonResponse('error', 'Conversation ID and Tool ID are required.', [], 400);
         }
 
+        // Update the waiting message in ai_agent_messages to 'approved' and record edited args if any
+        try {
+            $stmtFind = $db->prepare("SELECT id, tool_results_json FROM ai_agent_messages WHERE conversation_id = ? AND user_id = ? AND status = 'waiting_approval' ORDER BY id DESC LIMIT 1");
+            $stmtFind->execute([$convId, $userId]);
+            $waitingRow = $stmtFind->fetch(PDO::FETCH_ASSOC);
+
+            if ($waitingRow) {
+                $parsedResults = json_decode($waitingRow['tool_results_json'] ?? '{}', true) ?: [];
+                if (!empty($toolArgs)) {
+                    $parsedResults['arguments'] = $toolArgs;
+                }
+                $parsedResults['status'] = 'approved';
+                $parsedResults['approved_at'] = date('Y-m-d H:i:s');
+                
+                $stmtUpd = $db->prepare("UPDATE ai_agent_messages SET status = 'approved', tool_results_json = ? WHERE id = ?");
+                $stmtUpd->execute([json_encode($parsedResults), $waitingRow['id']]);
+
+                // Update audit log
+                try {
+                    $stmtAudit = $db->prepare("UPDATE ai_agent_audit_logs SET approval_status = 'approved', input_json = ? WHERE conversation_id = ? AND user_id = ? AND tool_id = ? AND approval_status = 'rejected' ORDER BY id DESC LIMIT 1");
+                    $stmtAudit->execute([json_encode($toolArgs), $convId, $userId, $toolId]);
+                } catch (Throwable $eAudit) {}
+            }
+        } catch (Throwable $eDb) {
+            error_log("Failed to update message status to approved: " . $eDb->getMessage());
+        }
+
         // Execute tool directly
         $toolResult = AIToolRegistry::executeTool($toolId, $userId, $toolArgs, $db);
 
@@ -234,6 +261,40 @@ try {
             'tool_result' => $toolResult,
             'chat_response' => $res
         ]);
+    }
+
+    // 7b. Reject Pending Action
+    elseif ($action === 'reject_action') {
+        $convId = trim($input['conversation_id'] ?? '');
+        $toolId = trim($input['tool_id'] ?? '');
+
+        if (empty($convId)) {
+            sendJsonResponse('error', 'Conversation ID is required.', [], 400);
+        }
+
+        try {
+            $stmtFind = $db->prepare("SELECT id, tool_results_json FROM ai_agent_messages WHERE conversation_id = ? AND user_id = ? AND status = 'waiting_approval' ORDER BY id DESC LIMIT 1");
+            $stmtFind->execute([$convId, $userId]);
+            $waitingRow = $stmtFind->fetch(PDO::FETCH_ASSOC);
+
+            if ($waitingRow) {
+                $parsedResults = json_decode($waitingRow['tool_results_json'] ?? '{}', true) ?: [];
+                $parsedResults['status'] = 'rejected';
+                $parsedResults['rejected_at'] = date('Y-m-d H:i:s');
+                
+                $stmtUpd = $db->prepare("UPDATE ai_agent_messages SET status = 'rejected', tool_results_json = ? WHERE id = ?");
+                $stmtUpd->execute([json_encode($parsedResults), $waitingRow['id']]);
+
+                try {
+                    $stmtAudit = $db->prepare("UPDATE ai_agent_audit_logs SET approval_status = 'cancelled' WHERE conversation_id = ? AND user_id = ? AND tool_id = ? ORDER BY id DESC LIMIT 1");
+                    $stmtAudit->execute([$convId, $userId, $toolId]);
+                } catch (Throwable $eAudit) {}
+            }
+        } catch (Throwable $eDb) {
+            error_log("Failed to update message status to rejected: " . $eDb->getMessage());
+        }
+
+        sendJsonResponse('success', 'Action cancelled and rejected successfully.');
     }
 
     // 8. Chat Execution (Streaming or Standard JSON)

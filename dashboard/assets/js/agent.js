@@ -1572,34 +1572,13 @@
             toolsHTML += '</div>';
         }
 
-        // Approval required card if waiting
+        // Approval required or executed card
         let approvalHTML = '';
-        if (msg.status === 'waiting_approval' && msg.tool_results && msg.tool_results.tool_id) {
-            const appr = msg.tool_results;
-            approvalHTML = `
-                <div class="agent-approval-card space-y-2.5">
-                    <div class="flex items-center space-x-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
-                        <i data-lucide="shield-alert" class="h-4 w-4 text-amber-600"></i>
-                        <span>Confirmation Required Before Execution</span>
-                    </div>
-                    <div class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-amber-200/90 shadow-2xs">
-                        <div class="font-bold text-slate-900 mb-1">Action: ${escapeHtml(appr.tool_name)}</div>
-                        <p class="text-slate-600 text-[11px] mb-2">${escapeHtml(appr.description)}</p>
-                        <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] font-mono border border-slate-200 overflow-x-auto">
-                            ${escapeHtml(JSON.stringify(appr.arguments, null, 2))}
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-2 pt-1">
-                        <button onclick="approveAgentAction('${appr.tool_id}', ${escapeHtml(JSON.stringify(appr.arguments))})" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
-                            <i data-lucide="check" class="h-3.5 w-3.5"></i>
-                            <span>Approve & Execute</span>
-                        </button>
-                        <button onclick="rejectAgentAction()" class="agent-btn-secondary px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold transition cursor-pointer">
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            `;
+        if (msg.tool_results && (msg.tool_results.tool_id || msg.tool_results.tool_name)) {
+            const apprStatus = msg.status || 'completed';
+            if (apprStatus === 'waiting_approval' || apprStatus === 'approved' || apprStatus === 'rejected') {
+                approvalHTML = renderApprovalCard(msg.tool_results, apprStatus, 'msg_' + msg.id);
+            }
         }
 
         const renderedMarkdown = renderMarkdown(msg.content);
@@ -1855,30 +1834,8 @@
                                     if (window.lucide) lucide.createIcons();
                                 }
                             } else if (currentEvent === 'approval_required') {
-                                approvalContainer.innerHTML = `
-                                    <div class="agent-approval-card space-y-3 animate-fade-in">
-                                        <div class="flex items-center space-x-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
-                                            <i data-lucide="shield-alert" class="h-4 w-4 text-amber-600"></i>
-                                            <span>Confirmation Required Before Execution</span>
-                                        </div>
-                                        <div class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-amber-200 shadow-xs">
-                                            <div class="font-bold text-slate-900 mb-1">Action: ${escapeHtml(data.tool_name)}</div>
-                                            <p class="text-slate-600 text-[11px] mb-2">${escapeHtml(data.description)}</p>
-                                            <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] font-mono border border-slate-200 overflow-x-auto">
-                                                ${escapeHtml(JSON.stringify(data.arguments, null, 2))}
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center space-x-2 pt-1">
-                                            <button onclick="approveAgentAction('${data.tool_id}', ${escapeHtml(JSON.stringify(data.arguments))})" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center space-x-1.5 cursor-pointer">
-                                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
-                                                <span>Approve & Execute</span>
-                                            </button>
-                                            <button onclick="rejectAgentAction()" class="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
-                                                Cancel
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
+                                const liveCardId = 'live_' + Date.now();
+                                approvalContainer.innerHTML = renderApprovalCard(data, 'waiting_approval', liveCardId);
                                 if (window.lucide) lucide.createIcons();
                             } else if (currentEvent === 'token') {
                                 clearInterval(thoughtTimer);
@@ -1965,32 +1922,573 @@
     };
 
     /**
-     * Executes approved action.
+     * Builds safe HTML template envelope for email preview iframe.
      */
-    window.approveAgentAction = async function (toolId, argumentsObj) {
+    function buildEmailPreviewHtml(body, subject = '', recipient = '') {
+        const isHtml = /<[a-z][\s\S]*>/i.test(body);
+        let innerContent = isHtml ? body : escapeHtml(body).replace(/\n/g, '<br>');
+
+        if (isHtml && /<html[\s\S]*>/i.test(body)) {
+            return body;
+        }
+
+        return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .email-container {
+      max-width: 560px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+    }
+    .email-header-bar {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      padding: 16px 20px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .email-brand-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      opacity: 0.95;
+    }
+    .email-content-box {
+      padding: 24px 20px;
+    }
+    .email-footer-bar {
+      border-top: 1px solid #f1f5f9;
+      padding: 14px 20px;
+      background: #f8fafc;
+      font-size: 11px;
+      color: #64748b;
+      text-align: center;
+    }
+    a { color: #4f46e5; text-decoration: none; font-weight: 600; }
+    h1, h2, h3, h4 { color: #0f172a; margin-top: 0; }
+    p { margin: 0 0 14px 0; }
+    p:last-child { margin-bottom: 0; }
+    .amount-highlight {
+      display: inline-block;
+      font-weight: 800;
+      color: #047857;
+      background: #ecfdf5;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #a7f3d0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header-bar">
+      <div class="email-brand-title">LinkPilot Notification</div>
+      <div style="font-size: 11px; opacity: 0.85;">Official Communication</div>
+    </div>
+    <div class="email-content-box">
+      ${innerContent}
+    </div>
+    <div class="email-footer-bar">
+      Sent securely via LinkPilot AI &bull; Autonomous Operations
+    </div>
+  </div>
+</body>
+</html>`;
+    }
+
+    window.agentPendingApprovals = window.agentPendingApprovals || {};
+
+    /**
+     * Renders an interactive approval card with HTML theme preview, inline editor,
+     * and auto-closing buttons on approve/reject.
+     */
+    function renderApprovalCard(appr, status = 'waiting_approval', cardId = null) {
+        if (!appr) return '';
+        cardId = cardId || ('appr_' + Math.random().toString(36).substr(2, 9));
+
+        const toolId = appr.tool_id || '';
+        const toolName = appr.tool_name || toolId || 'Action Confirmation';
+        const description = appr.description || '';
+        const args = appr.arguments || {};
+
+        window.agentPendingApprovals[cardId] = {
+            toolId: toolId,
+            toolName: toolName,
+            description: description,
+            arguments: JSON.parse(JSON.stringify(args)),
+            status: status
+        };
+
+        const isApproved = (status === 'approved');
+        const isRejected = (status === 'rejected');
+        const isPending = (status === 'waiting_approval');
+
+        const isEmail = (toolId === 'send_email') || (args && (args.recipient || args.to) && args.subject);
+
+        let statusClass = '';
+        if (isApproved) statusClass = 'status-approved';
+        else if (isRejected) statusClass = 'status-rejected';
+
+        // --- EMAIL APPROVAL CARD ---
+        if (isEmail) {
+            const recipient = args.recipient || args.to || '';
+            const subject = args.subject || '(No Subject)';
+            const body = args.body || args.message || args.content || '';
+            const previewHtml = buildEmailPreviewHtml(body, subject, recipient);
+
+            let buttonsHtml = '';
+            if (isPending) {
+                buttonsHtml = `
+                    <div id="approval-actions-${cardId}" class="flex items-center space-x-2 pt-1 flex-wrap gap-y-2">
+                        <button onclick="approveAgentAction('${toolId}', null, '${cardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center space-x-1.5 cursor-pointer">
+                            <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                            <span>Approve & Send Email</span>
+                        </button>
+                        <button onclick="switchEmailCardTab('${cardId}', 'edit')" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
+                            <i data-lucide="pencil" class="h-3.5 w-3.5"></i>
+                            <span>Edit Email</span>
+                        </button>
+                        <button onclick="rejectAgentAction('${toolId}', '${cardId}')" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer">
+                            Cancel
+                        </button>
+                    </div>
+                `;
+            } else if (isApproved) {
+                buttonsHtml = `
+                    <div id="approval-actions-${cardId}" class="flex items-center space-x-2 pt-1">
+                        <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl w-fit">
+                            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 shrink-0"></i>
+                            <span>Email Approved & Dispatched</span>
+                        </div>
+                    </div>
+                `;
+            } else if (isRejected) {
+                buttonsHtml = `
+                    <div id="approval-actions-${cardId}" class="flex items-center space-x-2 pt-1">
+                        <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3.5 py-2 rounded-xl w-fit">
+                            <i data-lucide="x-circle" class="h-4 w-4 text-rose-600 shrink-0"></i>
+                            <span>Email Sending Cancelled / Rejected</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div id="agent-approval-card-${cardId}" class="agent-approval-card space-y-3 ${statusClass}" data-card-id="${cardId}">
+                    <!-- Top Header -->
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-6 h-6 rounded-lg ${isApproved ? 'bg-emerald-100 text-emerald-700' : (isRejected ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')} flex items-center justify-center shrink-0">
+                                <i data-lucide="${isApproved ? 'check' : (isRejected ? 'x' : 'mail')}" class="h-3.5 w-3.5"></i>
+                            </span>
+                            <span class="font-bold text-xs uppercase tracking-wider ${isApproved ? 'text-emerald-800' : (isRejected ? 'text-slate-600' : 'text-amber-900')}">
+                                ${isApproved ? 'Email Dispatched' : (isRejected ? 'Email Dispatch Cancelled' : 'Outbound Email Confirmation')}
+                            </span>
+                        </div>
+                        <!-- View / Edit Tabs -->
+                        <div class="flex items-center space-x-1 bg-slate-100/90 p-1 rounded-lg border border-slate-200/70 text-[11px] font-semibold">
+                            <button id="email-tab-html-${cardId}" onclick="switchEmailCardTab('${cardId}', 'html')" class="px-2.5 py-1 rounded-md bg-indigo-600 text-white shadow-2xs transition flex items-center space-x-1 cursor-pointer">
+                                <i data-lucide="eye" class="h-3 w-3"></i>
+                                <span>HTML View</span>
+                            </button>
+                            <button id="email-tab-code-${cardId}" onclick="switchEmailCardTab('${cardId}', 'code')" class="px-2.5 py-1 rounded-md bg-white text-slate-600 border border-transparent hover:text-slate-900 transition flex items-center space-x-1 cursor-pointer">
+                                <i data-lucide="code" class="h-3 w-3"></i>
+                                <span>Raw View</span>
+                            </button>
+                            ${isPending ? `
+                            <button id="email-tab-edit-${cardId}" onclick="switchEmailCardTab('${cardId}', 'edit')" class="px-2.5 py-1 rounded-md bg-white text-slate-600 border border-transparent hover:text-indigo-600 transition flex items-center space-x-1 cursor-pointer">
+                                <i data-lucide="pencil" class="h-3 w-3"></i>
+                                <span>Edit</span>
+                            </button>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- Meta Information Box -->
+                    <div class="bg-white p-3 rounded-xl border border-slate-200/80 shadow-2xs space-y-1.5 text-xs">
+                        <div class="flex items-center space-x-2 text-slate-600">
+                            <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px] w-14 shrink-0">To:</span>
+                            <span id="email-display-to-${cardId}" class="font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 truncate">${escapeHtml(recipient)}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-slate-600">
+                            <span class="font-bold text-slate-500 uppercase tracking-wider text-[10px] w-14 shrink-0">Subject:</span>
+                            <span id="email-display-sub-${cardId}" class="font-bold text-slate-900 truncate">${escapeHtml(subject)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Panel 1: HTML View (Default) -->
+                    <div id="email-panel-html-${cardId}" class="space-y-2">
+                        <div class="rounded-xl border border-slate-200 overflow-hidden shadow-2xs bg-white">
+                            <div class="bg-slate-100/90 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                    <span class="ml-2 font-mono text-[10px] text-slate-600">email-template-view.html</span>
+                                </div>
+                                <span class="text-[10px] uppercase font-bold text-indigo-600 flex items-center gap-1">
+                                    <i data-lucide="sparkles" class="h-3 w-3"></i> Rendered HTML Theme
+                                </span>
+                            </div>
+                            <iframe id="email-frame-${cardId}" class="agent-email-frame" sandbox="allow-same-origin" srcdoc="${escapeHtml(previewHtml)}"></iframe>
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: Raw Code View -->
+                    <div id="email-panel-code-${cardId}" class="hidden space-y-2">
+                        <div class="bg-slate-900 text-slate-100 p-3.5 rounded-xl font-mono text-[11px] leading-relaxed max-h-72 overflow-auto border border-slate-800">
+                            <pre class="whitespace-pre-wrap break-all"><code>${escapeHtml(body)}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- Panel 3: Edit Mode -->
+                    <div id="email-panel-edit-${cardId}" class="hidden space-y-3 bg-white p-3.5 rounded-xl border border-indigo-200 shadow-2xs">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <span class="font-bold text-xs text-indigo-900 flex items-center gap-1.5">
+                                <i data-lucide="edit-3" class="h-3.5 w-3.5 text-indigo-600"></i> Edit Email Draft
+                            </span>
+                            <span class="text-[11px] text-slate-500">Modify details before dispatch</span>
+                        </div>
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wider">Recipient Email (To):</label>
+                                <input type="email" id="edit-recipient-${cardId}" class="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 transition" value="${escapeHtml(recipient)}">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wider">Subject Line:</label>
+                                <input type="text" id="edit-subject-${cardId}" class="w-full text-xs font-semibold px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 transition" value="${escapeHtml(subject)}">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 mb-1 uppercase tracking-wider">Email Body (HTML or Plain Text):</label>
+                                <textarea id="edit-body-${cardId}" rows="8" class="w-full text-xs font-mono p-3 bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-500 transition leading-relaxed">${escapeHtml(body)}</textarea>
+                            </div>
+                        </div>
+                        <!-- Edit Action Controls -->
+                        <div class="flex items-center space-x-2 pt-2 border-t border-slate-100 flex-wrap gap-y-2">
+                            <button onclick="saveAndSendEmailApproval('${cardId}', '${toolId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-xs flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                                <span>Save & Send Now</span>
+                            </button>
+                            <button onclick="saveEmailApprovalChanges('${cardId}')" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                <span>Apply to Preview</span>
+                            </button>
+                            <button onclick="cancelEmailApprovalEdit('${cardId}')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition cursor-pointer">
+                                Cancel Edit
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Action Buttons (Hidden when in Edit tab) -->
+                    ${buttonsHtml}
+                </div>
+            `;
+        }
+
+        // --- GENERAL TOOL APPROVAL CARD ---
+        let buttonsHtml = '';
+        if (isPending) {
+            buttonsHtml = `
+                <div id="approval-actions-${cardId}" class="flex items-center space-x-2 pt-1">
+                    <button onclick="approveAgentAction('${toolId}', null, '${cardId}')" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-2xs flex items-center space-x-1.5 cursor-pointer">
+                        <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                        <span>Approve & Execute</span>
+                    </button>
+                    <button onclick="rejectAgentAction('${toolId}', '${cardId}')" class="agent-btn-secondary px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold transition cursor-pointer">
+                        Cancel
+                    </button>
+                </div>
+            `;
+        } else if (isApproved) {
+            buttonsHtml = `
+                <div id="approval-actions-${cardId}" class="flex items-center space-x-2 pt-1">
+                    <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3 py-1.5 rounded-lg w-fit">
+                        <i data-lucide="check-circle-2" class="h-3.5 w-3.5 text-emerald-600 shrink-0"></i>
+                        <span>Action Approved & Executed</span>
+                    </div>
+                </div>
+            `;
+        } else if (isRejected) {
+            buttonsHtml = `
+                <div id="approval-actions-${cardId}" class="flex items-center space-x-2 pt-1">
+                    <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3 py-1.5 rounded-lg w-fit">
+                        <i data-lucide="x-circle" class="h-3.5 w-3.5 text-rose-600 shrink-0"></i>
+                        <span>Action Cancelled / Rejected</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div id="agent-approval-card-${cardId}" class="agent-approval-card space-y-2.5 ${statusClass}" data-card-id="${cardId}">
+                <div class="flex items-center space-x-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
+                    <i data-lucide="${isApproved ? 'check-circle-2' : (isRejected ? 'x-circle' : 'shield-alert')}" class="h-4 w-4 ${isApproved ? 'text-emerald-600' : (isRejected ? 'text-rose-600' : 'text-amber-600')}"></i>
+                    <span>${isApproved ? 'Action Executed' : (isRejected ? 'Action Cancelled' : 'Confirmation Required Before Execution')}</span>
+                </div>
+                <div class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+                    <div class="font-bold text-slate-900 mb-1">Action: ${escapeHtml(toolName)}</div>
+                    <p class="text-slate-600 text-[11px] mb-2">${escapeHtml(description)}</p>
+                    <div class="bg-slate-50 p-2.5 rounded-lg text-[11px] font-mono border border-slate-200 overflow-x-auto">
+                        ${escapeHtml(JSON.stringify(args, null, 2))}
+                    </div>
+                </div>
+                ${buttonsHtml}
+            </div>
+        `;
+    }
+
+    /**
+     * Tab switcher for email approval card (HTML View, Raw View, Edit).
+     */
+    window.switchEmailCardTab = function(cardId, tab) {
+        const htmlPanel = document.getElementById(`email-panel-html-${cardId}`);
+        const codePanel = document.getElementById(`email-panel-code-${cardId}`);
+        const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
+        const actionsPanel = document.getElementById(`approval-actions-${cardId}`);
+
+        const tabHtml = document.getElementById(`email-tab-html-${cardId}`);
+        const tabCode = document.getElementById(`email-tab-code-${cardId}`);
+        const tabEdit = document.getElementById(`email-tab-edit-${cardId}`);
+
+        if (htmlPanel) htmlPanel.classList.add('hidden');
+        if (codePanel) codePanel.classList.add('hidden');
+        if (editPanel) editPanel.classList.add('hidden');
+
+        [tabHtml, tabCode, tabEdit].forEach(t => {
+            if (t) {
+                t.classList.remove('bg-indigo-600', 'text-white', 'shadow-2xs');
+                t.classList.add('bg-white', 'text-slate-600');
+            }
+        });
+
+        if (tab === 'html') {
+            if (htmlPanel) htmlPanel.classList.remove('hidden');
+            if (tabHtml) {
+                tabHtml.classList.add('bg-indigo-600', 'text-white', 'shadow-2xs');
+                tabHtml.classList.remove('bg-white', 'text-slate-600');
+            }
+            if (actionsPanel) actionsPanel.classList.remove('hidden');
+        } else if (tab === 'code') {
+            if (codePanel) codePanel.classList.remove('hidden');
+            if (tabCode) {
+                tabCode.classList.add('bg-indigo-600', 'text-white', 'shadow-2xs');
+                tabCode.classList.remove('bg-white', 'text-slate-600');
+            }
+            if (actionsPanel) actionsPanel.classList.remove('hidden');
+        } else if (tab === 'edit') {
+            if (editPanel) editPanel.classList.remove('hidden');
+            if (tabEdit) {
+                tabEdit.classList.add('bg-indigo-600', 'text-white', 'shadow-2xs');
+                tabEdit.classList.remove('bg-white', 'text-slate-600');
+            }
+            if (actionsPanel) actionsPanel.classList.add('hidden');
+        }
+
+        if (window.lucide) lucide.createIcons();
+    };
+
+    /**
+     * Start inline editing for email approval card.
+     */
+    window.startEmailApprovalEdit = function(cardId) {
+        window.switchEmailCardTab(cardId, 'edit');
+        const toInput = document.getElementById(`edit-recipient-${cardId}`);
+        if (toInput) toInput.focus();
+    };
+
+    /**
+     * Cancel edit mode and revert input values to stored arguments.
+     */
+    window.cancelEmailApprovalEdit = function(cardId) {
+        if (window.agentPendingApprovals && window.agentPendingApprovals[cardId]) {
+            const orig = window.agentPendingApprovals[cardId].arguments || {};
+            const toInput = document.getElementById(`edit-recipient-${cardId}`);
+            const subInput = document.getElementById(`edit-subject-${cardId}`);
+            const bodyInput = document.getElementById(`edit-body-${cardId}`);
+            if (toInput) toInput.value = orig.recipient || orig.to || '';
+            if (subInput) subInput.value = orig.subject || '';
+            if (bodyInput) bodyInput.value = orig.body || orig.message || '';
+        }
+        window.switchEmailCardTab(cardId, 'html');
+    };
+
+    /**
+     * Saves user modifications to email fields, refreshes the HTML preview, and switches to HTML view.
+     */
+    window.saveEmailApprovalChanges = function(cardId) {
+        const toInput = document.getElementById(`edit-recipient-${cardId}`);
+        const subInput = document.getElementById(`edit-subject-${cardId}`);
+        const bodyInput = document.getElementById(`edit-body-${cardId}`);
+
+        if (!toInput || !subInput || !bodyInput) return;
+
+        const toVal = toInput.value.trim();
+        const subVal = subInput.value.trim();
+        const bodyVal = bodyInput.value.trim();
+
+        if (!toVal) {
+            showNotification('warning', 'Recipient email cannot be empty.');
+            return;
+        }
+
+        // Update stored registry arguments
+        if (window.agentPendingApprovals && window.agentPendingApprovals[cardId]) {
+            window.agentPendingApprovals[cardId].arguments.recipient = toVal;
+            window.agentPendingApprovals[cardId].arguments.subject = subVal;
+            window.agentPendingApprovals[cardId].arguments.body = bodyVal;
+        }
+
+        // Update HTML preview iframe & display texts
+        const frame = document.getElementById(`email-frame-${cardId}`);
+        if (frame) {
+            frame.srcdoc = buildEmailPreviewHtml(bodyVal, subVal, toVal);
+        }
+        const toDisplay = document.getElementById(`email-display-to-${cardId}`);
+        if (toDisplay) toDisplay.textContent = toVal;
+        const subDisplay = document.getElementById(`email-display-sub-${cardId}`);
+        if (subDisplay) subDisplay.textContent = subVal;
+
+        // Update raw code display
+        const codeEl = document.querySelector(`#email-panel-code-${cardId} code`);
+        if (codeEl) codeEl.textContent = bodyVal;
+
+        showNotification('success', 'Email changes applied. Review preview below.');
+        window.switchEmailCardTab(cardId, 'html');
+    };
+
+    /**
+     * Saves edits directly and dispatches email execution in a single step.
+     */
+    window.saveAndSendEmailApproval = function(cardId, toolId) {
+        const toInput = document.getElementById(`edit-recipient-${cardId}`);
+        const subInput = document.getElementById(`edit-subject-${cardId}`);
+        const bodyInput = document.getElementById(`edit-body-${cardId}`);
+
+        let updatedArgs = {};
+        if (window.agentPendingApprovals && window.agentPendingApprovals[cardId]) {
+            updatedArgs = Object.assign({}, window.agentPendingApprovals[cardId].arguments);
+        }
+
+        if (toInput) updatedArgs.recipient = toInput.value.trim();
+        if (subInput) updatedArgs.subject = subInput.value.trim();
+        if (bodyInput) updatedArgs.body = bodyInput.value.trim();
+
+        if (!updatedArgs.recipient) {
+            showNotification('warning', 'Recipient email cannot be empty.');
+            return;
+        }
+
+        // Apply changes to preview frame and switch to HTML tab so user sees spinner
+        window.saveEmailApprovalChanges(cardId);
+
+        // Execute action with updated arguments
+        window.approveAgentAction(toolId || 'send_email', updatedArgs, cardId);
+    };
+
+    /**
+     * Executes approved action, disables & closes interactive buttons immediately,
+     * and shows a permanent confirmation state.
+     */
+    window.approveAgentAction = async function (toolId, argumentsObj, cardId) {
+        let finalArgs = argumentsObj;
+        if (!finalArgs && cardId && window.agentPendingApprovals && window.agentPendingApprovals[cardId]) {
+            finalArgs = window.agentPendingApprovals[cardId].arguments;
+        }
+
+        // Close and lock interactive buttons immediately
+        const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : null;
+        if (actionsEl) {
+            actionsEl.innerHTML = `
+                <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl animate-pulse">
+                    <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-emerald-600 shrink-0"></i>
+                    <span>Executing approved action...</span>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+
         showNotification('info', `Executing approved action: ${toolId}...`);
         try {
             const res = await apiCall('crm/agent.php', 'POST', {
                 action: 'approve_action',
                 conversation_id: activeConversationId,
                 tool_id: toolId,
-                arguments: argumentsObj
+                arguments: finalArgs
             });
 
             showNotification('success', 'Action executed successfully!');
-            // Reload active conversation stream
+
+            // Permanently close buttons with confirmed badge
+            if (actionsEl) {
+                actionsEl.innerHTML = `
+                    <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl w-fit">
+                        <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 shrink-0"></i>
+                        <span>Action Approved & Executed</span>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+            }
+
+            // Reload active conversation stream to display assistant confirmation
             if (activeConversationId) {
                 selectAgentConversation(activeConversationId);
             }
         } catch (err) {
             showNotification('error', `Action execution failed: ${err.message}`);
+            if (activeConversationId) {
+                selectAgentConversation(activeConversationId);
+            }
         }
     };
 
-    window.rejectAgentAction = function () {
+    /**
+     * Cancels/rejects action, disables & closes interactive buttons immediately.
+     */
+    window.rejectAgentAction = async function (toolId, cardId) {
+        // Close and lock interactive buttons immediately
+        const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : null;
+        if (actionsEl) {
+            actionsEl.innerHTML = `
+                <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3.5 py-2 rounded-xl w-fit">
+                    <i data-lucide="x-circle" class="h-4 w-4 text-rose-600 shrink-0"></i>
+                    <span>Action Cancelled / Rejected</span>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+
         showNotification('warning', 'Action cancelled.');
+
         if (activeConversationId) {
-            selectAgentConversation(activeConversationId);
+            try {
+                await apiCall('crm/agent.php', 'POST', {
+                    action: 'reject_action',
+                    conversation_id: activeConversationId,
+                    tool_id: toolId || ''
+                });
+                selectAgentConversation(activeConversationId);
+            } catch (err) {
+                selectAgentConversation(activeConversationId);
+            }
         }
     };
 

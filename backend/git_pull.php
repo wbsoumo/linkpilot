@@ -78,7 +78,10 @@ if (!$executed) {
         'backend/web_search_helper.php',
         'backend/config.php',
         'backend/ai_diagnostic.php',
-        'backend/git_pull.php'
+        'backend/git_pull.php',
+        'backend/api/crm/agent.php',
+        'dashboard/assets/js/agent.js',
+        'dashboard/assets/css/agent.css'
     ];
 
     // 1. Fetch latest commit SHA from GitHub first for 100% cache-free immutable raw URLs

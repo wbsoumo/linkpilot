@@ -12,7 +12,121 @@
     let isHistoryOpen = false; // Collapsed by default for conversation-first focus
     let isProfileOpen = true;  // Open by default matching screenshot
     let agentCustomName = localStorage.getItem('linkpilot_agent_name') || 'Muse';
+    let selectedComposerModel = localStorage.getItem('linkpilot_agent_model') || 'Model X';
+    let speechRecognitionInstance = null;
+    let isVoiceListening = false;
     let scheduledTasksList = [];
+
+    // Helper functions for capsule composer
+    window.toggleAgentPlusMenu = function (e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const menu = document.getElementById('agent-plus-menu');
+        const modelMenu = document.getElementById('agent-model-dropdown');
+        if (modelMenu) modelMenu.classList.add('hidden');
+        if (menu) menu.classList.toggle('hidden');
+    };
+
+    window.toggleAgentModelDropdown = function (e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        const modelMenu = document.getElementById('agent-model-dropdown');
+        const plusMenu = document.getElementById('agent-plus-menu');
+        if (plusMenu) plusMenu.classList.add('hidden');
+        if (modelMenu) modelMenu.classList.toggle('hidden');
+    };
+
+    window.setComposerModel = function (modelName) {
+        selectedComposerModel = modelName;
+        localStorage.setItem('linkpilot_agent_model', modelName);
+        const label = document.getElementById('agent-active-model-name');
+        if (label) label.textContent = modelName;
+        const modelMenu = document.getElementById('agent-model-dropdown');
+        if (modelMenu) modelMenu.classList.add('hidden');
+        showNotification('info', `Active model set to: ${modelName}`);
+    };
+
+    window.toggleAgentVoiceInput = function () {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            showNotification('warning', 'Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.');
+            return;
+        }
+
+        const micBtn = document.getElementById('agent-mic-button');
+        const inputEl = document.getElementById('agent-user-prompt-input');
+
+        if (isVoiceListening && speechRecognitionInstance) {
+            speechRecognitionInstance.stop();
+            return;
+        }
+
+        try {
+            speechRecognitionInstance = new SpeechRecognition();
+            speechRecognitionInstance.continuous = false;
+            speechRecognitionInstance.interimResults = true;
+            speechRecognitionInstance.lang = 'en-US';
+
+            speechRecognitionInstance.onstart = function () {
+                isVoiceListening = true;
+                if (micBtn) {
+                    micBtn.classList.add('bg-rose-100', 'text-rose-600', 'animate-pulse');
+                    micBtn.title = 'Listening... click to stop';
+                }
+                showNotification('info', 'Listening... Speak your prompt.');
+            };
+
+            speechRecognitionInstance.onresult = function (event) {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    transcript += event.results[i][0].transcript;
+                }
+                if (inputEl) {
+                    inputEl.value = transcript;
+                    autoResizeTextarea(inputEl);
+                }
+            };
+
+            speechRecognitionInstance.onerror = function (event) {
+                isVoiceListening = false;
+                if (micBtn) {
+                    micBtn.classList.remove('bg-rose-100', 'text-rose-600', 'animate-pulse');
+                    micBtn.title = 'Voice input (Dictate)';
+                }
+                if (event.error !== 'no-speech') {
+                    showNotification('warning', `Voice input notice: ${event.error}`);
+                }
+            };
+
+            speechRecognitionInstance.onend = function () {
+                isVoiceListening = false;
+                if (micBtn) {
+                    micBtn.classList.remove('bg-rose-100', 'text-rose-600', 'animate-pulse');
+                    micBtn.title = 'Voice input (Dictate)';
+                }
+            };
+
+            speechRecognitionInstance.start();
+        } catch (err) {
+            showNotification('error', `Microphone access error: ${err.message}`);
+        }
+    };
+
+    // Close floating popups when clicking outside
+    document.addEventListener('click', function (e) {
+        const plusMenu = document.getElementById('agent-plus-menu');
+        const plusBtn = document.getElementById('agent-plus-btn');
+        if (plusMenu && !plusMenu.classList.contains('hidden')) {
+            if (!plusMenu.contains(e.target) && !plusBtn?.contains(e.target)) {
+                plusMenu.classList.add('hidden');
+            }
+        }
+        const modelMenu = document.getElementById('agent-model-dropdown');
+        const modelBtn = document.getElementById('agent-model-pill-btn');
+        if (modelMenu && !modelMenu.classList.contains('hidden')) {
+            if (!modelMenu.contains(e.target) && !modelBtn?.contains(e.target)) {
+                modelMenu.classList.add('hidden');
+            }
+        }
+    });
 
     const defaultScheduledTasks = [
         {
@@ -187,54 +301,113 @@
                         <!-- Messages or Welcome State injected dynamically -->
                     </div>
 
-                    <!-- Floating Bottom Composer Area (Premium Elevated Card) -->
+                    <!-- Floating Bottom Composer Area (Exact match to User Screenshot) -->
                     <div id="agent-composer-bar" class="shrink-0 px-4 md:px-6 pb-4 pt-1 z-10">
-                        <div class="max-w-3xl mx-auto space-y-2">
+                        <div class="max-w-3xl mx-auto space-y-1.5 relative">
                             <!-- Attachment preview pill -->
-                            <div id="agent-attachment-preview" class="hidden flex items-center space-x-2 px-3 py-1.5 bg-indigo-50/90 border border-indigo-200/80 rounded-xl w-max text-xs text-indigo-900 shadow-2xs backdrop-blur-xs">
-                                <i data-lucide="paperclip" class="h-3.5 w-3.5 text-indigo-600"></i>
+                            <div id="agent-attachment-preview" class="hidden flex items-center space-x-2 px-3 py-1.5 bg-violet-50/90 border border-violet-200/80 rounded-xl w-max text-xs text-violet-900 shadow-2xs backdrop-blur-xs mb-1">
+                                <i data-lucide="paperclip" class="h-3.5 w-3.5 text-violet-600"></i>
                                 <span id="agent-attachment-name" class="font-medium truncate max-w-xs">file.pdf</span>
                                 <button type="button" onclick="clearAgentAttachment()" class="hover:text-rose-600 p-0.5 rounded cursor-pointer transition" title="Remove attachment"><i data-lucide="x" class="h-3 w-3"></i></button>
                             </div>
 
-                            <!-- Premium Floating Composer Card -->
-                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="relative flex flex-col rounded-[22px] px-3.5 py-2.5 md:px-4 md:py-3 transition-all duration-200">
+                            <!-- Plus Action Popover Menu (Above Plus Button) -->
+                            <div id="agent-plus-menu" class="hidden absolute left-2 bottom-16 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-1.5 px-1 min-w-[210px] z-40 animate-fade-in">
+                                <button type="button" onclick="document.getElementById('agent-file-picker').click(); toggleAgentPlusMenu(false);" class="w-full flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 rounded-xl transition cursor-pointer">
+                                    <div class="w-7 h-7 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="paperclip" class="h-4 w-4"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-semibold text-slate-800">Attach File</div>
+                                        <div class="text-[10px] text-slate-400 font-normal">Documents, images, CSV</div>
+                                    </div>
+                                </button>
+                                <button type="button" onclick="openAgentAppsModal(); toggleAgentPlusMenu(false);" class="w-full flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-violet-50 hover:text-violet-700 rounded-xl transition cursor-pointer">
+                                    <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                                        <i data-lucide="layout-grid" class="h-4 w-4"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-semibold text-slate-800">AI Tools & Apps</div>
+                                        <div class="text-[10px] text-slate-400 font-normal">WhatsApp, CRM, Search</div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Pill Input Capsule (Screenshot Match) -->
+                            <form id="agent-composer-form" onsubmit="handleAgentSendMessage(event)" class="agent-capsule-composer relative flex items-center bg-white rounded-full px-2 py-1.5 md:px-2.5 md:py-2 border border-slate-200/90 transition-all duration-200">
                                 <input type="file" id="agent-file-picker" class="hidden" onchange="handleAgentFileSelected(event)">
 
-                                <!-- Textarea with completely borderless reset and modern placeholder -->
-                                <textarea id="agent-user-prompt-input" rows="1" placeholder="Ask LinkPilot AI anything... or explore Tools below" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-sm md:text-[14.5px] text-slate-800 placeholder-slate-400 font-normal px-1 py-1 max-h-40 resize-none leading-relaxed"></textarea>
+                                <!-- Far Left: Soft Round Plus Button (+) -->
+                                <button type="button" id="agent-plus-btn" onclick="toggleAgentPlusMenu(event)" class="agent-round-plus-btn h-9 w-9 md:h-10 md:w-10 rounded-full bg-[#f4f4f5] hover:bg-[#e4e4e7] active:scale-95 text-[#18181b] transition flex items-center justify-center shrink-0 cursor-pointer shadow-2xs" title="Add file or tools">
+                                    <i data-lucide="plus" class="h-4 w-4 stroke-[2.4]"></i>
+                                </button>
 
-                                <!-- Bottom Toolbar Row -->
-                                <div class="flex items-center justify-between pt-2 mt-1 border-t border-slate-100/80">
-                                    <div class="flex items-center space-x-2">
-                                        <!-- Attach button -->
-                                        <button type="button" onclick="document.getElementById('agent-file-picker').click()" class="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100/90 active:scale-95 transition rounded-xl flex items-center justify-center cursor-pointer" title="Attach file or screenshot">
-                                            <i data-lucide="paperclip" class="h-4 w-4"></i>
-                                        </button>
+                                <!-- Center Textarea (Exact placeholder: "What can I help you with today?") -->
+                                <div class="flex-1 min-w-0 px-3 md:px-4 flex items-center">
+                                    <textarea id="agent-user-prompt-input" rows="1" placeholder="What can I help you with today?" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[14.5px] md:text-[15px] text-slate-800 placeholder-[#71717a] font-normal px-0 py-1.5 max-h-36 resize-none leading-normal"></textarea>
+                                </div>
 
-                                        <!-- Premium Tools Button with Logo Badge -->
-                                        <button type="button" id="agent-tools-trigger-btn" onclick="openAgentAppsModal()" class="agent-tools-pill group flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-slate-100/90 hover:bg-indigo-50/80 border border-slate-200/80 hover:border-indigo-200 text-slate-700 hover:text-indigo-600 transition cursor-pointer shadow-2xs" title="Explore Connected Apps & Tools">
-                                            <span class="flex h-2 w-2 relative">
-                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                            </span>
-                                            <div class="flex items-center space-x-1">
-                                                <i data-lucide="layout-grid" class="h-3.5 w-3.5 text-indigo-500 group-hover:scale-110 transition-transform"></i>
-                                                <span class="text-xs font-semibold text-slate-700 group-hover:text-indigo-600">Tools</span>
+                                <!-- Far Right Action Group: Mic and Violet Arrow-Up Send Button -->
+                                <div class="flex items-center space-x-1.5 md:space-x-2 shrink-0">
+                                    <!-- Microphone Button (Dictation) -->
+                                    <button type="button" id="agent-mic-button" onclick="toggleAgentVoiceInput()" class="h-9 w-9 md:h-10 md:w-10 rounded-full text-[#18181b] hover:bg-[#f4f4f5] active:scale-95 transition flex items-center justify-center cursor-pointer" title="Voice input (Dictate)">
+                                        <i data-lucide="mic" class="h-4.5 w-4.5 stroke-[1.9]"></i>
+                                    </button>
+
+                                    <!-- Purple Circular Send Button -->
+                                    <button type="submit" id="agent-send-button" class="agent-purple-send-btn h-9 w-9 md:h-10 md:w-10 rounded-full bg-[#a259ff] hover:bg-[#9333ea] active:scale-95 text-white transition-all duration-200 shadow-md flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed" title="Send message">
+                                        <i data-lucide="arrow-up" class="h-4.5 w-4.5 text-white stroke-[2.4]"></i>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Bottom Right Toolbar: Model X & Sliders Controls (Exact Screenshot Match) -->
+                            <div class="flex items-center justify-end space-x-2 pt-1 px-2">
+                                <!-- Model X Dropdown -->
+                                <div class="relative">
+                                    <button type="button" id="agent-model-pill-btn" onclick="toggleAgentModelDropdown(event)" class="flex items-center space-x-1 px-3 py-1 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-full border border-slate-200/80 hover:border-slate-300 text-xs font-medium transition shadow-2xs cursor-pointer">
+                                        <span id="agent-active-model-name">${escapeHtml(selectedComposerModel)}</span>
+                                        <i data-lucide="chevron-down" class="h-3.5 w-3.5 text-slate-400"></i>
+                                    </button>
+                                    <!-- Model Selector Dropdown Menu -->
+                                    <div id="agent-model-dropdown" class="hidden absolute right-0 bottom-full mb-1.5 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/90 py-1.5 z-40 animate-fade-in">
+                                        <div class="px-3.5 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select AI Model</div>
+                                        <button type="button" onclick="setComposerModel('Model X')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-semibold flex items-center justify-between cursor-pointer transition">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-2 h-2 rounded-full bg-violet-500"></span>
+                                                <span>Model X (Auto)</span>
                                             </div>
-                                            <i data-lucide="chevron-down" class="h-3 w-3 text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
+                                            <span class="text-[10px] bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded-full font-bold">Smart</span>
                                         </button>
-                                    </div>
-
-                                    <div class="flex items-center space-x-2.5">
-                                        <span class="text-[11px] text-slate-400 font-medium hidden sm:inline-block">↵ to send</span>
-                                        <!-- Send Button with sleek elevation -->
-                                        <button type="submit" id="agent-send-button" class="h-8 w-8 bg-slate-900 hover:bg-indigo-600 active:scale-95 text-white rounded-full transition-all duration-200 shadow-xs flex items-center justify-center shrink-0 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-900" title="Send message">
-                                            <i data-lucide="arrow-up" class="h-4 w-4 text-white"></i>
+                                        <button type="button" onclick="setComposerModel('Gemini 3 Flash')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-medium flex items-center justify-between cursor-pointer transition">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                                <span>Gemini 3 Flash</span>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 font-mono">Google</span>
+                                        </button>
+                                        <button type="button" onclick="setComposerModel('Llama 3.1 8B')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-medium flex items-center justify-between cursor-pointer transition">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                                <span>Llama 3.1 8B</span>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 font-mono">Groq</span>
+                                        </button>
+                                        <button type="button" onclick="setComposerModel('GPT-4o Mini')" class="w-full text-left px-3.5 py-2 text-xs text-slate-700 hover:bg-violet-50 hover:text-violet-700 font-medium flex items-center justify-between cursor-pointer transition">
+                                            <div class="flex items-center space-x-2">
+                                                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                                                <span>GPT-4o Mini</span>
+                                            </div>
+                                            <span class="text-[10px] text-slate-400 font-mono">OpenAI</span>
                                         </button>
                                     </div>
                                 </div>
-                            </form>
+
+                                <!-- Sliders Equalizer Button (Opens Connected Tools popup) -->
+                                <button type="button" id="agent-tools-slider-btn" onclick="openAgentAppsModal()" class="h-7 w-7 rounded-lg text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/80 hover:border-slate-300 transition shadow-2xs cursor-pointer flex items-center justify-center" title="AI Tools & Connected Apps">
+                                    <i data-lucide="sliders" class="h-3.5 w-3.5"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </main>
@@ -1136,7 +1309,19 @@
      */
     window.autoResizeTextarea = function (textarea) {
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
+        const newHeight = Math.min(Math.max(textarea.scrollHeight, 28), 140);
+        textarea.style.height = newHeight + 'px';
+
+        const form = document.getElementById('agent-composer-form');
+        if (form) {
+            if (newHeight > 42) {
+                form.classList.remove('rounded-full');
+                form.classList.add('rounded-[26px]');
+            } else {
+                form.classList.add('rounded-full');
+                form.classList.remove('rounded-[26px]');
+            }
+        }
 
         const sendBtn = document.getElementById('agent-send-button');
         if (sendBtn) {
@@ -1649,8 +1834,25 @@
 
         input.value = '';
         input.style.height = 'auto';
+        const form = document.getElementById('agent-composer-form');
+        if (form) {
+            form.classList.add('rounded-full');
+            form.classList.remove('rounded-[26px]');
+        }
         const sendBtn = document.getElementById('agent-send-button');
         if (sendBtn) sendBtn.classList.remove('agent-send-active');
+
+        if (isVoiceListening && speechRecognitionInstance) {
+            try { speechRecognitionInstance.stop(); } catch (err) {}
+            isVoiceListening = false;
+        }
+        const micBtn = document.getElementById('agent-mic-button');
+        if (micBtn) micBtn.classList.remove('bg-rose-100', 'text-rose-600', 'animate-pulse');
+
+        const plusMenu = document.getElementById('agent-plus-menu');
+        if (plusMenu) plusMenu.classList.add('hidden');
+        const modelMenu = document.getElementById('agent-model-dropdown');
+        if (modelMenu) modelMenu.classList.add('hidden');
 
         if (!activeConversationId) {
             await createNewAgentChat();
@@ -2519,11 +2721,11 @@
         const btn = document.getElementById('agent-send-button');
         if (btn) {
             if (generating) {
-                btn.innerHTML = `<i data-lucide="loader-2" class="h-4 w-4 animate-spin"></i>`;
+                btn.innerHTML = `<i data-lucide="loader-2" class="h-4.5 w-4.5 text-white animate-spin"></i>`;
                 btn.disabled = true;
                 btn.classList.add('opacity-75');
             } else {
-                btn.innerHTML = `<i data-lucide="arrow-up" class="h-4 w-4"></i>`;
+                btn.innerHTML = `<i data-lucide="arrow-up" class="h-4.5 w-4.5 text-white stroke-[2.4]"></i>`;
                 btn.disabled = false;
                 btn.classList.remove('opacity-75');
             }

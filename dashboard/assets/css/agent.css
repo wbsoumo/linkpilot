@@ -436,27 +436,35 @@
     padding-bottom: 1.25rem !important;
 }
 
+/* Capsule Composer - Screenshot Matching Design */
+#agent-composer-form.agent-capsule-composer,
 #agent-composer-form {
     background: #ffffff !important;
-    border: 1.5px solid #e2e8f0 !important;
-    border-radius: 22px !important;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.07), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 9999px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     position: relative !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 6px 8px !important;
 }
 
+#agent-composer-form.agent-capsule-composer:hover,
 #agent-composer-form:hover {
     border-color: #cbd5e1 !important;
-    box-shadow: 0 8px 26px -3px rgba(15, 23, 42, 0.1), 0 2px 8px -1px rgba(15, 23, 42, 0.04) !important;
+    box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.08), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
 }
 
+#agent-composer-form.agent-capsule-composer:focus-within,
 #agent-composer-form:focus-within {
-    border-color: #6366f1 !important;
+    border-color: #c084fc !important;
     background: #ffffff !important;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18), 0 12px 32px -4px rgba(99, 102, 241, 0.14) !important;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.16), 0 8px 28px -3px rgba(168, 85, 247, 0.12) !important;
 }
 
-/* Explicitly override :not(aside) textarea from style.css */
+/* Explicitly override textarea from global style.css */
 #agent-composer-form textarea#agent-user-prompt-input,
 #agent-user-prompt-input,
 :not(aside) #agent-composer-form textarea {
@@ -466,12 +474,12 @@
     box-shadow: none !important;
     -webkit-appearance: none !important;
     appearance: none !important;
-    font-size: 0.935rem !important;
-    line-height: 1.55 !important;
-    color: #0f172a !important;
-    padding: 6px 6px 4px 6px !important;
-    min-height: 42px !important;
-    max-height: 160px !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.5 !important;
+    color: #18181b !important;
+    padding: 4px 0 !important;
+    min-height: 28px !important;
+    max-height: 140px !important;
     resize: none !important;
     width: 100% !important;
 }
@@ -486,9 +494,87 @@
 }
 
 #agent-user-prompt-input::placeholder {
-    color: #94a3b8 !important;
+    color: #71717a !important;
     font-weight: 400 !important;
-    letter-spacing: -0.01em !important;
+    letter-spacing: normal !important;
+}
+
+/* Round Plus Button */
+.agent-round-plus-btn,
+#agent-plus-btn {
+    background: #f4f4f5 !important;
+    color: #18181b !important;
+    border: none !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 50% !important;
+    transition: all 0.15s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.agent-round-plus-btn:hover,
+#agent-plus-btn:hover {
+    background: #e4e4e7 !important;
+    color: #09090b !important;
+}
+
+/* Mic Button */
+#agent-mic-button {
+    color: #18181b !important;
+    background: transparent !important;
+    border: none !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 50% !important;
+    transition: all 0.15s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#agent-mic-button:hover {
+    background: #f4f4f5 !important;
+}
+
+/* Purple Send Button (Matching Screenshot) */
+#agent-send-button.agent-purple-send-btn,
+#agent-send-button {
+    background: #a259ff !important;
+    color: #ffffff !important;
+    border: none !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 50% !important;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 8px rgba(162, 89, 255, 0.35) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#agent-send-button:hover:not(:disabled) {
+    background: #9333ea !important;
+    transform: scale(1.06) !important;
+    box-shadow: 0 4px 16px rgba(147, 51, 234, 0.45) !important;
+}
+
+#agent-send-button:active:not(:disabled) {
+    transform: scale(0.94) !important;
+}
+
+#agent-send-button.agent-send-active {
+    background: #9333ea !important;
+    box-shadow: 0 4px 14px rgba(147, 51, 234, 0.45) !important;
+}
+
+#agent-send-button * {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
 }
 
 /* Tools pill button */
@@ -502,35 +588,6 @@
     border-color: #c7d2fe !important;
     transform: translateY(-0.5px) !important;
     box-shadow: 0 2px 8px -2px rgba(99, 102, 241, 0.2) !important;
-}
-
-/* Send button */
-#agent-send-button {
-    background: #0f172a !important;
-    color: #ffffff !important;
-    border: none !important;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12) !important;
-}
-
-#agent-send-button:hover:not(:disabled) {
-    background: #4f46e5 !important;
-    transform: scale(1.06) !important;
-    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35) !important;
-}
-
-#agent-send-button:active:not(:disabled) {
-    transform: scale(0.92) !important;
-}
-
-#agent-send-button.agent-send-active {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45) !important;
-}
-
-#agent-send-button * {
-    color: #ffffff !important;
-    stroke: #ffffff !important;
 }
 
 /* Tools Modal & Brand Cards */

@@ -91,7 +91,7 @@ if (!$executed) {
         curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
         curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($chCommit, CURLOPT_TIMEOUT, 10);
+        curl_setopt($chCommit, CURLOPT_TIMEOUT, 3);
         $commitJson = curl_exec($chCommit);
         $commitData = json_decode($commitJson, true);
         if (!empty($commitData['sha'])) {
@@ -111,7 +111,7 @@ if (!$executed) {
     $synced = 0;
 
     foreach ($syncFiles as $file) {
-        $url = $baseUrl . $file;
+        $url = $baseUrl . $file . '?_t=' . time();
         $target = $root . '/' . $file;
 
         $ch = curl_init($url);

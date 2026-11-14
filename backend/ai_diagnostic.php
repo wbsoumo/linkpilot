@@ -32,16 +32,17 @@ if (isset($_GET['sync'])) {
     curl_setopt($chCommit, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($chCommit, CURLOPT_USERAGENT, "LinkPilot-Updater");
     curl_setopt($chCommit, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($chCommit, CURLOPT_TIMEOUT, 3);
     $commitData = json_decode(curl_exec($chCommit), true);
     $sha = $commitData['sha'] ?? 'main';
     $baseUrl = "https://raw.githubusercontent.com/wbsoumo/linkpilot/{$sha}/";
     $synced = 0;
     foreach ($syncFiles as $f) {
-        $ch = curl_init($baseUrl . $f);
+        $ch = curl_init($baseUrl . $f . '?_t=' . time());
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
         $c = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -80,52 +81,6 @@ try {
     echo "[!] DB heal error: " . $e->getMessage() . "\n";
 }
 
-// Live Agent Orchestrator Test (WhatsApp query from user screenshot)
-echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('Who sent the latest WhatsApp message?') ---\n";
-require_once __DIR__ . '/agent_orchestrator.php';
-try {
-    $conv = AgentOrchestrator::createConversation($adminId, 'Diag Test WhatsApp', $db);
-    $convId = $conv['id'] ?? uniqid('conv_');
-    $t0 = microtime(true);
-    $orchRes = AgentOrchestrator::processChat($adminId, $convId, 'Who sent the latest WhatsApp message?', [], null, $db);
-    $orchTook = round(microtime(true) - $t0, 2);
-    echo "Orchestrator responded in {$orchTook}s:\n";
-    echo "Status: " . ($orchRes['status'] ?? 'unknown') . "\n";
-    $replyText = $orchRes['content'] ?? ($orchRes['message']['content'] ?? 'NO CONTENT');
-    echo "Reply: " . $replyText . "\n";
-    if (!empty($orchRes['steps'])) {
-        echo "Steps executed: " . count($orchRes['steps']) . "\n";
-        foreach ($orchRes['steps'] as $s) {
-            echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
-        }
-    }
-} catch (Throwable $e) {
-    echo "Orchestrator Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
-}
-
-// Live Agent Orchestrator Test (Email query from user screenshot)
-echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('send a mail to soumojit.200@gmail.com about his 2000 rs pending payment') ---\n";
-try {
-    $convEmail = AgentOrchestrator::createConversation($adminId, 'Diag Test Email', $db);
-    $convEmailId = $convEmail['id'] ?? uniqid('conv_');
-    $t0 = microtime(true);
-    $orchEmail = AgentOrchestrator::processChat($adminId, $convEmailId, 'send a mail to soumojit.200@gmail.com about his 2000 rs pending payment', [], null, $db);
-    $orchTook = round(microtime(true) - $t0, 2);
-    echo "Email test responded in {$orchTook}s:\n";
-    echo "Status: " . ($orchEmail['status'] ?? 'unknown') . "\n";
-    $replyText = $orchEmail['content'] ?? ($orchEmail['message']['content'] ?? 'NO CONTENT');
-    echo "Reply: " . $replyText . "\n";
-    if (!empty($orchEmail['steps'])) {
-        echo "Steps executed: " . count($orchEmail['steps']) . "\n";
-        foreach ($orchEmail['steps'] as $s) {
-            echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
-        }
-    }
-} catch (Throwable $e) {
-    echo "Email Test Error: " . $e->getMessage() . "\n";
-}
-echo "Date: " . date('Y-m-d H:i:s') . "\n\n";
-
 // 1. Check Super Admin User
 $stmt = $db->query("SELECT id, name, email, role, active_ai_provider, active_ai_model, CASE WHEN google_key IS NOT NULL AND google_key != '' THEN 1 ELSE 0 END as has_google, CASE WHEN openrouter_key IS NOT NULL AND openrouter_key != '' THEN 1 ELSE 0 END as has_or, CASE WHEN github_key IS NOT NULL AND github_key != '' THEN 1 ELSE 0 END as has_gh FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -142,6 +97,7 @@ echo "\nUser AI Keys in DB:\n";
 print_r($aiKeys);
 
 // 3. Resolve candidates using getAllAvailableProviders
+require_once __DIR__ . '/agent_ai_client.php';
 $candidates = AgentAIClient::getAllAvailableProviders($adminId);
 echo "\nResolved Candidates for Admin:\n";
 foreach ($candidates as $idx => $c) {
@@ -149,109 +105,53 @@ foreach ($candidates as $idx => $c) {
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 
-// Test Google native with gemini-3-flash-preview and tools
-echo "\n--- TESTING GOOGLE NATIVE WITH TOOLS ('Who sent the latest WhatsApp message?') ---\n";
-require_once __DIR__ . '/ai_tool_registry.php';
-$testTools = AIToolRegistry::getToolsForMessage('Who sent the latest WhatsApp message?', ['path' => 'business_ops']);
-echo "Tool count: " . count($testTools) . "\n";
-$systemMsg = [['role' => 'system', 'content' => AgentOrchestrator::buildSystemPrompt($adminId, $db)]];
-$userMsgs = [['role' => 'user', 'content' => 'Who sent the latest WhatsApp message?']];
-$fullMsgs = array_merge($systemMsg, $userMsgs);
-
-$refMethod = new ReflectionMethod('AgentAIClient', 'callGoogleNative');
-$refMethod->setAccessible(true);
-try {
-    $t0 = microtime(true);
-    $gnRes = $refMethod->invoke(null, $candidates[0]['api_key'], 'gemini-3-flash-preview', $fullMsgs, $testTools);
-    $took = round(microtime(true) - $t0, 2);
-    echo "callGoogleNative returned in {$took}s:\n";
-    print_r($gnRes);
-} catch (Throwable $e) {
-    echo "callGoogleNative threw exception: " . $e->getMessage() . "\n";
-}
-
-$cleanModel = 'gemini-3-flash-preview';
-$url = "https://generativelanguage.googleapis.com/v1beta/models/{$cleanModel}:generateContent?key=" . urlencode($candidates[0]['api_key']);
-$funcDecls = [];
-foreach ($testTools as $t) {
-    if (!empty($t['function'])) {
-        $fn = $t['function'];
-        $decl = ['name' => $fn['name'], 'description' => $fn['description'] ?? ''];
-        if (!empty($fn['parameters'])) $decl['parameters'] = $fn['parameters'];
-        $funcDecls[] = $decl;
+if (isset($_GET['run_tests'])) {
+    // Live Agent Orchestrator Test (WhatsApp query from user screenshot)
+    echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('Who sent the latest WhatsApp message?') ---\n";
+    require_once __DIR__ . '/agent_orchestrator.php';
+    try {
+        $conv = AgentOrchestrator::createConversation($adminId, 'Diag Test WhatsApp', $db);
+        $convId = $conv['id'] ?? uniqid('conv_');
+        $t0 = microtime(true);
+        $orchRes = AgentOrchestrator::processChat($adminId, $convId, 'Who sent the latest WhatsApp message?', [], null, $db);
+        $orchTook = round(microtime(true) - $t0, 2);
+        echo "Orchestrator responded in {$orchTook}s:\n";
+        echo "Status: " . ($orchRes['status'] ?? 'unknown') . "\n";
+        $replyText = $orchRes['content'] ?? ($orchRes['message']['content'] ?? 'NO CONTENT');
+        echo "Reply: " . $replyText . "\n";
+        if (!empty($orchRes['steps'])) {
+            echo "Steps executed: " . count($orchRes['steps']) . "\n";
+            foreach ($orchRes['steps'] as $s) {
+                echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
+            }
+        }
+    } catch (Throwable $e) {
+        echo "Orchestrator Error: " . $e->getMessage() . "\n" . $e->getTraceAsString() . "\n";
     }
-}
-$rawPayload = [
-    'contents' => [
-        ['role' => 'user', 'parts' => [['text' => 'Who sent the latest WhatsApp message?']]]
-    ],
-    'tools' => [['function_declarations' => $funcDecls]]
-];
-$ch = curl_init($url);
-curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($rawPayload));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-$rawResp = curl_exec($ch);
-$rawCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-echo "Raw Google with tools HTTP $rawCode:\n" . substr($rawResp, 0, 1000) . "\n";
 
-// Query Groq models
-echo "\n--- CALLING Groq /v1/models ---\n";
-$ch = curl_init("https://api.groq.com/openai/v1/models");
-curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer " . $candidates[1]['api_key']]);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-$groqRes = curl_exec($ch);
-$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-echo "Groq models HTTP $code:\n";
-$groqJson = json_decode($groqRes, true);
-if (!empty($groqJson['data'])) {
-    $gModels = array_map(function($m) { return $m['id']; }, $groqJson['data']);
-    echo "Available Groq models: " . implode(', ', array_slice($gModels, 0, 20)) . "\n";
+    // Live Agent Orchestrator Test (Email query from user screenshot)
+    echo "\n--- LIVE AGENT ORCHESTRATOR TEST ('send a mail to soumojit.200@gmail.com about his 2000 rs pending payment') ---\n";
+    try {
+        $convEmail = AgentOrchestrator::createConversation($adminId, 'Diag Test Email', $db);
+        $convEmailId = $convEmail['id'] ?? uniqid('conv_');
+        $t0 = microtime(true);
+        $orchEmail = AgentOrchestrator::processChat($adminId, $convEmailId, 'send a mail to soumojit.200@gmail.com about his 2000 rs pending payment', [], null, $db);
+        $orchTook = round(microtime(true) - $t0, 2);
+        echo "Email test responded in {$orchTook}s:\n";
+        echo "Status: " . ($orchEmail['status'] ?? 'unknown') . "\n";
+        $replyText = $orchEmail['content'] ?? ($orchEmail['message']['content'] ?? 'NO CONTENT');
+        echo "Reply: " . $replyText . "\n";
+        if (!empty($orchEmail['steps'])) {
+            echo "Steps executed: " . count($orchEmail['steps']) . "\n";
+            foreach ($orchEmail['steps'] as $s) {
+                echo "  - Step tool: " . ($s['tool_name'] ?? $s['tool_id'] ?? 'unknown') . "\n";
+            }
+        }
+    } catch (Throwable $e) {
+        echo "Email Test Error: " . $e->getMessage() . "\n";
+    }
 } else {
-    echo "Groq response: " . substr($groqRes, 0, 500) . "\n";
-}
-
-// Test OpenRouter with suggested slug: meta-llama/llama-3.1-8b-instruct
-echo "\n--- TEST OpenRouter with meta-llama/llama-3.1-8b-instruct ---\n";
-$ch = curl_init("https://openrouter.ai/api/v1/chat/completions");
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    "Authorization: Bearer " . $candidates[2]['api_key'],
-    "Content-Type: application/json",
-    "HTTP-Referer: https://linkpilot.work",
-    "X-Title: LinkPilot AI Agent"
-]);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-    'model' => 'meta-llama/llama-3.1-8b-instruct',
-    'messages' => [['role' => 'user', 'content' => 'hello']],
-    'max_tokens' => 20
-]));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-$orRes = curl_exec($ch);
-$orCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
-echo "OpenRouter test HTTP $orCode:\n";
-echo "Response: " . substr($orRes, 0, 500) . "\n";
-
-
-// 5. Test all rows in user_ai_keys
-echo "\n--- ALL USER_AI_KEYS TABLE ROWS ---\n";
-$stmtAll = $db->query("SELECT id, user_id, provider, status, api_key FROM user_ai_keys ORDER BY id ASC");
-$allKeys = $stmtAll->fetchAll(PDO::FETCH_ASSOC);
-foreach ($allKeys as $kRow) {
-    $dec = decryptData($kRow['api_key']);
-    $finalKey = ($dec !== false) ? $dec : $kRow['api_key'];
-    $mKey = substr($finalKey, 0, 8) . '...' . substr($finalKey, -4);
-    echo "ID: {$kRow['id']} | Provider: {$kRow['provider']} | Status: {$kRow['status']} | Key: {$mKey}\n";
+    echo "\n(To run live LLM test chats, pass &run_tests=1 in URL)\n";
 }
 
 echo "\n=== END DIAGNOSTIC ===\n";

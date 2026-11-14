@@ -2414,19 +2414,30 @@
             finalArgs = window.agentPendingApprovals[cardId].arguments;
         }
 
-        // Close and lock interactive buttons immediately
+        const isEmailAction = (toolId === 'send_email') || (finalArgs && (finalArgs.recipient || finalArgs.to));
+
+        // Immediately close & remove edit mode if active on this card
+        if (cardId) {
+            const editTab = document.getElementById(`email-tab-edit-${cardId}`);
+            if (editTab) editTab.remove();
+            const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
+            if (editPanel) editPanel.remove();
+            window.switchEmailCardTab(cardId, 'html');
+        }
+
+        // Close and lock interactive buttons immediately with animated progress indicator
         const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : null;
         if (actionsEl) {
             actionsEl.innerHTML = `
                 <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl animate-pulse">
                     <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-emerald-600 shrink-0"></i>
-                    <span>Executing approved action...</span>
+                    <span>${isEmailAction ? 'Sending email...' : 'Executing approved action...'}</span>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
         }
 
-        showNotification('info', `Executing approved action: ${toolId}...`);
+        showNotification('info', isEmailAction ? 'Sending email...' : `Executing approved action: ${toolId}...`);
         try {
             const res = await apiCall('crm/agent.php', 'POST', {
                 action: 'approve_action',
@@ -2435,14 +2446,14 @@
                 arguments: finalArgs
             });
 
-            showNotification('success', 'Action executed successfully!');
+            showNotification('success', isEmailAction ? 'Email dispatched successfully!' : 'Action executed successfully!');
 
             // Permanently close buttons with confirmed badge
             if (actionsEl) {
                 actionsEl.innerHTML = `
                     <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl w-fit">
                         <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 shrink-0"></i>
-                        <span>Action Approved & Executed</span>
+                        <span>${isEmailAction ? 'Email Approved & Dispatched' : 'Action Approved & Executed'}</span>
                     </div>
                 `;
                 if (window.lucide) lucide.createIcons();
@@ -2464,13 +2475,24 @@
      * Cancels/rejects action, disables & closes interactive buttons immediately.
      */
     window.rejectAgentAction = async function (toolId, cardId) {
+        const isEmailAction = (toolId === 'send_email');
+
+        // Immediately close & remove edit mode if active on this card
+        if (cardId) {
+            const editTab = document.getElementById(`email-tab-edit-${cardId}`);
+            if (editTab) editTab.remove();
+            const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
+            if (editPanel) editPanel.remove();
+            window.switchEmailCardTab(cardId, 'html');
+        }
+
         // Close and lock interactive buttons immediately
         const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : null;
         if (actionsEl) {
             actionsEl.innerHTML = `
                 <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3.5 py-2 rounded-xl w-fit">
                     <i data-lucide="x-circle" class="h-4 w-4 text-rose-600 shrink-0"></i>
-                    <span>Action Cancelled / Rejected</span>
+                    <span>${isEmailAction ? 'Email Sending Cancelled / Rejected' : 'Action Cancelled / Rejected'}</span>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();

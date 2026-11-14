@@ -273,6 +273,27 @@ You are not a passive text generator. You execute real actions using your tool l
         }
 
         // =========================================================================
+        // 0. CONVERSATIONAL APPROVAL & REJECTION INTERCEPTOR
+        // Detects if the user replied with "send that mail", "done send that", "yes",
+        // "approve", "cancel", etc., to an action waiting for approval without
+        // clicking the button, executes it, and emits the resolved UI state!
+        // =========================================================================
+        if (empty($options['approved_tool_id'])) {
+            $stmtPending = $db->prepare("SELECT id, tool_calls_json, tool_results_json FROM ai_agent_messages WHERE conversation_id = ? AND user_id = ? AND status = 'waiting_approval' ORDER BY id DESC LIMIT 1");
+            $stmtPending->execute([$convId, $userId]);
+            $pendingRow = $stmtPending->fetch(PDO::FETCH_ASSOC);
+
+            if ($pendingRow) {
+                $intent = self::checkConversationalApprovalIntent($userMessage);
+                if ($intent === 'approved') {
+                    return self::handleConversationalApproval($pendingRow, $userMessage, $userId, $convId, $streamEmitter, $db);
+                } elseif ($intent === 'rejected') {
+                    return self::handleConversationalRejection($pendingRow, $userMessage, $userId, $convId, $streamEmitter, $db);
+                }
+            }
+        }
+
+        // =========================================================================
         // 1. SMART REQUEST ROUTER CLASSIFICATION
         // =========================================================================
         $classification = AgentRouter::classify($userMessage, $userId, $db);
@@ -661,5 +682,298 @@ You are not a passive text generator. You execute real actions using your tool l
         }
 
         return array_slice(array_unique($suggestions), 0, 3);
+    }
+
+    /**
+     * Determines whether a user message represents conversational approval or rejection
+     * of a pending action waiting for confirmation.
+     *
+     * @param string $userMessage
+     * @return string|null 'approved', 'rejected', or null
+     */
+    public static function checkConversationalApprovalIntent($userMessage) {
+        $msg = trim($userMessage);
+        if (empty($msg)) return null;
+
+        $clean = strtolower(trim(preg_replace('/[^\w\s\']/u', ' ', $msg)));
+        $clean = preg_replace('/\s+/', ' ', $clean);
+
+        // 1. Explicit Rejection / Cancellation checks
+        if (preg_match('/\b(don\'?t\s+send|do\s+not\s+send|never\s+send|cancel|reject|abort|stop|discard|leave\s+it|never\s*mind)\b/i', $clean)) {
+            return 'rejected';
+        }
+        if (preg_match('/^(no|nope|nah|not\s+now|no\s+thanks|don\'?t)\b/i', $clean) && !preg_match('/\b(no\s+problem|no\s+worries)\b/i', $clean)) {
+            return 'rejected';
+        }
+
+        // 2. Explicit Approval checks: e.g. "send that mail", "done send that", "send it", "approve", "go ahead", etc.
+        if (preg_match('/\b(send\s*(?:that|it|this|the\s+mail|the\s+email|email|mail)?|done\s*send\s*(?:that|it|this)?|approve|approved|confirm|confirmed|proceed|execute|go\s*ahead|dispatch)\b/i', $clean)) {
+            // Ensure no negation like "don't send"
+            if (!preg_match('/\b(don\'?t|do\s+not|never|shouldn\'?t|cannot|can\'?t|won\'?t|not)\s+(send|approve|proceed|execute)\b/i', $clean)) {
+                return 'approved';
+            }
+        }
+
+        // 3. Affirmative conversational signals when an action is pending:
+        if (preg_match('/^(yes|yep|yeah|yup|sure|ok|okay|k|done|fine|perfect|looks\s+good|do\s+it|please\s+do|yes\s+please|yes\s+do\s+it|proceed|confirmed?|approved?|go\s+ahead)$/i', $clean)) {
+            return 'approved';
+        }
+
+        // 4. Phrases like "looks good send it", "perfect send that", "done send that"
+        if (preg_match('/\b(looks\s+good|perfect|all\s+good|great|fine)\b.*\b(send|approve|confirm|proceed)\b/i', $clean)) {
+            return 'approved';
+        }
+
+        return null;
+    }
+
+    /**
+     * Executes pending approved action conversationally, updates DB message status,
+     * emits SSE events to transform frontend card, and returns synthesized confirmation.
+     */
+    public static function handleConversationalApproval($pendingRow, $userMessage, $userId, $convId, ?callable $streamEmitter = null, ?PDO $db = null) {
+        if (!$db) $db = Database::getConnection();
+        $pendingMsgId = (int)$pendingRow['id'];
+        $parsedResults = json_decode($pendingRow['tool_results_json'] ?? '{}', true) ?: [];
+        $toolId = $parsedResults['tool_id'] ?? '';
+        $toolName = $parsedResults['tool_name'] ?? $toolId;
+        $toolArgs = $parsedResults['arguments'] ?? [];
+
+        // Check if user specified a replacement recipient in their message
+        if (preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $userMessage, $mEmail)) {
+            $toolArgs['recipient'] = $mEmail[0];
+            $toolArgs['to'] = $mEmail[0];
+        }
+
+        $isEmail = ($toolId === 'send_email') || (!empty($toolArgs['recipient']) && !empty($toolArgs['subject']));
+
+        // 1. Mark pending message as approved in DB
+        $parsedResults['status'] = 'approved';
+        $parsedResults['approved_at'] = date('Y-m-d H:i:s');
+        $parsedResults['approval_mode'] = 'conversational';
+        $parsedResults['arguments'] = $toolArgs;
+
+        $stmtUpd = $db->prepare("UPDATE ai_agent_messages SET status = 'approved', tool_results_json = ? WHERE id = ?");
+        $stmtUpd->execute([json_encode($parsedResults), $pendingMsgId]);
+
+        // 2. Update audit log
+        try {
+            $stmtAudit = $db->prepare("UPDATE ai_agent_audit_logs SET approval_status = 'approved', input_json = ? WHERE conversation_id = ? AND user_id = ? AND tool_id = ? AND approval_status = 'rejected' ORDER BY id DESC LIMIT 1");
+            $stmtAudit->execute([json_encode($toolArgs), $convId, $userId, $toolId]);
+        } catch (Throwable $eAudit) {}
+
+        // 3. Emit SSE event so UI approval card instantly transforms to checked & dispatched state
+        if ($streamEmitter) {
+            $streamEmitter('action_resolved', [
+                'conversation_id' => $convId,
+                'message_id' => $pendingMsgId,
+                'status' => 'approved',
+                'tool_id' => $toolId,
+                'tool_name' => $toolName,
+                'is_email' => $isEmail
+            ]);
+        }
+
+        // 4. Execute the tool
+        $execSuccess = true;
+        $toolResult = [];
+        try {
+            $toolResult = AIToolRegistry::executeTool($toolId, $userId, $toolArgs, $db);
+            if (isset($toolResult['error']) && !empty($toolResult['error'])) {
+                $execSuccess = false;
+            }
+        } catch (Throwable $eExec) {
+            $toolResult = ['error' => $eExec->getMessage()];
+            $execSuccess = false;
+        }
+
+        // 5. Audit log final result
+        try {
+            $stmtAudit = $db->prepare("INSERT INTO ai_agent_audit_logs (user_id, conversation_id, tool_id, tool_name, risk_level, input_json, output_json, approval_status) VALUES (?, ?, ?, ?, 'moderate', ?, ?, 'approved_by_user')");
+            $stmtAudit->execute([$userId, $convId, $toolId, $toolName, json_encode($toolArgs), json_encode($toolResult)]);
+        } catch (Throwable $e) {}
+
+        // 6. Formulate conversational confirmation response
+        if ($isEmail) {
+            $recipient = $toolArgs['recipient'] ?? ($toolArgs['to'] ?? 'the recipient');
+            $subject = $toolArgs['subject'] ?? '';
+            if ($execSuccess) {
+                $confirmText = "I have approved and dispatched your email to **{$recipient}** with subject **\"{$subject}\"**.\n\n" .
+                               "- **Status**: Dispatched successfully\n" .
+                               "- **Recipient**: `{$recipient}`\n" .
+                               "- **Subject**: {$subject}\n\n" .
+                               "What would you like me to do next?";
+            } else {
+                $errMsg = $toolResult['error'] ?? 'Execution error';
+                $confirmText = "I attempted to send the email to **{$recipient}**, but encountered an error: {$errMsg}\n\nPlease verify your email credentials in **Plugins** or try again.";
+            }
+        } else {
+            if ($execSuccess) {
+                $confirmText = "The action **{$toolName}** has been approved and executed successfully.\n\n" .
+                               (isset($toolResult['message']) ? $toolResult['message'] : (isset($toolResult['content']) ? $toolResult['content'] : 'Action completed.')) . "\n\n" .
+                               "What would you like me to do next?";
+            } else {
+                $errMsg = $toolResult['error'] ?? 'Execution error';
+                $confirmText = "The action **{$toolName}** could not be completed: {$errMsg}";
+            }
+        }
+
+        // 7. Stream response tokens & completion
+        $proactiveSuggestions = ["Check inbox for replies", "Schedule follow-up task", "View CRM pipeline"];
+        if ($streamEmitter) {
+            $streamEmitter('token', ['content' => $confirmText]);
+            $streamEmitter('proactive_suggestions', ['suggestions' => $proactiveSuggestions]);
+        }
+
+        // 8. Save Assistant Confirmation Message
+        $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, ?, ?, 'completed', 0)");
+        $stmtAssistant->execute([
+            $convId,
+            $userId,
+            $confirmText,
+            json_encode([
+                [
+                    'step_id' => 'conv_appr_' . bin2hex(random_bytes(4)),
+                    'tool_id' => $toolId,
+                    'tool_name' => $toolName,
+                    'status' => $execSuccess ? 'completed' : 'failed',
+                    'input' => $toolArgs,
+                    'output' => $toolResult
+                ]
+            ]),
+            json_encode([
+                'action_resolved' => [
+                    'tool_id' => $toolId,
+                    'status' => 'approved',
+                    'message_id' => $pendingMsgId,
+                    'tool_result' => $toolResult
+                ]
+            ])
+        ]);
+        $assistantMsgId = $db->lastInsertId();
+
+        $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+
+        if ($streamEmitter) {
+            $streamEmitter('done', [
+                'conversation_id' => $convId,
+                'message_id' => $assistantMsgId,
+                'status' => 'completed',
+                'action_resolved' => [
+                    'tool_id' => $toolId,
+                    'status' => 'approved',
+                    'message_id' => $pendingMsgId
+                ]
+            ]);
+        }
+
+        return [
+            'conversation_id' => $convId,
+            'message_id' => (int)$assistantMsgId,
+            'role' => 'assistant',
+            'content' => $confirmText,
+            'tool_steps' => [
+                [
+                    'tool_id' => $toolId,
+                    'tool_name' => $toolName,
+                    'status' => $execSuccess ? 'completed' : 'failed',
+                    'input' => $toolArgs,
+                    'output' => $toolResult
+                ]
+            ],
+            'status' => 'completed',
+            'action_resolved' => [
+                'tool_id' => $toolId,
+                'status' => 'approved',
+                'message_id' => $pendingMsgId,
+                'tool_result' => $toolResult
+            ]
+        ];
+    }
+
+    /**
+     * Cancels pending action conversationally, updates DB message status,
+     * emits SSE event to update frontend card, and returns cancellation confirmation.
+     */
+    public static function handleConversationalRejection($pendingRow, $userMessage, $userId, $convId, ?callable $streamEmitter = null, ?PDO $db = null) {
+        if (!$db) $db = Database::getConnection();
+        $pendingMsgId = (int)$pendingRow['id'];
+        $parsedResults = json_decode($pendingRow['tool_results_json'] ?? '{}', true) ?: [];
+        $toolId = $parsedResults['tool_id'] ?? '';
+        $toolName = $parsedResults['tool_name'] ?? $toolId;
+        $toolArgs = $parsedResults['arguments'] ?? [];
+        $isEmail = ($toolId === 'send_email') || (!empty($toolArgs['recipient']) && !empty($toolArgs['subject']));
+
+        // 1. Mark pending message as rejected in DB
+        $parsedResults['status'] = 'rejected';
+        $parsedResults['rejected_at'] = date('Y-m-d H:i:s');
+        $parsedResults['approval_mode'] = 'conversational_cancellation';
+
+        $stmtUpd = $db->prepare("UPDATE ai_agent_messages SET status = 'rejected', tool_results_json = ? WHERE id = ?");
+        $stmtUpd->execute([json_encode($parsedResults), $pendingMsgId]);
+
+        // 2. Emit SSE event to cancel UI card
+        if ($streamEmitter) {
+            $streamEmitter('action_resolved', [
+                'conversation_id' => $convId,
+                'message_id' => $pendingMsgId,
+                'status' => 'rejected',
+                'tool_id' => $toolId,
+                'tool_name' => $toolName,
+                'is_email' => $isEmail
+            ]);
+        }
+
+        $cancelText = $isEmail 
+            ? "I have cancelled sending the email. The draft has been discarded.\n\nLet me know if you would like me to adjust the content or assist with anything else!"
+            : "I have cancelled the action **{$toolName}** as requested.\n\nWhat would you like to work on next?";
+
+        if ($streamEmitter) {
+            $streamEmitter('token', ['content' => $cancelText]);
+        }
+
+        // 3. Save Assistant Message
+        $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, '[]', ?, 'completed', 0)");
+        $stmtAssistant->execute([
+            $convId,
+            $userId,
+            $cancelText,
+            json_encode([
+                'action_resolved' => [
+                    'tool_id' => $toolId,
+                    'status' => 'rejected',
+                    'message_id' => $pendingMsgId
+                ]
+            ])
+        ]);
+        $assistantMsgId = $db->lastInsertId();
+
+        $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+
+        if ($streamEmitter) {
+            $streamEmitter('done', [
+                'conversation_id' => $convId,
+                'message_id' => $assistantMsgId,
+                'status' => 'completed',
+                'action_resolved' => [
+                    'tool_id' => $toolId,
+                    'status' => 'rejected',
+                    'message_id' => $pendingMsgId
+                ]
+            ]);
+        }
+
+        return [
+            'conversation_id' => $convId,
+            'message_id' => (int)$assistantMsgId,
+            'role' => 'assistant',
+            'content' => $cancelText,
+            'status' => 'completed',
+            'action_resolved' => [
+                'tool_id' => $toolId,
+                'status' => 'rejected',
+                'message_id' => $pendingMsgId
+            ]
+        ];
     }
 }

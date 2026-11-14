@@ -1850,6 +1850,23 @@
         const message = input.value.trim();
         if (!message) return;
 
+        // Optimistically update visible pending approval cards if user message is conversational approval or rejection
+        const hasPendingApprovalCards = !!document.querySelector('.agent-approval-card:not(.status-approved):not(.status-rejected)');
+        if (hasPendingApprovalCards) {
+            const cleanMsg = message.toLowerCase().trim();
+            const isRejection = /\b(don'?t\s+send|do\s+not\s+send|never\s+send|cancel|reject|abort|stop|discard)\b/i.test(cleanMsg) || /^(no|nope|nah)\b/i.test(cleanMsg);
+            const isApproval = !isRejection && (
+                /\b(send\s*(that|it|this|the\s+mail|the\s+email|email|mail)?|done\s*send|approve|approved|confirm|confirmed|proceed|execute|go\s*ahead|dispatch)\b/i.test(cleanMsg) ||
+                /^(yes|yep|yeah|sure|ok|okay|done|fine|perfect|looks\s+good|do\s+it)\b/i.test(cleanMsg)
+            );
+
+            if (isApproval) {
+                window.markApprovalCardsLoading('approved');
+            } else if (isRejection) {
+                window.markApprovalCardsLoading('rejected');
+            }
+        }
+
         input.value = '';
         input.style.height = 'auto';
         const form = document.getElementById('agent-composer-form');
@@ -2057,6 +2074,10 @@
                                 const liveCardId = 'live_' + Date.now();
                                 approvalContainer.innerHTML = renderApprovalCard(data, 'waiting_approval', liveCardId);
                                 if (window.lucide) lucide.createIcons();
+                            } else if (currentEvent === 'action_resolved') {
+                                if (data && data.status) {
+                                    window.markApprovalCardsResolved(data.status, data.message_id, data.tool_id);
+                                }
                             } else if (currentEvent === 'token') {
                                 clearInterval(thoughtTimer);
                                 const thinkingStage = card.querySelector('.agent-live-thinking-stage');
@@ -2074,6 +2095,10 @@
                                     });
                                     proactiveContainer.innerHTML = suggHtml;
                                     proactiveContainer.classList.remove('hidden');
+                                }
+                            } else if (currentEvent === 'done') {
+                                if (data && data.action_resolved) {
+                                    window.markApprovalCardsResolved(data.action_resolved.status, data.action_resolved.message_id, data.action_resolved.tool_id);
                                 }
                             }
                         } catch (err) {}
@@ -2107,6 +2132,10 @@
                     conversation_id: activeConversationId,
                     message: message
                 });
+                if (res && res.data && res.data.action_resolved) {
+                    const ar = res.data.action_resolved;
+                    window.markApprovalCardsResolved(ar.status, ar.message_id, ar.tool_id);
+                }
                 if (res && res.data && res.data.content && res.data.content.trim()) {
                     contentContainer.classList.remove('agent-streaming-cursor');
                     contentContainer.innerHTML = renderMarkdown(res.data.content);
@@ -2625,6 +2654,150 @@
     };
 
     /**
+     * Immediately transitions visible pending approval cards to an animated loading state
+     * when the user converses approval/rejection or clicks approve.
+     */
+    window.markApprovalCardsLoading = function(status = 'approved', targetCardId = null) {
+        let cards = [];
+        if (targetCardId) {
+            const el = document.getElementById(`agent-approval-card-${targetCardId}`) || 
+                       document.getElementById(`agent-approval-card-msg_${targetCardId}`) || 
+                       document.getElementById(`agent-approval-card-m_${targetCardId}`);
+            if (el) cards.push(el);
+        }
+        if (cards.length === 0) {
+            cards = Array.from(document.querySelectorAll('.agent-approval-card:not(.status-approved):not(.status-rejected)'));
+        }
+
+        cards.forEach(card => {
+            const cardId = card.getAttribute('data-card-id') || '';
+            const isEmail = card.querySelector('[id^="edit-recipient-"]') || card.querySelector('.fa-envelope, [data-lucide="mail"], [data-lucide="send"]');
+            const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : card.querySelector('[id^="approval-actions-"]');
+
+            // Close edit mode if user was in edit tab
+            if (cardId) {
+                const editTab = document.getElementById(`email-tab-edit-${cardId}`);
+                if (editTab) editTab.remove();
+                const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
+                if (editPanel) editPanel.remove();
+                if (typeof window.switchEmailCardTab === 'function') {
+                    window.switchEmailCardTab(cardId, 'html');
+                }
+            }
+
+            if (actionsEl) {
+                if (status === 'approved') {
+                    actionsEl.innerHTML = `
+                        <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl animate-pulse">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-emerald-600 shrink-0"></i>
+                            <span>${isEmail ? 'Sending email...' : 'Executing approved action...'}</span>
+                        </div>
+                    `;
+                } else {
+                    actionsEl.innerHTML = `
+                        <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3.5 py-2 rounded-xl animate-pulse">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-rose-600 shrink-0"></i>
+                            <span>Cancelling action...</span>
+                        </div>
+                    `;
+                }
+            }
+        });
+
+        if (window.lucide) lucide.createIcons();
+    };
+
+    /**
+     * Updates visible approval cards on screen to approved or rejected state,
+     * removing the interactive action buttons and displaying confirmed badge.
+     */
+    window.markApprovalCardsResolved = function(status, targetCardId = null, toolId = null) {
+        let cards = [];
+        if (targetCardId) {
+            const el = document.getElementById(`agent-approval-card-${targetCardId}`) || 
+                       document.getElementById(`agent-approval-card-msg_${targetCardId}`) || 
+                       document.getElementById(`agent-approval-card-m_${targetCardId}`);
+            if (el) cards.push(el);
+        }
+        if (cards.length === 0) {
+            cards = Array.from(document.querySelectorAll('.agent-approval-card:not(.status-approved):not(.status-rejected)'));
+        }
+
+        cards.forEach(card => {
+            const cardId = card.getAttribute('data-card-id') || '';
+            const isEmail = (toolId === 'send_email') || card.querySelector('[id^="edit-recipient-"]') || card.querySelector('.fa-envelope, [data-lucide="mail"], [data-lucide="send"]');
+
+            // Close any open edit tab / panel
+            if (cardId) {
+                const editTab = document.getElementById(`email-tab-edit-${cardId}`);
+                if (editTab) editTab.remove();
+                const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
+                if (editPanel) editPanel.remove();
+                if (typeof window.switchEmailCardTab === 'function') {
+                    window.switchEmailCardTab(cardId, 'html');
+                }
+            }
+
+            const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : card.querySelector('[id^="approval-actions-"]');
+
+            if (status === 'approved') {
+                card.classList.remove('status-rejected');
+                card.classList.add('status-approved');
+
+                // Update top header badge & title
+                const headerBadge = card.querySelector('.w-6.h-6');
+                if (headerBadge) {
+                    headerBadge.className = 'w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0';
+                    headerBadge.innerHTML = '<i data-lucide="check" class="h-3.5 w-3.5"></i>';
+                }
+                const headerTitle = card.querySelector('.font-bold.text-xs.uppercase');
+                if (headerTitle) {
+                    headerTitle.className = 'font-bold text-xs uppercase tracking-wider text-emerald-800';
+                    headerTitle.innerText = isEmail ? 'Email Dispatched' : 'Action Executed';
+                }
+
+                if (actionsEl) {
+                    actionsEl.innerHTML = `
+                        <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl w-fit">
+                            <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 shrink-0"></i>
+                            <span>${isEmail ? 'Email Approved & Dispatched' : 'Action Approved & Executed'}</span>
+                        </div>
+                    `;
+                }
+            } else if (status === 'rejected') {
+                card.classList.remove('status-approved');
+                card.classList.add('status-rejected');
+
+                const headerBadge = card.querySelector('.w-6.h-6');
+                if (headerBadge) {
+                    headerBadge.className = 'w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0';
+                    headerBadge.innerHTML = '<i data-lucide="x" class="h-3.5 w-3.5"></i>';
+                }
+                const headerTitle = card.querySelector('.font-bold.text-xs.uppercase');
+                if (headerTitle) {
+                    headerTitle.className = 'font-bold text-xs uppercase tracking-wider text-slate-600';
+                    headerTitle.innerText = isEmail ? 'Email Dispatch Cancelled' : 'Action Cancelled';
+                }
+
+                if (actionsEl) {
+                    actionsEl.innerHTML = `
+                        <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3.5 py-2 rounded-xl w-fit">
+                            <i data-lucide="x-circle" class="h-4 w-4 text-rose-600 shrink-0"></i>
+                            <span>${isEmail ? 'Email Sending Cancelled / Rejected' : 'Action Cancelled / Rejected'}</span>
+                        </div>
+                    `;
+                }
+            }
+
+            if (cardId && window.agentPendingApprovals && window.agentPendingApprovals[cardId]) {
+                window.agentPendingApprovals[cardId].status = status;
+            }
+        });
+
+        if (window.lucide) lucide.createIcons();
+    };
+
+    /**
      * Executes approved action, disables & closes interactive buttons immediately,
      * and shows a permanent confirmation state.
      */
@@ -2636,26 +2809,8 @@
 
         const isEmailAction = (toolId === 'send_email') || (finalArgs && (finalArgs.recipient || finalArgs.to));
 
-        // Immediately close & remove edit mode if active on this card
-        if (cardId) {
-            const editTab = document.getElementById(`email-tab-edit-${cardId}`);
-            if (editTab) editTab.remove();
-            const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
-            if (editPanel) editPanel.remove();
-            window.switchEmailCardTab(cardId, 'html');
-        }
-
-        // Close and lock interactive buttons immediately with animated progress indicator
-        const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : null;
-        if (actionsEl) {
-            actionsEl.innerHTML = `
-                <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl animate-pulse">
-                    <i data-lucide="loader-2" class="h-4 w-4 animate-spin text-emerald-600 shrink-0"></i>
-                    <span>${isEmailAction ? 'Sending email...' : 'Executing approved action...'}</span>
-                </div>
-            `;
-            if (window.lucide) lucide.createIcons();
-        }
+        // Immediately update card to loading pulse
+        window.markApprovalCardsLoading('approved', cardId);
 
         showNotification('info', isEmailAction ? 'Sending email...' : `Executing approved action: ${toolId}...`);
         try {
@@ -2669,15 +2824,7 @@
             showNotification('success', isEmailAction ? 'Email dispatched successfully!' : 'Action executed successfully!');
 
             // Permanently close buttons with confirmed badge
-            if (actionsEl) {
-                actionsEl.innerHTML = `
-                    <div class="flex items-center space-x-2 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/90 px-3.5 py-2 rounded-xl w-fit">
-                        <i data-lucide="check-circle-2" class="h-4 w-4 text-emerald-600 shrink-0"></i>
-                        <span>${isEmailAction ? 'Email Approved & Dispatched' : 'Action Approved & Executed'}</span>
-                    </div>
-                `;
-                if (window.lucide) lucide.createIcons();
-            }
+            window.markApprovalCardsResolved('approved', cardId, toolId);
 
             // Reload active conversation stream to display assistant confirmation
             if (activeConversationId) {
@@ -2697,26 +2844,8 @@
     window.rejectAgentAction = async function (toolId, cardId) {
         const isEmailAction = (toolId === 'send_email');
 
-        // Immediately close & remove edit mode if active on this card
-        if (cardId) {
-            const editTab = document.getElementById(`email-tab-edit-${cardId}`);
-            if (editTab) editTab.remove();
-            const editPanel = document.getElementById(`email-panel-edit-${cardId}`);
-            if (editPanel) editPanel.remove();
-            window.switchEmailCardTab(cardId, 'html');
-        }
-
-        // Close and lock interactive buttons immediately
-        const actionsEl = cardId ? document.getElementById(`approval-actions-${cardId}`) : null;
-        if (actionsEl) {
-            actionsEl.innerHTML = `
-                <div class="flex items-center space-x-2 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200/90 px-3.5 py-2 rounded-xl w-fit">
-                    <i data-lucide="x-circle" class="h-4 w-4 text-rose-600 shrink-0"></i>
-                    <span>${isEmailAction ? 'Email Sending Cancelled / Rejected' : 'Action Cancelled / Rejected'}</span>
-                </div>
-            `;
-            if (window.lucide) lucide.createIcons();
-        }
+        // Immediately update card to rejected state
+        window.markApprovalCardsResolved('rejected', cardId, toolId);
 
         showNotification('warning', 'Action cancelled.');
 

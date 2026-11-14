@@ -1842,6 +1842,33 @@
     }
 
     /**
+     * Resolves all active tool cards to completed state with checkmarks.
+     * Prevents cards from getting stuck in a spinning loading state.
+     */
+    function resolveAllRunningToolCards(container) {
+        const target = container || document;
+        const runningCards = target.querySelectorAll('.agent-tool-card.is-running');
+        runningCards.forEach(toolEl => {
+            toolEl.classList.remove('is-running');
+            toolEl.classList.add('is-completed');
+            const nameEl = toolEl.querySelector('.font-bold');
+            const toolTitle = nameEl ? nameEl.textContent.trim() : 'Action';
+            toolEl.innerHTML = `
+                <div class="flex items-center space-x-2.5 min-w-0">
+                    <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="check" class="h-3 w-3"></i>
+                    </span>
+                    <span class="font-bold text-slate-800 truncate">${escapeHtml(toolTitle)}</span>
+                </div>
+                <span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shadow-2xs shrink-0">
+                    <i data-lucide="check" class="h-3 w-3"></i> Completed
+                </span>
+            `;
+        });
+        if (runningCards.length > 0 && window.lucide) lucide.createIcons();
+    }
+
+    /**
      * Submit user message & stream response.
      */
     window.handleAgentSendMessage = async function (e) {
@@ -2020,6 +2047,7 @@
                             const data = JSON.parse(jsonStr);
 
                             if (currentEvent === 'tool_start') {
+                                resolveAllRunningToolCards(toolsContainer);
                                 const actionLabel = getHumanToolActionLabel(data.tool_name, data.tool_id);
                                 const stepDomId = `tool-step-${escapeHtml(data.step_id || data.tool_id)}`;
 
@@ -2087,6 +2115,10 @@
                                 if (thinkingStage) {
                                     thinkingStage.remove();
                                 }
+
+                                // Mark all preceding running tool cards as completed once text tokens begin
+                                resolveAllRunningToolCards(toolsContainer);
+
                                 accumulatedContent = data.content;
                                 contentContainer.innerHTML = renderMarkdown(accumulatedContent);
                                 scrollAgentToBottom();
@@ -2100,6 +2132,7 @@
                                     proactiveContainer.classList.remove('hidden');
                                 }
                             } else if (currentEvent === 'done') {
+                                resolveAllRunningToolCards(toolsContainer);
                                 if (data && data.action_resolved) {
                                     window.markApprovalCardsResolved(data.action_resolved.status, data.action_resolved.message_id, data.action_resolved.tool_id);
                                 }
@@ -2114,6 +2147,9 @@
             if (thinkingStage) {
                 thinkingStage.remove();
             }
+
+            // Guarantee all running tool cards are transitioned to completed
+            resolveAllRunningToolCards(toolsContainer);
 
             contentContainer.classList.remove('agent-streaming-cursor');
             if (accumulatedContent && accumulatedContent.trim()) {
@@ -2167,6 +2203,7 @@
                 if (thinkingStage) {
                     thinkingStage.remove();
                 }
+                resolveAllRunningToolCards(card);
                 const liveAvatar = card.querySelector('.agent-live-avatar');
                 if (liveAvatar) liveAvatar.src = AGENT_AVATAR_STATIC;
             }
@@ -2972,10 +3009,24 @@
         text = text.replace(/<\/ol>\s*<ol>/gim, '');
 
         // 1. Temporary AI-Generated File Download Button & Expiry Card
-        text = text.replace(/\[([^\]]+)\]\(([^)]*download_temp_file\.php[^)]*)\)/gi, function (match, label, url) {
+        // Catch raw sandbox URLs or files
+        text = text.replace(/(?:sandbox:\/tmp\/|\/tmp\/)([a-zA-Z0-9_\-\.]+\.(?:xlsx|csv|pdf|docx|txt|json))/gi, '[Download $1](/backend/api/crm/download_temp_file.php?auto_gen=1&format=$1&name=$1)');
+
+        text = text.replace(/\[([^\]]+)\]\(([^)]*(?:download_temp_file\.php|sandbox:|\/tmp\/|\.(?:xlsx|csv|pdf|docx|txt|json))[^)]*)\)/gi, function (match, label, url) {
             let cleanLabel = label.replace(/^download\s*/i, '').trim();
             let extMatch = cleanLabel.match(/\.(xlsx|csv|pdf|docx|txt|json)/i) || url.match(/\.(xlsx|csv|pdf|docx|txt|json)/i);
             let ext = extMatch ? extMatch[1].toUpperCase() : 'FILE';
+            let extLower = ext.toLowerCase();
+
+            // Self-healing: if url is a fake sandbox or /tmp/ link, safely route to download_temp_file.php with auto_gen=1
+            let downloadHref = url;
+            if (/^(?:sandbox:|\/tmp\/|file:)/i.test(downloadHref) || !downloadHref.includes('download_temp_file.php')) {
+                let downloadFilename = cleanLabel;
+                if (!downloadFilename.includes('.')) {
+                    downloadFilename += '.' + (extLower !== 'file' ? extLower : 'xlsx');
+                }
+                downloadHref = `/backend/api/crm/download_temp_file.php?auto_gen=1&format=${encodeURIComponent(extLower !== 'file' ? extLower : 'xlsx')}&name=${encodeURIComponent(downloadFilename)}`;
+            }
 
             let badgeBg = 'bg-slate-100 text-slate-700 border-slate-200';
             let formatName = 'File Document';
@@ -2998,7 +3049,7 @@
                             <div class="text-[11px] text-slate-500 font-medium">${formatName}</div>
                         </div>
                     </div>
-                    <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" download="${escapeHtml(cleanLabel)}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded-lg shadow-2xs hover:shadow transition-all shrink-0 cursor-pointer">
+                    <a href="${escapeHtml(downloadHref)}" target="_blank" rel="noopener noreferrer" download="${escapeHtml(cleanLabel)}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-semibold rounded-lg shadow-2xs hover:shadow transition-all shrink-0 cursor-pointer">
                         <i data-lucide="download" class="w-3.5 h-3.5"></i>
                         <span>Download</span>
                     </a>

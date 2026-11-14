@@ -229,10 +229,11 @@ You are not a passive text generator. You execute real actions using your tool l
 8. Analytics: Generate daily executive briefings, pipeline revenue summaries, and conversion KPI reports.
 9. Web & Research: Live weather lookups, Google/web search, and direct webpage content extraction. (Do NOT use web search for Google Meet links or internal CRM actions).
 10. Temporary File Generation & Delivery:
-   - Whenever the user asks to generate, export, or download a file (Excel, CSV, PDF, Word/DOCX, TXT, or JSON), ALWAYS invoke `generate_export_file`.
-   - Provide the requested format ('xlsx', 'csv', 'pdf', 'docx', 'txt', 'json'), a clean filename (e.g. 'contacts_export.xlsx'), title, and pass the data rows or source ('contacts', 'deals', 'tasks').
-   - Present the returned download URL as a markdown link: `[Download <filename>](<download_url>)`.
-   - Directly below the download button/link, ALWAYS include the exact notice:
+   - When the user asks to generate, export, format, or create a file (Excel, CSV, PDF, Word, TXT, JSON), you MUST ALWAYS call the tool `generate_export_file`.
+   - You DO NOT have a Python sandbox, shell environment, or local filesystem. NEVER invent fake paths like `sandbox:/tmp/...`, `/tmp/...`, `file://...`, or fake URLs.
+   - You can pass rows from a previous step, or set `source: 'contacts'` or `source: 'deals'` in `generate_export_file` and the server will automatically pull and export all CRM records!
+   - In your final response, display ONLY the real `download_url` provided by `generate_export_file` as: `[Download <filename>](<download_url>)`.
+   - Directly below the link, always include:
      *This download link is valid for 30 minutes. The file will be automatically deleted after expiry.*
 
 ### STRICT EXECUTION & SECURITY RULES:
@@ -529,6 +530,81 @@ You are not a passive text generator. You execute real actions using your tool l
             } else {
                 $finalAssistantText = "I am connected to your LinkPilot workspace. I can search contacts, manage deals, inspect WhatsApp leads, or generate executive briefings.";
             }
+        }
+
+        // Self-Healing Interceptor: Check for hallucinated sandbox or /tmp file links or missing file creation!
+        $hasFakeSandboxLink = (bool)preg_match('/\[([^\]]+)\]\(((?:sandbox:|\/tmp\/|file:)[^\)]+)\)/i', $finalAssistantText, $fakeMatch);
+        $hasBareSandboxUrl = (bool)preg_match('/(?:sandbox:|\/tmp\/)([a-zA-Z0-9_\-\.\/]+)/i', $finalAssistantText, $bareMatch);
+        $userAskedForFile = (bool)preg_match('/\b(create|make|generate|export|download|save|put)\b.+\b(file|excel|excle|exel|csv|pdf|word|docx?|sheet|spreadsheet)\b/i', $userMessage);
+
+        $alreadyGeneratedFile = false;
+        foreach ($toolExecutionSteps as $step) {
+            if (($step['tool_id'] ?? '') === 'generate_export_file' && ($step['status'] ?? '') === 'completed') {
+                $alreadyGeneratedFile = true;
+                break;
+            }
+        }
+
+        if (!$alreadyGeneratedFile && ($hasFakeSandboxLink || $hasBareSandboxUrl || ($userAskedForFile && !str_contains($finalAssistantText, 'download_temp_file.php')))) {
+            $ext = 'xlsx';
+            $detectStr = $finalAssistantText . ' ' . $userMessage;
+            if (preg_match('/\.(xlsx|csv|pdf|docx|txt|json)/i', $detectStr, $extM)) {
+                $ext = strtolower($extM[1]);
+            } elseif (preg_match('/\b(csv)\b/i', $detectStr)) {
+                $ext = 'csv';
+            } elseif (preg_match('/\b(pdf)\b/i', $detectStr)) {
+                $ext = 'pdf';
+            } elseif (preg_match('/\b(word|docx?)\b/i', $detectStr)) {
+                $ext = 'docx';
+            }
+
+            $genFilename = 'all_contacts.' . $ext;
+            if (!empty($fakeMatch[1]) && preg_match('/([a-zA-Z0-9_\-]+\.(?:xlsx|csv|pdf|docx|txt|json))/i', $fakeMatch[1], $fnM)) {
+                $genFilename = $fnM[1];
+            } elseif (!empty($bareMatch[1]) && preg_match('/([a-zA-Z0-9_\-]+\.(?:xlsx|csv|pdf|docx|txt|json))/i', $bareMatch[1], $fnM)) {
+                $genFilename = $fnM[1];
+            }
+
+            try {
+                require_once __DIR__ . '/temp_file_service.php';
+                $realFileRes = TempFileService::createTempFile(
+                    $userId,
+                    $convId,
+                    $ext,
+                    $genFilename,
+                    'LinkPilot Contacts & CRM Export',
+                    [], // will auto-populate from CRM
+                    '',
+                    'Automated file delivery',
+                    $db
+                );
+
+                if (!empty($realFileRes['download_url'])) {
+                    $realUrl = $realFileRes['download_url'];
+                    $cleanNotice = "\n\n*This download link is valid for 30 minutes. The file will be automatically deleted after expiry.*";
+
+                    if (!empty($fakeMatch[0])) {
+                        $finalAssistantText = str_replace($fakeMatch[0], "[Download {$genFilename}]({$realUrl})", $finalAssistantText);
+                    } elseif (!empty($bareMatch[0])) {
+                        $finalAssistantText = str_replace($bareMatch[0], $realUrl, $finalAssistantText);
+                    } else {
+                        $finalAssistantText .= "\n\n[Download {$genFilename}]({$realUrl})";
+                    }
+
+                    if (!str_contains($finalAssistantText, '30 minutes')) {
+                        $finalAssistantText .= $cleanNotice;
+                    }
+
+                    $toolExecutionSteps[] = [
+                        'step_id' => 'generate_export_file_' . bin2hex(random_bytes(4)),
+                        'tool_id' => 'generate_export_file',
+                        'tool_name' => 'Generate Temporary File',
+                        'status' => 'completed',
+                        'input' => ['format' => $ext, 'filename' => $genFilename],
+                        'output' => $realFileRes
+                    ];
+                }
+            } catch (Throwable $e) {}
         }
 
         // Extract proactive recommendations

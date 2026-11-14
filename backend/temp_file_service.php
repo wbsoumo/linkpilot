@@ -94,6 +94,42 @@ class TempFileService {
             $safeFilename = 'LinkPilot_' . ucfirst($format) . '_' . date('Ymd_His') . '.' . $format;
         }
 
+        // Auto-populate data from CRM if dataRows is empty and filename/title relates to contacts or deals
+        if (empty($dataRows)) {
+            $lowerCheck = strtolower($safeFilename . ' ' . $title);
+            if (str_contains($lowerCheck, 'contact') || str_contains($lowerCheck, 'lead')) {
+                require_once __DIR__ . '/crm_sync_helper.php';
+                $rawContacts = CRMSyncHelper::searchContacts($userId, [], 200, 0, $db);
+                foreach ($rawContacts as $c) {
+                    $dataRows[] = [
+                        'ID' => $c['id'] ?? '',
+                        'Name' => $c['name'] ?? '',
+                        'Email' => $c['email'] ?? '',
+                        'Phone' => $c['phone'] ?? '',
+                        'Company' => $c['company_name'] ?? '',
+                        'Designation' => $c['designation'] ?? '',
+                        'Tags' => $c['tags'] ?? '',
+                        'Created' => substr($c['created_at'] ?? '', 0, 10)
+                    ];
+                }
+            } elseif (str_contains($lowerCheck, 'deal') || str_contains($lowerCheck, 'pipeline')) {
+                $stmt = $db->prepare("SELECT d.id, d.title, d.deal_value, d.currency, d.stage, d.closing_date, co.name AS company, c.name AS contact FROM crm_deals d LEFT JOIN crm_companies co ON d.company_id = co.id LEFT JOIN crm_contacts c ON d.contact_id = c.id WHERE d.user_id = ? ORDER BY d.closing_date ASC LIMIT 200");
+                $stmt->execute([$userId]);
+                $rawDeals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($rawDeals as $d) {
+                    $dataRows[] = [
+                        'Deal ID' => $d['id'] ?? '',
+                        'Title' => $d['title'] ?? '',
+                        'Value' => ($d['currency'] ?? '$') . ' ' . number_format((float)($d['deal_value'] ?? 0), 2),
+                        'Stage' => $d['stage'] ?? '',
+                        'Company' => $d['company'] ?? '',
+                        'Contact' => $d['contact'] ?? '',
+                        'Closing Date' => $d['closing_date'] ?? ''
+                    ];
+                }
+            }
+        }
+
         // 2. Generate random non-guessable disk filename (24 bytes random hex + timestamp)
         $storedFilename = 'lp_' . bin2hex(random_bytes(20)) . '_' . time() . '.' . $format;
         $fullPath = $storageDir . '/' . $storedFilename;
@@ -160,9 +196,10 @@ class TempFileService {
             $expiresAt
         ]);
 
-        // 6. Construct secure download URL
+        // 6. Construct secure signed and encoded download URL
+        $signedToken = self::encodeSignedToken($fileToken, $userId, strtotime($expiresAt));
         $baseUrl = self::resolveBaseUrl();
-        $downloadUrl = $baseUrl . '/backend/api/crm/download_temp_file.php?token=' . $fileToken;
+        $downloadUrl = $baseUrl . '/backend/api/crm/download_temp_file.php?token=' . urlencode($signedToken);
 
         // 7. Opportunistic cleanup of any expired files
         try {
@@ -171,7 +208,8 @@ class TempFileService {
 
         return [
             'success' => true,
-            'token' => $fileToken,
+            'token' => $signedToken,
+            'raw_token' => $fileToken,
             'filename' => $safeFilename,
             'format' => strtoupper($format),
             'mime_type' => $mimeType,
@@ -186,22 +224,104 @@ class TempFileService {
     }
 
     /**
+     * Encodes a cryptographically signed, URL-safe base64 token.
+     * Prevents URL guessing, tampering, or unauthorized user manipulation.
+     */
+    public static function encodeSignedToken(string $rawToken, int $userId, int $expiresTimestamp): string {
+        $secret = defined('JWT_SECRET') ? JWT_SECRET : 'linkpilot_super_secret_key_2026_jwt_token_auth';
+        $payload = json_encode([
+            't' => $rawToken,
+            'u' => $userId,
+            'x' => $expiresTimestamp
+        ]);
+        $sig = hash_hmac('sha256', $payload, $secret);
+        return rtrim(strtr(base64_encode(json_encode([
+            'p' => $payload,
+            's' => substr($sig, 0, 32)
+        ])), '+/', '-_'), '=');
+    }
+
+    /**
+     * Decodes and verifies signed token or accepts raw 64-hex token.
+     */
+    public static function decodeSignedToken(string $inputToken): ?array {
+        $input = trim($inputToken);
+        if (empty($input)) return null;
+
+        $json = base64_decode(strtr($input, '-_', '+/'));
+        if (!$json) {
+            // Direct raw 64-hex token fallback
+            if (preg_match('/^[a-f0-9]{64}$/', $input)) {
+                return ['raw_token' => $input, 'user_id' => null, 'expires' => null, 'expired' => false];
+            }
+            return null;
+        }
+
+        $envelope = json_decode($json, true);
+        if (!$envelope || empty($envelope['p']) || empty($envelope['s'])) {
+            if (preg_match('/^[a-f0-9]{64}$/', $input)) {
+                return ['raw_token' => $input, 'user_id' => null, 'expires' => null, 'expired' => false];
+            }
+            return null;
+        }
+
+        $secret = defined('JWT_SECRET') ? JWT_SECRET : 'linkpilot_super_secret_key_2026_jwt_token_auth';
+        $expectedSig = substr(hash_hmac('sha256', $envelope['p'], $secret), 0, 32);
+        if (!hash_equals($expectedSig, $envelope['s'])) {
+            return null; // Tampered token signature!
+        }
+
+        $data = json_decode($envelope['p'], true);
+        if (!$data || empty($data['t']) || !preg_match('/^[a-f0-9]{64}$/', $data['t'])) {
+            return null;
+        }
+
+        $isExpired = !empty($data['x']) && time() > (int)$data['x'];
+
+        return [
+            'raw_token' => $data['t'],
+            'user_id' => !empty($data['u']) ? (int)$data['u'] : null,
+            'expires' => !empty($data['x']) ? (int)$data['x'] : null,
+            'expired' => $isExpired
+        ];
+    }
+
+    /**
      * Resolves the secure download record and validates expiry & path traversal.
      */
     public static function getDownloadFile(string $token, ?int $currentUserId = null, ?PDO $db = null): array {
         if (!$db) $db = Database::getConnection();
 
-        // Security: strictly validate token is 64 hex characters (prevents SQLi & traversal)
-        if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
-            return ['error' => 'invalid_token', 'message' => 'Invalid download token format.'];
+        // 1. Decode signed token or validate raw 64-hex
+        $decoded = self::decodeSignedToken($token);
+        if (!$decoded || empty($decoded['raw_token'])) {
+            return ['error' => 'invalid_token', 'message' => 'Invalid or tampered download token format.'];
         }
 
+        if (!empty($decoded['expired'])) {
+            return [
+                'error' => 'expired',
+                'filename' => 'Generated File',
+                'expires_at' => date('Y-m-d H:i:s', $decoded['expires'] ?? time()),
+                'message' => 'This download link has expired. The file was automatically deleted after 30 minutes.'
+            ];
+        }
+
+        $rawToken = $decoded['raw_token'];
         $stmt = $db->prepare("SELECT * FROM ai_generated_files WHERE file_token = ? LIMIT 1");
-        $stmt->execute([$token]);
+        $stmt->execute([$rawToken]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$row || (int)$row['is_deleted'] === 1) {
             return ['error' => 'not_found', 'message' => 'File not found or link has already been removed.'];
+        }
+
+        // 2. User ownership authorization check: users cannot access other users' files!
+        if (!empty($decoded['user_id']) && (int)$row['user_id'] !== (int)$decoded['user_id']) {
+            return ['error' => 'forbidden', 'message' => 'Access Denied: You do not have permission to access files generated by another user.'];
+        }
+        if ($currentUserId !== null && (int)$row['user_id'] !== (int)$currentUserId) {
+            return ['error' => 'forbidden', 'message' => 'Access Denied: You do not have permission to access files generated by another user.'];
         }
 
         // Expiry verification: 30 minutes strictly enforced

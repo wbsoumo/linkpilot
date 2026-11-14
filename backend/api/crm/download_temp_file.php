@@ -5,19 +5,46 @@
 // streams binary file with proper attachment headers, and displays clean error states.
 
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../jwt_helper.php';
 require_once __DIR__ . '/../../temp_file_service.php';
 
 $token = trim($_GET['token'] ?? '');
 
-$fileInfo = TempFileService::getDownloadFile($token);
+$currentUserId = null;
+try {
+    $jwtCookie = $_COOKIE['linkpilot_token'] ?? ($_COOKIE['token'] ?? '');
+    if (!empty($jwtCookie)) {
+        $jwtUser = JWTHelper::validateToken($jwtCookie);
+        if ($jwtUser && !empty($jwtUser['id'])) {
+            $currentUserId = (int)$jwtUser['id'];
+        }
+    }
+    if (!$currentUserId) {
+        $authUser = JWTHelper::getAuthenticatedUser();
+        if ($authUser && !empty($authUser['id'])) {
+            $currentUserId = (int)$authUser['id'];
+        }
+    }
+} catch (Throwable $e) {}
+
+// Auto-generation fallback: ensures instant file creation if user clicked a synthesized link
+if (empty($token) && !empty($_GET['auto_gen'])) {
+    $format = strtolower(trim($_GET['format'] ?? 'xlsx'));
+    $name = trim($_GET['name'] ?? ('all_contacts.' . $format));
+    $genRes = TempFileService::createTempFile($currentUserId ?: 1, null, $format, $name, 'CRM Contacts Export', [], '', '', Database::getConnection());
+    $token = $genRes['token'] ?? '';
+}
+
+$fileInfo = TempFileService::getDownloadFile($token, $currentUserId);
 
 if (!empty($fileInfo['error'])) {
     $errType = $fileInfo['error'];
     $isExpired = ($errType === 'expired');
-    $statusCode = $isExpired ? 410 : ($errType === 'invalid_token' ? 400 : 404);
+    $isForbidden = ($errType === 'forbidden');
+    $statusCode = $isExpired ? 410 : ($isForbidden ? 403 : ($errType === 'invalid_token' ? 400 : 404));
     http_response_code($statusCode);
 
-    $title = $isExpired ? 'Download Link Expired' : 'File Not Found';
+    $title = $isExpired ? 'Download Link Expired' : ($isForbidden ? 'Access Denied' : 'File Not Found');
     $message = $isExpired 
         ? 'This download link has expired. For your security and workspace privacy, LinkPilot AI automatically deletes temporary generated files exactly 30 minutes after creation.'
         : ($fileInfo['message'] ?? 'The requested file is unavailable or the download link is invalid.');

@@ -78,17 +78,26 @@ class AgentRouter {
         if (preg_match('/\b(workflow|workflows|automation|automations|trigger|active\s+workflow)\b/i', $clean)) {
             $businessCategories[] = 'automation';
         }
-        // File Generation & Export
-        if (preg_match('/\b(export|download|generate\s+(?:a\s+)?(?:file|excel|spreadsheet|sheet|csv|pdf|word|docx|report)|save\s+as\s+(?:excel|csv|pdf|word)|csv\s+file|excel\s+file|pdf\s+file|download\s+link|download\s+file)\b/i', $clean)) {
+        // File Generation & Export (Excel, CSV, PDF, Word, TXT, etc.)
+        $hasExportIntent = (bool)(
+            preg_match('/\b(export|download|file|files|document|documents|report|reports|spreadsheet|spreadsheets|sheet|sheets|csv|pdf|word|docx?|txt|json)\b/i', $clean) ||
+            preg_match('/\b(excel|excle|exel|xl|xlsx)\b/i', $clean) ||
+            preg_match('/\b(create|make|generate|save|convert|put|send|export|download)\b.+\b(file|excel|excle|exel|csv|pdf|word|docx?|sheet|spreadsheet)\b/i', $clean)
+        );
+
+        if ($hasExportIntent) {
             $businessCategories[] = 'export';
-            if (preg_match('/\b(contact|contacts|lead|leads|customer|customers)\b/i', $clean)) {
+            if (preg_match('/\b(contact|contacts|lead|leads|customer|customers|person|people)\b/i', $clean)) {
                 $businessCategories[] = 'crm';
             }
-            if (preg_match('/\b(deal|deals|pipeline|sales)\b/i', $clean)) {
+            if (preg_match('/\b(deal|deals|pipeline|sale|sales|revenue)\b/i', $clean)) {
                 $businessCategories[] = 'deals';
             }
-            if (preg_match('/\b(task|tasks|todo|to-do)\b/i', $clean)) {
+            if (preg_match('/\b(task|tasks|todo|to-do|reminder|reminders)\b/i', $clean)) {
                 $businessCategories[] = 'tasks';
+            }
+            if (preg_match('/\b(whatsapp|chat|chats|message|messages)\b/i', $clean)) {
+                $businessCategories[] = 'whatsapp';
             }
         }
 

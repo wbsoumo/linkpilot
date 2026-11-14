@@ -1887,7 +1887,8 @@ class AIToolRegistry {
         }
 
         // 9. Export & Temporary File Generation Intent
-        if (preg_match('/\b(export|download|file|files|excel|xlsx|spreadsheet|sheet|csv|pdf|word|docx|doc|document|txt|text\s+file|json)\b/i', $clean)) {
+        if (preg_match('/\b(export|download|file|files|excel|excle|exel|xl|xlsx|spreadsheet|spreadsheets|sheet|sheets|csv|pdf|word|docx?|doc|document|txt|text\s+file|json)\b/i', $cleanCombined) ||
+            preg_match('/\b(create|make|generate|save|convert|put|send|export|download)\b.+\b(file|excel|excle|exel|csv|pdf|word|docx?|sheet|spreadsheet)\b/i', $cleanCombined)) {
             $selectedCategories[] = 'export';
             if (preg_match('/\b(contact|contacts|lead|leads|customer|customers|person)\b/i', $cleanCombined)) {
                 $selectedCategories[] = 'crm';

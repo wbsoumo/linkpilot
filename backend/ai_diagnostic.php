@@ -30,6 +30,7 @@ if (isset($_GET['sync'])) {
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Cache-Control: no-cache', 'Pragma: no-cache']);
         $c = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -64,6 +65,9 @@ try {
         foreach (glob($tmpDir . '/*') as $f) @unlink($f);
     }
     echo "[OK] Auto-healed users, user_ai_keys and flushed agent cache.\n";
+    echo "Conversational Approval Method in Orchestrator: " . (method_exists('AgentOrchestrator', 'checkConversationalApprovalIntent') ? 'YES' : 'NO') . "\n";
+    echo "Test 'done send that': " . (AgentOrchestrator::checkConversationalApprovalIntent('done send that') ?: 'NULL') . "\n";
+    echo "Test 'send that mail': " . (AgentOrchestrator::checkConversationalApprovalIntent('send that mail') ?: 'NULL') . "\n";
 } catch (Throwable $e) {
     echo "[!] DB heal error: " . $e->getMessage() . "\n";
 }

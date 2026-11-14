@@ -346,7 +346,7 @@
 
                                 <!-- Center: Borderless textarea inside rounded card -->
                                 <div class="flex-1 min-w-0 px-2.5 md:px-3 py-1 flex items-center">
-                                    <textarea id="agent-user-prompt-input" rows="1" placeholder="What can I help you with today?" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" style="background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important;" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[14.5px] md:text-[15px] text-slate-800 placeholder-[#71717a] font-normal px-0 py-0.5 resize-none leading-relaxed"></textarea>
+                                    <textarea id="agent-user-prompt-input" rows="1" placeholder="What can I help you with today?" onfocus="document.getElementById('agent-composer-form')?.classList.add('is-focused')" onblur="document.getElementById('agent-composer-form')?.classList.remove('is-focused')" onkeydown="handleAgentTextareaKeydown(event)" oninput="autoResizeTextarea(this)" style="background: transparent !important; border: none !important; outline: none !important; box-shadow: none !important;" class="w-full bg-transparent border-0 focus:outline-none focus:ring-0 text-[14.5px] md:text-[15px] text-slate-800 placeholder-[#71717a] font-normal px-0 py-0.5 resize-none leading-relaxed"></textarea>
                                 </div>
 
                                 <!-- Far Right Action Group: Mic and Purple Send Button -->
@@ -840,10 +840,8 @@
             category: 'messaging',
             badge: 'Direct Chat',
             description: 'Direct 1-on-1 customer conversations, automated template campaigns & inbound lead routing.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-[#25D366] flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-6 w-6 fill-white" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91C2.13 13.66 2.59 15.36 3.45 16.86L2.05 22L7.3 20.62C8.75 21.41 10.38 21.83 12.04 21.83C17.5 21.83 21.95 17.38 21.95 11.92C21.95 9.27 20.92 6.78 19.05 4.91C17.18 3.03 14.69 2 12.04 2ZM12.04 20.15C10.56 20.15 9.11 19.76 7.85 19.01L7.55 18.83L4.43 19.65L5.26 16.61L5.06 16.29C4.24 14.99 3.81 13.47 3.81 11.91C3.81 7.37 7.5 3.68 12.04 3.68C14.25 3.68 16.31 4.54 17.87 6.1C19.42 7.66 20.28 9.72 20.28 11.92C20.28 16.46 16.58 20.15 12.04 20.15ZM16.56 14.37C16.31 14.25 15.09 13.65 14.86 13.56C14.64 13.48 14.47 13.44 14.31 13.69C14.14 13.94 13.67 14.51 13.52 14.68C13.38 14.84 13.23 14.86 12.98 14.74C12.73 14.61 11.93 14.35 10.98 13.5C10.24 12.84 9.74 12.03 9.6 11.78C9.45 11.53 9.58 11.4 9.71 11.27C9.82 11.16 9.96 10.99 10.09 10.84C10.21 10.69 10.26 10.58 10.34 10.42C10.42 10.25 10.38 10.11 10.32 9.98C10.26 9.86 9.76 8.63 9.56 8.13C9.36 7.64 9.16 7.71 9.01 7.7C8.87 7.69 8.71 7.69 8.54 7.69C8.38 7.69 8.11 7.75 7.88 8C7.66 8.25 7.02 8.84 7.02 10.05C7.02 11.25 7.9 12.42 8.02 12.58C8.15 12.75 9.75 15.22 12.2 16.28C12.78 16.53 13.24 16.68 13.59 16.79C14.18 16.98 14.71 16.95 15.14 16.89C15.61 16.82 16.59 16.29 16.8 15.72C17 15.14 17 14.65 16.94 14.55C16.88 14.45 16.72 14.39 16.56 14.27V14.37Z"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/whatsapp.png" alt="WhatsApp" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Live webhook sync',
@@ -855,15 +853,8 @@
             category: 'meetings',
             badge: 'Calendar 31',
             description: 'Automatic client meeting scheduling, event conflict detection, and real-time agenda syncing.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-                <svg viewBox="0 0 48 48" class="h-7 w-7" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="7" y="10" width="34" height="31" rx="4" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
-                    <path d="M7 14C7 11.79 8.79 10 11 10H37C39.21 10 41 11.79 41 14V17H7V14Z" fill="#1A73E8"/>
-                    <rect x="13" y="6" width="4" height="7" rx="2" fill="#4285F4"/>
-                    <rect x="31" y="6" width="4" height="7" rx="2" fill="#4285F4"/>
-                    <text x="24" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="800" fill="#1A73E8" text-anchor="middle">31</text>
-                    <circle cx="34" cy="35" r="3" fill="#34A853"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/google_calendar.png" alt="Google Calendar" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'OAuth 2.0 synced',
@@ -875,14 +866,8 @@
             category: 'meetings',
             badge: 'HD Video',
             description: 'One-click meeting room creation with encrypted join links, auto-calendar invites, and dial-in details.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-                <svg viewBox="0 0 48 48" class="h-7 w-7" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M29 20.5V16C29 14.9 28.1 14 27 14H11C9.9 14 9 14.9 9 16V32C9 33.1 9.9 34 11 34H27C28.1 34 29 33.1 29 32V27.5L37 33.5V14.5L29 20.5Z" fill="#00832D"/>
-                    <path d="M29 20.5L37 14.5V24L29 20.5Z" fill="#0066DA"/>
-                    <path d="M29 27.5L37 33.5V24L29 27.5Z" fill="#00AC47"/>
-                    <path d="M9 28V32C9 33.1 9.9 34 11 34H17L9 28Z" fill="#EA4335"/>
-                    <path d="M27 14H17L29 22V16C29 14.9 28.1 14 27 14Z" fill="#FFBA00"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/google_meet.png" alt="Google Meet" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Direct Video API',
@@ -894,13 +879,8 @@
             category: 'messaging',
             badge: 'SMTP / IMAP',
             description: 'Autonomous inbox monitoring, email draft authoring, automated follow-ups, and thread summarization.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden">
-                <svg viewBox="0 0 48 48" class="h-6 w-6" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 14V34C6 36.2 7.8 38 10 38H14V22L6 16V14Z" fill="#4285F4"/>
-                    <path d="M34 38H38C40.2 38 42 36.2 42 34V14L34 20V38Z" fill="#34A853"/>
-                    <path d="M34 20L42 14C41.4 13.1 40.3 12.5 39 12.5H35L24 21L13 12.5H9C7.7 12.5 6.6 13.1 6 14L14 20L24 27L34 20Z" fill="#EA4335"/>
-                    <path d="M14 22V38H34V22L24 29.5L14 22Z" fill="#FBBC04"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/gmail.png" alt="Gmail" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'IMAP & SMTP connected',
@@ -912,11 +892,8 @@
             category: 'meetings',
             badge: 'Cloud Video',
             description: 'Instant meeting creation, client calendar invitations, and meeting recording transcript access.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-[#2D8CFF] flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-6 w-6 fill-white" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 7C4 5.34315 5.34315 4 7 4H13C14.6569 4 16 5.34315 16 7V17C16 18.6569 14.6569 20 13 20H7C5.34315 20 4 18.6569 4 17V7Z"/>
-                    <path d="M17 9.5L20.3 7.3C20.7 7 21.2 7.3 21.2 7.8V16.2C21.2 16.7 20.7 17 20.3 16.7L17 14.5V9.5Z"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/zoom.png" alt="Zoom" class="h-full w-full object-contain">
             </div>`,
             connected: false,
             docs: 'Server-to-server OAuth',
@@ -928,10 +905,8 @@
             category: 'marketing',
             badge: 'Lead Gen',
             description: 'Instant ingestion of Facebook & Instagram Lead Ads directly into LinkPilot CRM with zero latency.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-[#0064E0] to-[#0081FB] flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-5 w-5 fill-white" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 10.6C10.7 8.7 9 7.7 7.2 7.7C4.6 7.7 2.6 9.7 2.6 12.3C2.6 14.9 4.6 16.9 7.2 16.9C9 16.9 10.7 15.9 12 14C13.3 15.9 15 16.9 16.8 16.9C19.4 16.9 21.4 14.9 21.4 12.3C21.4 9.7 19.4 7.7 16.8 7.7C15 7.7 13.3 8.7 12 10.6ZM7.2 15C5.7 15 4.5 13.8 4.5 12.3C4.5 10.8 5.7 9.6 7.2 9.6C8.4 9.6 9.6 10.4 10.7 12.3C9.6 14.2 8.4 15 7.2 15ZM16.8 15C15.6 15 14.4 14.2 13.3 12.3C14.4 10.4 15.6 9.6 16.8 9.6C18.3 9.6 19.5 10.8 19.5 12.3C19.5 13.8 18.3 15 16.8 15Z"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/meta.png" alt="Meta Ads" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Graph API connected',
@@ -943,8 +918,8 @@
             category: 'crm',
             badge: 'Core Database',
             description: 'Lead profiles, custom tags, lifecycle stages, deal size, engagement logs, and company intelligence.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
-                <img src="assets/img/image.png" alt="LinkPilot CRM" class="h-full w-full object-contain rounded-lg">
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/linkpilot_crm.png" alt="LinkPilot CRM" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Full database access',
@@ -956,12 +931,8 @@
             category: 'crm',
             badge: 'Revenue Tracker',
             description: 'Multi-stage revenue pipeline, deal win probability, stalled deal alerts, and closed-won analytics.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 3v18h18"/>
-                    <path d="M18 9l-5 5-4-4-3 3"/>
-                    <circle cx="18" cy="9" r="2" fill="#FDE047" stroke="#FDE047"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/deals.png" alt="Deals & Pipeline" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Real-time pipeline tracker',
@@ -973,13 +944,8 @@
             category: 'ai',
             badge: 'Webhooks',
             description: 'Trigger multi-app autonomous actions on incoming webhooks, form submissions, and external events.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-[#FF4F00] flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="white" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="10.5" y="4" width="3" height="16" rx="1.5"/>
-                    <rect x="4" y="10.5" width="16" height="3" rx="1.5"/>
-                    <rect x="6.1" y="7.2" width="3" height="13" rx="1.5" transform="rotate(-45 6.1 7.2)"/>
-                    <rect x="15.3" y="5.1" width="3" height="13" rx="1.5" transform="rotate(45 15.3 5.1)"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/zapier.png" alt="Zapier" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Active webhook listener',
@@ -991,13 +957,8 @@
             category: 'ai',
             badge: 'Live Intelligence',
             description: 'Autonomous live web search to research companies, check market news, and discover executive contacts.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/google.png" alt="Google Search" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Real-time query engine',
@@ -1009,14 +970,8 @@
             category: 'ai',
             badge: 'AWS EC2 0.5B',
             description: '100% private, on-premise lightweight neural engine running directly on our AWS EC2 Free Tier server.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="9" cy="10" r="1.5" fill="#38BDF8"/>
-                    <circle cx="15" cy="10" r="1.5" fill="#38BDF8"/>
-                    <path d="M8 15c1 1.8 7 1.8 8 0" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M12 5v2M7 6l1.5 1.5M17 6l-1.5 1.5" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
-                    <rect x="4" y="4" width="16" height="16" rx="4" stroke="#475569" stroke-width="1.2"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/ollama.png" alt="Ollama AI" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'Self-hosted on AWS EC2',
@@ -1028,12 +983,8 @@
             category: 'ai',
             badge: 'Chromium Engine',
             description: 'Autonomous web page content extraction, meta tag inspection, and real-time competitor price parsing.',
-            logoHtml: `<div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center shrink-0 shadow-xs">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="9"/>
-                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                </svg>
+            logoHtml: `<div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shrink-0 shadow-2xs overflow-hidden p-1.5">
+                <img src="assets/img/apps/web_scraper.png" alt="Web Scraper" class="h-full w-full object-contain">
             </div>`,
             connected: true,
             docs: 'HTML parser active',
@@ -1049,9 +1000,9 @@
 
         root.innerHTML = `
             <div id="agent-apps-modal-backdrop" onclick="closeAgentAppsModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in">
-                <div onclick="event.stopPropagation()" class="bg-white rounded-3xl max-w-3xl w-full border border-slate-200/90 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden transform transition-all">
-                    <!-- Top header with brand gradient -->
-                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-3xl max-w-3xl w-full border border-slate-200/90 shadow-2xl flex flex-col h-[85vh] max-h-[85vh] overflow-hidden transform transition-all">
+                    <!-- Top header with brand styling -->
+                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
                         <div class="flex items-center space-x-3">
                             <div class="h-9 w-9 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-500 p-0.5 flex items-center justify-center shadow-xs">
                                 <div class="h-full w-full bg-slate-900 rounded-[14px] flex items-center justify-center text-indigo-400">
@@ -1059,10 +1010,7 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="flex items-center space-x-2">
-                                    <h3 class="font-bold text-sm text-white">AI Tools & Integrations</h3>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">12 Active Tools</span>
-                                </div>
+                                <h3 class="font-bold text-sm text-white">AI Tools & Integrations</h3>
                                 <p class="text-[11px] text-slate-400">Official connected tools LinkPilot AI Agent uses to execute real-world business actions</p>
                             </div>
                         </div>
@@ -1072,7 +1020,7 @@
                     </div>
 
                     <!-- Search & Category Filters Bar -->
-                    <div class="p-4 border-b border-slate-100 bg-slate-50/70 space-y-3">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50/70 space-y-3 shrink-0">
                         <div class="relative">
                             <input type="text" id="agent-apps-search-input" oninput="filterAgentApps(this.value)" placeholder="Search tools by service, feature or keyword (e.g. WhatsApp, Calendar, Qwen)..." class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200/90 rounded-xl text-xs outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition text-slate-800 placeholder-slate-400 shadow-2xs">
                             <i data-lucide="search" class="h-4 w-4 text-slate-400 absolute left-3 top-2.5"></i>
@@ -1080,31 +1028,31 @@
 
                         <!-- Category Filter Pills -->
                         <div class="flex items-center space-x-1.5 overflow-x-auto agent-custom-scrollbar pb-0.5 text-xs">
-                            <button type="button" onclick="setAgentAppsCategory('all')" id="agent-cat-all" class="px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-slate-900 text-white shadow-2xs">
+                            <button type="button" onclick="setAgentAppsCategory('all')" id="agent-cat-all" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-slate-900 text-white shadow-2xs">
                                 All Tools
                             </button>
-                            <button type="button" onclick="setAgentAppsCategory('messaging')" id="agent-cat-messaging" class="px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
+                            <button type="button" onclick="setAgentAppsCategory('messaging')" id="agent-cat-messaging" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
                                 Messaging & Email
                             </button>
-                            <button type="button" onclick="setAgentAppsCategory('meetings')" id="agent-cat-meetings" class="px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
+                            <button type="button" onclick="setAgentAppsCategory('meetings')" id="agent-cat-meetings" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
                                 Calendar & Video
                             </button>
-                            <button type="button" onclick="setAgentAppsCategory('crm')" id="agent-cat-crm" class="px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
+                            <button type="button" onclick="setAgentAppsCategory('crm')" id="agent-cat-crm" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
                                 CRM & Revenue
                             </button>
-                            <button type="button" onclick="setAgentAppsCategory('ai')" id="agent-cat-ai" class="px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
+                            <button type="button" onclick="setAgentAppsCategory('ai')" id="agent-cat-ai" class="px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100">
                                 AI & Intelligence
                             </button>
                         </div>
                     </div>
 
-                    <!-- Apps list container (2 Columns Grid) -->
-                    <div class="p-4 sm:p-5 overflow-y-auto space-y-3 agent-custom-scrollbar" id="agent-apps-list-container">
+                    <!-- Apps list container (2 Columns Grid) - dedicated full scroll area -->
+                    <div class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 pb-8 space-y-3 agent-custom-scrollbar" id="agent-apps-list-container">
                         <!-- Populated by renderAgentAppsList() -->
                     </div>
 
                     <!-- Footer -->
-                    <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
                         <div class="flex items-center space-x-2 text-slate-500 text-[11px]">
                             <i data-lucide="shield-check" class="h-3.5 w-3.5 text-emerald-600"></i>
                             <span>End-to-end encrypted · Actions executed with user permission</span>
@@ -1137,9 +1085,9 @@
             const btn = document.getElementById(`agent-cat-${cat}`);
             if (btn) {
                 if (cat === category) {
-                    btn.className = 'px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-slate-900 text-white shadow-2xs';
+                    btn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-slate-900 text-white shadow-2xs';
                 } else {
-                    btn.className = 'px-3 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100';
+                    btn.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer bg-white text-slate-600 border border-slate-200/90 hover:bg-slate-100';
                 }
             }
         });
@@ -1190,19 +1138,19 @@
             return;
         }
 
-        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">';
+        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">';
         filtered.forEach(app => {
             const isConn = app.connected;
             const safePrompt = escapeHtml(app.suggestedPrompt || '').replace(/"/g, '&quot;');
             html += `
-                <div class="agent-tool-brand-card p-3.5 bg-white border border-slate-200/90 rounded-2xl flex flex-col justify-between shadow-2xs hover:border-indigo-200 transition-all">
+                <div class="agent-tool-brand-card p-4 bg-white border border-slate-200/90 rounded-2xl flex flex-col justify-between shadow-2xs hover:border-indigo-300 hover:shadow-sm transition-all">
                     <div>
                         <!-- Brand Logo + Header -->
                         <div class="flex items-start justify-between gap-2.5">
                             <div class="flex items-center space-x-3 min-w-0">
                                 ${app.logoHtml}
                                 <div class="min-w-0">
-                                    <h4 class="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
+                                    <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                                         <span>${escapeHtml(app.name)}</span>
                                     </h4>
                                     <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">${escapeHtml(app.badge || app.category)}</span>
@@ -1210,27 +1158,35 @@
                             </div>
 
                             <!-- Connection Status Pill -->
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 flex items-center space-x-1 ${isConn ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 flex items-center space-x-1 ${isConn ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500 border border-slate-200'}">
                                 <span class="h-1.5 w-1.5 rounded-full ${isConn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}"></span>
-                                <span>${isConn ? 'Active' : 'Offline'}</span>
+                                <span>${isConn ? 'Connected' : 'Disconnected'}</span>
                             </span>
                         </div>
 
-                        <!-- Description -->
-                        <p class="text-[11px] text-slate-600 mt-2.5 leading-relaxed line-clamp-2">${escapeHtml(app.description)}</p>
+                        <!-- Description (No line clamp - never cut off) -->
+                        <p class="text-[11px] text-slate-600 mt-2.5 leading-relaxed">${escapeHtml(app.description)}</p>
                     </div>
 
-                    <!-- Bottom Action Toolbar -->
-                    <div class="pt-3 mt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <button type="button" onclick="useToolPrompt('${safePrompt}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100/90 text-indigo-700 rounded-lg text-[11px] font-bold transition flex items-center space-x-1 cursor-pointer" title="Use this tool in chat">
+                    <!-- Bottom Action Toolbar with prominent Connect / Disconnect button -->
+                    <div class="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <button type="button" onclick="useToolPrompt('${safePrompt}')" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-[11px] font-bold transition flex items-center space-x-1 cursor-pointer" title="Use this tool in chat">
                             <i data-lucide="sparkles" class="h-3 w-3 text-indigo-600"></i>
                             <span>Use in Chat</span>
                         </button>
 
-                        <div class="flex items-center space-x-1.5">
-                            <button type="button" onclick="toggleAppConnection('${app.id}')" class="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-[11px] font-semibold rounded-lg hover:bg-slate-100 transition cursor-pointer">
-                                ${isConn ? 'Toggle' : 'Connect'}
-                            </button>
+                        <div>
+                            ${isConn ? `
+                                <button type="button" onclick="toggleAppConnection('${app.id}')" class="px-3 py-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 text-[11px] font-semibold rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-2xs" title="Disconnect this service">
+                                    <i data-lucide="power" class="h-3 w-3 text-rose-500"></i>
+                                    <span>Disconnect</span>
+                                </button>
+                            ` : `
+                                <button type="button" onclick="toggleAppConnection('${app.id}')" class="px-3 py-1.5 text-white bg-indigo-600 hover:bg-indigo-500 text-[11px] font-semibold rounded-xl transition flex items-center space-x-1.5 cursor-pointer shadow-xs" title="Connect this service">
+                                    <i data-lucide="link" class="h-3 w-3 text-white"></i>
+                                    <span>Connect</span>
+                                </button>
+                            `}
                         </div>
                     </div>
                 </div>
@@ -1251,7 +1207,7 @@
             if (app.connected) {
                 showNotification('success', `${app.name} connected successfully!`);
             } else {
-                showNotification('info', `${app.name} set to offline.`);
+                showNotification('info', `${app.name} disconnected.`);
             }
         }
         const searchInput = document.getElementById('agent-apps-search-input');

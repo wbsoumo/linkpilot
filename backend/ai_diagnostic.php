@@ -26,7 +26,20 @@ if (isset($_GET['sync'])) {
         'backend/api/crm/agent.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
-        'dashboard/assets/css/style.css'
+        'dashboard/assets/css/style.css',
+        'dashboard/index.html',
+        'dashboard/assets/img/apps/whatsapp.png',
+        'dashboard/assets/img/apps/google_calendar.png',
+        'dashboard/assets/img/apps/google_meet.png',
+        'dashboard/assets/img/apps/gmail.png',
+        'dashboard/assets/img/apps/zoom.png',
+        'dashboard/assets/img/apps/meta.png',
+        'dashboard/assets/img/apps/linkpilot_crm.png',
+        'dashboard/assets/img/apps/deals.png',
+        'dashboard/assets/img/apps/zapier.png',
+        'dashboard/assets/img/apps/google.png',
+        'dashboard/assets/img/apps/ollama.png',
+        'dashboard/assets/img/apps/web_scraper.png'
     ];
     $root = dirname(__DIR__);
     $chCommit = curl_init("https://api.github.com/repos/wbsoumo/linkpilot/commits/main");

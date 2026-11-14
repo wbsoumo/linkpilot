@@ -440,10 +440,10 @@
 #agent-composer-form.agent-card-composer,
 #agent-composer-form {
     background: #ffffff !important;
-    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    border: 1.5px solid #e2e8f0 !important;
     border-radius: 26px !important;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.02) !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.02) !important;
+    transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     position: relative !important;
     display: flex !important;
     flex-direction: row !important;
@@ -454,14 +454,17 @@
 #agent-composer-form.agent-card-composer:hover,
 #agent-composer-form:hover {
     border-color: #cbd5e1 !important;
-    box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.08), 0 2px 8px -1px rgba(15, 23, 42, 0.03) !important;
+    box-shadow: 0 4px 14px -2px rgba(15, 23, 42, 0.08) !important;
 }
 
+/* Card Composer Focus Highlighting (On Focus & Off Focus smooth transition) */
 #agent-composer-form.agent-card-composer:focus-within,
-#agent-composer-form:focus-within {
-    border-color: #c084fc !important;
+#agent-composer-form:focus-within,
+#agent-composer-form.is-focused,
+.agent-card-composer.is-focused {
+    border-color: #6366f1 !important;
     background: #ffffff !important;
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.16), 0 8px 28px -3px rgba(168, 85, 247, 0.12) !important;
+    box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.2), 0 8px 24px -4px rgba(99, 102, 241, 0.14) !important;
 }
 
 /* Explicitly override textarea from global style.css - ZERO RECTANGLE BORDERS */

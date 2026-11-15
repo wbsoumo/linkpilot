@@ -289,9 +289,11 @@ if (isset($_GET['test_temp_files'])) {
     $testExp = TempFileService::createTempFile($adminId, null, 'csv', 'exp_test.csv', 'Exp Test', $sampleData, '', '', $db);
     $expToken = $testExp['token'];
     $rawExpToken = $testExp['raw_token'] ?? $expToken;
-    $db->prepare("UPDATE ai_generated_files SET expires_at = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE file_token = ?")->execute([$rawExpToken]);
+    $pastDate = date('Y-m-d H:i:s', time() - 120);
+    $stmtExp = $db->prepare("UPDATE ai_generated_files SET expires_at = ? WHERE file_token = ?");
+    $stmtExp->execute([$pastDate, $rawExpToken]);
     $expDl = TempFileService::getDownloadFile($expToken, $adminId, $db);
-    echo "Expired download rejection: " . (($expDl['error'] ?? '') === 'expired' ? 'PASSED (HTTP 410 / File deleted)' : 'FAIL') . "\n";
+    echo "Expired download rejection: " . (($expDl['error'] ?? '') === 'expired' ? 'PASSED (HTTP 410 / File deleted)' : 'FAIL: ' . json_encode($expDl)) . "\n";
 
     // 4. Test cron cleanup
     $cleanStats = TempFileService::cleanupExpired($db);

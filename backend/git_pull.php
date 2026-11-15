@@ -221,12 +221,16 @@ if (!$executed) {
         if (file_exists($root . '/backend/agent/AgentMigration4.php')) {
             require_once $root . '/backend/agent/AgentMigration4.php';
         }
+        if (file_exists($root . '/backend/agent/AgentMigration5.php')) {
+            require_once $root . '/backend/agent/AgentMigration5.php';
+        }
         $db = Database::getConnection();
         AgentDBMigration::run($db);
         if (class_exists('AgentMigration2')) AgentMigration2::run($db);
         if (class_exists('AgentMigration4')) AgentMigration4::run($db);
+        if (class_exists('AgentMigration5')) AgentMigration5::run($db);
         if (class_exists('PluginRegistry')) PluginRegistry::init($db);
-        echo "[OK] Ran AgentDBMigration, AgentMigration2, AgentMigration4, and PluginRegistry::init on server.\n";
+        echo "[OK] Ran AgentDBMigration, AgentMigration2, AgentMigration4, AgentMigration5, and PluginRegistry::init on server.\n";
     } catch (Throwable $e) {
         echo "[!] Auto-migration notice: " . $e->getMessage() . "\n";
     }

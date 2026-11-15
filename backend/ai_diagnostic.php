@@ -288,7 +288,8 @@ if (isset($_GET['test_temp_files'])) {
     // 3. Test 30-minute expiration check
     $testExp = TempFileService::createTempFile($adminId, null, 'csv', 'exp_test.csv', 'Exp Test', $sampleData, '', '', $db);
     $expToken = $testExp['token'];
-    $db->prepare("UPDATE ai_generated_files SET expires_at = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE file_token = ?")->execute([$expToken]);
+    $rawExpToken = $testExp['raw_token'] ?? $expToken;
+    $db->prepare("UPDATE ai_generated_files SET expires_at = DATE_SUB(NOW(), INTERVAL 1 MINUTE) WHERE file_token = ?")->execute([$rawExpToken]);
     $expDl = TempFileService::getDownloadFile($expToken, $adminId, $db);
     echo "Expired download rejection: " . (($expDl['error'] ?? '') === 'expired' ? 'PASSED (HTTP 410 / File deleted)' : 'FAIL') . "\n";
 

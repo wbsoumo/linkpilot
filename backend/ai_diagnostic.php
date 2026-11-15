@@ -43,6 +43,7 @@ if (isset($_GET['sync'])) {
             $dest = $root . '/' . $f;
             if (!is_dir(dirname($dest))) @mkdir(dirname($dest), 0755, true);
             if (@file_put_contents($dest, $c) !== false) {
+                if (function_exists('opcache_invalidate')) @opcache_invalidate($dest, true);
                 echo "Synced: $f (" . strlen($c) . " bytes)\n";
                 $synced++;
             }
@@ -50,6 +51,7 @@ if (isset($_GET['sync'])) {
             echo "Failed $f (HTTP $code)\n";
         }
     }
+    if (function_exists('opcache_reset')) @opcache_reset();
     if (file_exists($root . '/.htaccess')) @touch($root . '/.htaccess');
     echo "Sync finished. $synced files updated.\n\n";
 

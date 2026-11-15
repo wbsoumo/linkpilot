@@ -19,7 +19,7 @@ class WorkflowEngine {
     const STATE_CANCELLED = 'cancelled';
 
     private static $allowedTransitions = [
-        self::STATE_PENDING => [self::STATE_RUNNING, self::STATE_WAITING_FOR_APPROVAL, self::STATE_CANCELLED, self::STATE_FAILED],
+        self::STATE_PENDING => [self::STATE_RUNNING, self::STATE_WAITING_FOR_APPROVAL, self::STATE_COMPLETED, self::STATE_CANCELLED, self::STATE_FAILED],
         self::STATE_RUNNING => [self::STATE_WAITING_FOR_APPROVAL, self::STATE_COMPLETED, self::STATE_FAILED, self::STATE_CANCELLED],
         self::STATE_WAITING_FOR_APPROVAL => [self::STATE_RUNNING, self::STATE_COMPLETED, self::STATE_CANCELLED, self::STATE_FAILED],
         self::STATE_COMPLETED => [self::STATE_RUNNING], // Resumable / continuation turn (e.g., "send it to him")

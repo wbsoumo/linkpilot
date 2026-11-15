@@ -17,6 +17,14 @@ if (isset($_GET['sync'])) {
     $syncFiles = [
         'backend/agent/AgentMigration2.php',
         'backend/agent/AgentMigration4.php',
+        'backend/agent/AgentMigration5.php',
+        'backend/agent/WorkflowScheduler.php',
+        'backend/agent/SlotFillingEngine.php',
+        'backend/agent/BatchApprovalEngine.php',
+        'backend/agent/DeliverabilityEngine.php',
+        'backend/agent/LeadProspectingEngine.php',
+        'backend/agent/ProposalGenerator.php',
+        'backend/agent/OutreachDispatcher.php',
         'backend/agent/PluginRegistry.php',
         'backend/agent/WorkflowEngine.php',
         'backend/agent/ContextManager.php',
@@ -24,6 +32,7 @@ if (isset($_GET['sync'])) {
         'backend/agent/VerificationEngine.php',
         'backend/agent/TaskPlanner.php',
         'backend/agent/ExecutionEngine.php',
+        'backend/cron_agent_worker.php',
         'backend/agent_db_migration.php',
         'backend/temp_file_service.php',
         'backend/cron_cleanup_temp_files.php',
@@ -40,6 +49,8 @@ if (isset($_GET['sync'])) {
         'backend/api/crm/download_temp_file.php',
         'tests/test_phase2_phase3.php',
         'tests/test_phase4.php',
+        'tests/test_phase5a.php',
+        'tests/test_phase5.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
         'dashboard/assets/css/style.css',
@@ -80,13 +91,15 @@ if (isset($_GET['sync'])) {
         require_once __DIR__ . '/agent_db_migration.php';
         require_once __DIR__ . '/agent/AgentMigration2.php';
         require_once __DIR__ . '/agent/AgentMigration4.php';
+        require_once __DIR__ . '/agent/AgentMigration5.php';
         require_once __DIR__ . '/agent/PluginRegistry.php';
         $db = Database::getConnection();
         AgentDBMigration::run($db);
         AgentMigration2::run($db);
         AgentMigration4::run($db);
+        AgentMigration5::run($db);
         PluginRegistry::init($db);
-        echo "[OK] Ran AgentDBMigration, AgentMigration2, AgentMigration4, and PluginRegistry::init on server.\n";
+        echo "[OK] Ran AgentDBMigration, AgentMigration2, AgentMigration4, AgentMigration5, and PluginRegistry::init on server.\n";
     } catch (Throwable $e) {
         echo "[!] Migration error: " . $e->getMessage() . "\n";
     }
@@ -125,6 +138,12 @@ if (isset($_GET['run_phase2_phase3_tests'])) {
 if (isset($_GET['run_phase4_tests'])) {
     echo "=== RUNNING PHASE 4 REGRESSION TESTS ON SERVER ===\n";
     require_once dirname(__DIR__) . '/tests/test_phase4.php';
+    exit;
+}
+
+if (isset($_GET['run_phase5_tests'])) {
+    echo "=== RUNNING PHASE 5 REGRESSION TESTS ON SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_phase5.php';
     exit;
 }
 

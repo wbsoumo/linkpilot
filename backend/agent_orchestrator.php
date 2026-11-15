@@ -22,6 +22,16 @@ if (file_exists(__DIR__ . '/agent/AgentMigration4.php')) {
     require_once __DIR__ . '/agent/TaskPlanner.php';
     require_once __DIR__ . '/agent/ExecutionEngine.php';
 }
+if (file_exists(__DIR__ . '/agent/AgentMigration5.php')) {
+    require_once __DIR__ . '/agent/AgentMigration5.php';
+    require_once __DIR__ . '/agent/WorkflowScheduler.php';
+    require_once __DIR__ . '/agent/SlotFillingEngine.php';
+    require_once __DIR__ . '/agent/BatchApprovalEngine.php';
+    require_once __DIR__ . '/agent/DeliverabilityEngine.php';
+    require_once __DIR__ . '/agent/LeadProspectingEngine.php';
+    require_once __DIR__ . '/agent/ProposalGenerator.php';
+    require_once __DIR__ . '/agent/OutreachDispatcher.php';
+}
 
 class AgentOrchestrator {
 
@@ -35,6 +45,9 @@ class AgentOrchestrator {
         }
         if (class_exists('AgentMigration4')) {
             AgentMigration4::run($db);
+        }
+        if (class_exists('AgentMigration5')) {
+            AgentMigration5::run($db);
         }
         AgentTelemetry::initTable($db);
         AIToolRegistry::init();
@@ -387,6 +400,102 @@ You are not a passive text generator. You execute real actions using your tool l
             $role = $row['role'];
             $content = $row['content'];
             $messages[] = ['role' => $role, 'content' => $content];
+        }
+
+        // =========================================================================
+        // 1b2. CONVERSATIONAL SLOT-FILLING FOR RECURRING WORKFLOWS (Phase 5A)
+        // Enforces the 6 mandatory fields before scheduling a recurring outreach job.
+        // Never invents missing configuration or silently activates an incomplete schedule.
+        // =========================================================================
+        $isRecurringProspectingIntent = (bool)(
+            preg_match('/\b(daily|every\s+(?:day|morning|week|weekday)|schedule\s+(?:daily|a\s+daily|a\s+task|recurring)|recurring)\b/i', $userMessage) &&
+            preg_match('/\b(leads?|prospects?|outreach|mail|email|proposals?)\b/i', $userMessage)
+        ) || (
+            $activeWorkflow && (
+                ($activeWorkflow['workflow_type'] ?? '') === 'autonomous_prospecting' ||
+                ($activeWorkflow['task_id'] ?? '') === 'autonomous_prospecting'
+            ) && ($activeWorkflow['state'] ?? '') === 'pending'
+        );
+
+        if ($isRecurringProspectingIntent && class_exists('SlotFillingEngine') && class_exists('WorkflowScheduler')) {
+            $existingSlots = $activeWorkflow ? ($activeWorkflow['entities'] ?? []) : [];
+            $slots = SlotFillingEngine::extractSlots($userMessage, $historyRows, $userId, $existingSlots, $db);
+            $validation = SlotFillingEngine::validateSlots($slots, $userId, $db);
+
+            if (!$validation['is_complete']) {
+                if (!$activeWorkflow && class_exists('WorkflowEngine')) {
+                    $activeWorkflow = WorkflowEngine::createWorkflow($userId, $convId, 'prospecting_plugin', 'autonomous_prospecting', 'Autonomous Daily Prospecting', $slots, null, $db);
+                } elseif ($activeWorkflow && class_exists('WorkflowEngine')) {
+                    WorkflowEngine::updateEntities($activeWorkflow['id'], $slots, $db);
+                }
+
+                $counterQuestion = SlotFillingEngine::generateCounterQuestion($validation['missing_fields'], $slots, $userId, $db);
+
+                $stmtMsg = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, status, tokens_used) VALUES (?, ?, 'assistant', ?, 'completed', 0)");
+                $stmtMsg->execute([$convId, $userId, $counterQuestion]);
+                $msgId = $db->lastInsertId();
+
+                if ($streamEmitter) {
+                    $streamEmitter('token', ['content' => $counterQuestion]);
+                    $streamEmitter('done', ['message_id' => $msgId, 'status' => 'completed']);
+                }
+
+                return [
+                    'status' => 'waiting_for_user',
+                    'message_id' => $msgId,
+                    'content' => $counterQuestion,
+                    'missing_fields' => $validation['missing_fields'],
+                    'slots' => $slots
+                ];
+            } else {
+                // All 6 mandatory fields satisfied!
+                $validSlots = $validation['slots'];
+                $userTz = $validSlots['timezone'] ?? (class_exists('AgentRouter') ? AgentRouter::getUserTimezone($userId, $db) : 'UTC');
+                $cronExpr = $validSlots['schedule_time'] ?? '0 9 * * *';
+                $title = "Daily {$validSlots['target_industry']} Outreach ({$validSlots['target_location']})";
+
+                $sched = WorkflowScheduler::createSchedule(
+                    $userId,
+                    $title,
+                    $cronExpr,
+                    $userTz,
+                    $validSlots,
+                    null,
+                    WorkflowScheduler::POLICY_DIGEST_REVIEW,
+                    WorkflowScheduler::MISSED_SKIP,
+                    $db
+                );
+
+                if ($activeWorkflow && class_exists('WorkflowEngine')) {
+                    WorkflowEngine::transitionState($activeWorkflow['id'], WorkflowEngine::STATE_COMPLETED, 'schedule_created', $sched, 'Schedule activated', $db);
+                }
+
+                $confirmation = "✅ **Autonomous Outreach Schedule Configured & Activated!**\n\n" .
+                                "* **Campaign Title**: `{$sched['title']}`\n" .
+                                "* **Target Industry & Location**: **{$validSlots['target_industry']}** in **{$validSlots['target_location']}**\n" .
+                                "* **Daily Lead Volume**: **{$validSlots['lead_count']} leads** per execution\n" .
+                                "* **Value Proposition**: {$validSlots['value_proposition']}\n" .
+                                "* **Verified Sender**: `{$validSlots['sender_identity']}`\n" .
+                                "* **Schedule**: `{$sched['cron_expression']}` (Next run: **{$sched['next_run_at']}** `{$userTz}`)\n" .
+                                "* **Approval Policy**: **Morning Digest Review** *(proposals will be placed in your daily digest card for approval before dispatch)*\n\n" .
+                                "You can review and manage this recurring job in the sidebar under **Scheduled Tasks**.";
+
+                $stmtMsg = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, status, tokens_used) VALUES (?, ?, 'assistant', ?, 'completed', 0)");
+                $stmtMsg->execute([$convId, $userId, $confirmation]);
+                $msgId = $db->lastInsertId();
+
+                if ($streamEmitter) {
+                    $streamEmitter('token', ['content' => $confirmation]);
+                    $streamEmitter('done', ['message_id' => $msgId, 'status' => 'completed']);
+                }
+
+                return [
+                    'status' => 'completed',
+                    'message_id' => $msgId,
+                    'content' => $confirmation,
+                    'schedule' => $sched
+                ];
+            }
         }
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
@@ -1054,6 +1163,34 @@ You are not a passive text generator. You execute real actions using your tool l
 
         $isEmail = ($toolId === 'send_email') || (!empty($toolArgs['recipient']) && !empty($toolArgs['subject']));
 
+        // Check if this is a Batch Morning Digest approval
+        if (!empty($parsedResults['schedule_run_id']) && class_exists('BatchApprovalEngine')) {
+            $batchRes = BatchApprovalEngine::approveAll($userId, $parsedResults['schedule_run_id'], $db);
+            $parsedResults['status'] = 'approved';
+            $parsedResults['approved_at'] = date('Y-m-d H:i:s');
+            $db->prepare("UPDATE ai_agent_messages SET status = 'approved', tool_results_json = ? WHERE id = ?")->execute([json_encode($parsedResults), $pendingMsgId]);
+
+            $confirmText = "✅ **Morning Review Digest Approved!**\n\n" .
+                           "I have approved and scheduled all **{$batchRes['approved_count']} proposals** for controlled dispatch.\n\n" .
+                           "Deliverability safeguards and provider rate limits will be applied during delivery.";
+
+            $stmtConf = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, status, tokens_used) VALUES (?, ?, 'assistant', ?, 'completed', 0)");
+            $stmtConf->execute([$convId, $userId, $confirmText]);
+            $confMsgId = $db->lastInsertId();
+
+            if ($streamEmitter) {
+                $streamEmitter('token', ['content' => $confirmText]);
+                $streamEmitter('done', ['message_id' => $confMsgId, 'status' => 'completed']);
+            }
+
+            return [
+                'status' => 'success',
+                'message_id' => $confMsgId,
+                'content' => $confirmText,
+                'batch_approved' => $batchRes
+            ];
+        }
+
         // 1. Mark pending message as approved in DB
         $parsedResults['status'] = 'approved';
         $parsedResults['approved_at'] = date('Y-m-d H:i:s');
@@ -1237,6 +1374,30 @@ You are not a passive text generator. You execute real actions using your tool l
         $toolName = $parsedResults['tool_name'] ?? $toolId;
         $toolArgs = $parsedResults['arguments'] ?? [];
         $isEmail = ($toolId === 'send_email') || (!empty($toolArgs['recipient']) && !empty($toolArgs['subject']));
+
+        // Check if this is a Batch Morning Digest rejection
+        if (!empty($parsedResults['schedule_run_id']) && class_exists('BatchApprovalEngine')) {
+            BatchApprovalEngine::discardBatch($userId, $parsedResults['schedule_run_id'], 'Discarded by user in chat', $db);
+            $parsedResults['status'] = 'rejected';
+            $parsedResults['rejected_at'] = date('Y-m-d H:i:s');
+            $db->prepare("UPDATE ai_agent_messages SET status = 'rejected', tool_results_json = ? WHERE id = ?")->execute([json_encode($parsedResults), $pendingMsgId]);
+
+            $cancelText = "I have discarded today's proposal batch. No outreach emails will be dispatched.";
+            $stmtConf = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, status, tokens_used) VALUES (?, ?, 'assistant', ?, 'completed', 0)");
+            $stmtConf->execute([$convId, $userId, $cancelText]);
+            $confMsgId = $db->lastInsertId();
+
+            if ($streamEmitter) {
+                $streamEmitter('token', ['content' => $cancelText]);
+                $streamEmitter('done', ['message_id' => $confMsgId, 'status' => 'completed']);
+            }
+
+            return [
+                'status' => 'cancelled',
+                'message_id' => $confMsgId,
+                'content' => $cancelText
+            ];
+        }
 
         // 1. Mark pending message as rejected in DB
         $parsedResults['status'] = 'rejected';

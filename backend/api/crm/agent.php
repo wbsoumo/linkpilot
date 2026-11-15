@@ -188,6 +188,223 @@ try {
         ]);
     }
 
+    // 6b1. List Schedules (Phase 5)
+    elseif ($action === 'list_schedules') {
+        $statusFilter = trim($input['status'] ?? ($_GET['status'] ?? ''));
+        $schedules = WorkflowScheduler::listSchedules($userId, $statusFilter ?: null, $db);
+        sendJsonResponse('success', 'Schedules retrieved successfully.', [
+            'schedules' => $schedules,
+            'total_count' => count($schedules)
+        ]);
+    }
+
+    // 6b2. Pause Schedule (Phase 5)
+    elseif ($action === 'pause_schedule') {
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        $res = WorkflowScheduler::pauseSchedule($scheduleId, $userId, $db);
+        sendJsonResponse($res ? 'success' : 'error', $res ? 'Schedule paused.' : 'Schedule not found or not active.', ['schedule_id' => $scheduleId]);
+    }
+
+    // 6b3. Resume Schedule (Phase 5)
+    elseif ($action === 'resume_schedule') {
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        $res = WorkflowScheduler::resumeSchedule($scheduleId, $userId, $db);
+        sendJsonResponse($res ? 'success' : 'error', $res ? 'Schedule resumed.' : 'Schedule not found or not paused.', ['schedule_id' => $scheduleId]);
+    }
+
+    // 6b4. Cancel Schedule (Phase 5)
+    elseif ($action === 'cancel_schedule') {
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        $res = WorkflowScheduler::cancelSchedule($scheduleId, $userId, $db);
+        sendJsonResponse($res ? 'success' : 'error', $res ? 'Schedule cancelled.' : 'Schedule not found.', ['schedule_id' => $scheduleId]);
+    }
+
+    // 6b5. Delete Schedule (Phase 5)
+    elseif ($action === 'delete_schedule') {
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        $res = WorkflowScheduler::deleteSchedule($scheduleId, $userId, $db);
+        sendJsonResponse($res ? 'success' : 'error', $res ? 'Schedule deleted.' : 'Schedule not found.', ['schedule_id' => $scheduleId]);
+    }
+
+    // 6b6. Preview Batch Approval Item (Phase 5)
+    elseif ($action === 'preview_batch_item') {
+        $token = trim($input['token'] ?? ($_GET['token'] ?? ''));
+        if (empty($token)) sendJsonResponse('error', 'Approval token is required.', [], 400);
+        try {
+            $item = BatchApprovalEngine::previewItem($userId, $token, $db);
+            sendJsonResponse('success', 'Batch item preview loaded.', $item);
+        } catch (Throwable $ePreview) {
+            sendJsonResponse('error', $ePreview->getMessage(), [], 400);
+        }
+    }
+
+    // 6b7. Edit Batch Approval Item (Phase 5)
+    elseif ($action === 'edit_batch_item') {
+        $token = trim($input['token'] ?? '');
+        $subject = trim($input['subject'] ?? '');
+        $body = trim($input['body'] ?? '');
+        if (empty($token) || empty($subject) || empty($body)) {
+            sendJsonResponse('error', 'Token, subject, and body are required.', [], 400);
+        }
+        try {
+            $res = BatchApprovalEngine::editItem($userId, $token, $subject, $body, $db);
+            sendJsonResponse('success', 'Proposal draft edited successfully.', $res);
+        } catch (Throwable $eEdit) {
+            sendJsonResponse('error', $eEdit->getMessage(), [], 400);
+        }
+    }
+
+    // 6b8. Approve Batch Approval Item (Phase 5)
+    elseif ($action === 'approve_batch_item') {
+        $token = trim($input['token'] ?? '');
+        if (empty($token)) sendJsonResponse('error', 'Approval token is required.', [], 400);
+        try {
+            $res = BatchApprovalEngine::approveItem($userId, $token, $db);
+            sendJsonResponse('success', 'Proposal approved for dispatch.', $res);
+        } catch (Throwable $eAppr) {
+            sendJsonResponse('error', $eAppr->getMessage(), [], 400);
+        }
+    }
+
+    // 6b9. Approve Selected Batch Items (Phase 5)
+    elseif ($action === 'approve_selected_items') {
+        $tokens = (array)($input['tokens'] ?? []);
+        if (empty($tokens)) sendJsonResponse('error', 'Tokens array is required.', [], 400);
+        try {
+            $res = BatchApprovalEngine::approveSelected($userId, $tokens, $db);
+            sendJsonResponse('success', 'Selected proposals approved.', $res);
+        } catch (Throwable $eSel) {
+            sendJsonResponse('error', $eSel->getMessage(), [], 400);
+        }
+    }
+
+    // 6b10. Approve All Batch Items (Phase 5)
+    elseif ($action === 'approve_all_items') {
+        $runId = trim($input['schedule_run_id'] ?? '');
+        if (empty($runId)) sendJsonResponse('error', 'Schedule Run ID is required.', [], 400);
+        try {
+            $res = BatchApprovalEngine::approveAll($userId, $runId, $db);
+            sendJsonResponse('success', 'All batch proposals approved.', $res);
+        } catch (Throwable $eAll) {
+            sendJsonResponse('error', $eAll->getMessage(), [], 400);
+        }
+    }
+
+    // 6b11. Reject Batch Item (Phase 5)
+    elseif ($action === 'reject_batch_item') {
+        $token = trim($input['token'] ?? '');
+        $reason = trim($input['reason'] ?? 'Rejected by user');
+        if (empty($token)) sendJsonResponse('error', 'Token is required.', [], 400);
+        try {
+            $res = BatchApprovalEngine::rejectItem($userId, $token, $reason, $db);
+            sendJsonResponse('success', 'Item rejected.', $res);
+        } catch (Throwable $eRej) {
+            sendJsonResponse('error', $eRej->getMessage(), [], 400);
+        }
+    }
+
+    // 6b12. Discard Batch (Phase 5)
+    elseif ($action === 'discard_batch') {
+        $runId = trim($input['schedule_run_id'] ?? '');
+        $reason = trim($input['reason'] ?? 'Discarded by user');
+        if (empty($runId)) sendJsonResponse('error', 'Schedule Run ID is required.', [], 400);
+        try {
+            $res = BatchApprovalEngine::discardBatch($userId, $runId, $reason, $db);
+            sendJsonResponse('success', 'Batch discarded.', $res);
+        } catch (Throwable $eDisc) {
+            sendJsonResponse('error', $eDisc->getMessage(), [], 400);
+        }
+    }
+
+    // 6b13. List Discovered Prospects (Phase 5B)
+    elseif ($action === 'list_discovered_prospects') {
+        $limit = max(1, min(100, (int)($input['limit'] ?? ($_GET['limit'] ?? 50))));
+        $runId = trim($input['schedule_run_id'] ?? ($_GET['schedule_run_id'] ?? ''));
+
+        $query = "SELECT * FROM ai_agent_discovered_prospects WHERE user_id = :user_id";
+        $params = [':user_id' => $userId];
+        if (!empty($runId)) {
+            $query .= " AND schedule_run_id = :run_id";
+            $params[':run_id'] = $runId;
+        }
+        $query .= " ORDER BY created_at DESC LIMIT :lim";
+
+        $stmt = $db->prepare($query);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $prospects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        sendJsonResponse('success', 'Discovered prospects retrieved.', [
+            'prospects' => $prospects,
+            'count' => count($prospects)
+        ]);
+    }
+
+    // 6b14. List Outreach Logs (Phase 5B)
+    elseif ($action === 'list_outreach_logs') {
+        $limit = max(1, min(100, (int)($input['limit'] ?? ($_GET['limit'] ?? 50))));
+        $status = trim($input['status'] ?? ($_GET['status'] ?? ''));
+
+        $query = "SELECT * FROM ai_agent_outreach_logs WHERE user_id = :user_id";
+        $params = [':user_id' => $userId];
+        if (!empty($status)) {
+            $query .= " AND status = :st";
+            $params[':st'] = $status;
+        }
+        $query .= " ORDER BY created_at DESC LIMIT :lim";
+
+        $stmt = $db->prepare($query);
+        foreach ($params as $k => $v) {
+            $stmt->bindValue($k, $v);
+        }
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        sendJsonResponse('success', 'Outreach logs retrieved.', [
+            'logs' => $logs,
+            'count' => count($logs)
+        ]);
+    }
+
+    // 6b15. Dispatch Approved Item (Phase 5B)
+    elseif ($action === 'dispatch_approved_item') {
+        $token = trim($input['token'] ?? '');
+        $provider = trim($input['provider'] ?? 'smtp');
+        if (empty($token)) sendJsonResponse('error', 'Approval token is required.', [], 400);
+
+        try {
+            $res = OutreachDispatcher::dispatchApprovedItem($userId, $token, $provider, [], $db);
+            sendJsonResponse('success', 'Email dispatched successfully.', $res);
+        } catch (Throwable $eDisp) {
+            sendJsonResponse('error', $eDisp->getMessage(), [], 400);
+        }
+    }
+
+    // 6b16. Manage Suppression List (Phase 5B)
+    elseif ($action === 'manage_suppression') {
+        $subAction = trim($input['sub_action'] ?? ($_GET['sub_action'] ?? 'list'));
+        if ($subAction === 'add') {
+            $email = strtolower(trim($input['email'] ?? ''));
+            $reason = trim($input['reason'] ?? 'manual');
+            if (empty($email)) sendJsonResponse('error', 'Email is required.', [], 400);
+            OutreachDispatcher::recordBounceOrComplaint($userId, $email, $reason, $db);
+            sendJsonResponse('success', "Email '{$email}' added to suppression list.");
+        } else {
+            $stmt = $db->prepare("SELECT * FROM ai_agent_suppression_list WHERE user_id = ? ORDER BY created_at DESC LIMIT 100");
+            $stmt->execute([$userId]);
+            $list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            sendJsonResponse('success', 'Suppression list retrieved.', ['suppression_list' => $list]);
+        }
+    }
+
     // 6b. Get Agent Profile & Settings
     elseif ($action === 'get_agent_settings') {
         $agentName = 'Muse';
@@ -198,8 +415,28 @@ try {
             if (!empty($nameVal)) $agentName = trim($nameVal);
         } catch (Throwable $e) {}
 
-        // Mock scheduled tasks or fetch from DB
-        $scheduledTasks = [
+        // Real dynamic schedules + System presets
+        $scheduledTasks = [];
+        if (class_exists('WorkflowScheduler')) {
+            try {
+                $realSchedules = WorkflowScheduler::listSchedules($userId, null, $db);
+                foreach ($realSchedules as $rs) {
+                    $scheduledTasks[] = [
+                        'id' => $rs['id'],
+                        'title' => $rs['title'],
+                        'schedule' => $rs['cron_expression'],
+                        'next_run' => $rs['next_run_at'],
+                        'category' => 'prospecting',
+                        'icon' => 'calendar',
+                        'badge' => 'AI',
+                        'status' => $rs['status'],
+                        'description' => "Autonomous scheduled prospecting & outreach. Target: " . ($rs['parameters']['target_industry'] ?? 'General') . " in " . ($rs['parameters']['target_location'] ?? 'Global')
+                    ];
+                }
+            } catch (Throwable $eSched) {}
+        }
+
+        $systemPresets = [
             [
                 'id' => 'st_1',
                 'title' => 'Daily hot-leads WhatsApp pack',
@@ -268,10 +505,12 @@ try {
             ]
         ];
 
+        $allTasks = array_merge($scheduledTasks, $systemPresets);
+
         sendJsonResponse('success', 'Agent settings retrieved.', [
             'agent_name' => $agentName,
             'status' => 'connected',
-            'scheduled_tasks' => $scheduledTasks
+            'scheduled_tasks' => $allTasks
         ]);
     }
 

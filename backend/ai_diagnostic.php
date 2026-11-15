@@ -10,7 +10,6 @@ if ($token !== 'LP_DIAGNOSTIC_9823') {
 }
 
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/agent_orchestrator.php';
 
 // Direct GitHub Sync handler with cache-busting
 if (isset($_GET['sync'])) {
@@ -81,6 +80,7 @@ if (isset($_GET['run_tests'])) {
     exit;
 }
 
+require_once __DIR__ . '/agent_orchestrator.php';
 $db = Database::getConnection();
 $adminId = 1;
 

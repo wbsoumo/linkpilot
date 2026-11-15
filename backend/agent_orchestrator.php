@@ -9,10 +9,12 @@ require_once __DIR__ . '/crm_sync_helper.php';
 require_once __DIR__ . '/agent_cache.php';
 require_once __DIR__ . '/agent_telemetry.php';
 require_once __DIR__ . '/agent_router.php';
-require_once __DIR__ . '/agent/AgentMigration2.php';
-require_once __DIR__ . '/agent/PluginRegistry.php';
-require_once __DIR__ . '/agent/WorkflowEngine.php';
-require_once __DIR__ . '/agent/ContextManager.php';
+if (file_exists(__DIR__ . '/agent/AgentMigration2.php')) {
+    require_once __DIR__ . '/agent/AgentMigration2.php';
+    require_once __DIR__ . '/agent/PluginRegistry.php';
+    require_once __DIR__ . '/agent/WorkflowEngine.php';
+    require_once __DIR__ . '/agent/ContextManager.php';
+}
 
 class AgentOrchestrator {
 
@@ -21,10 +23,14 @@ class AgentOrchestrator {
      */
     public static function init(PDO $db) {
         AgentDBMigration::run($db);
-        AgentMigration2::run($db);
+        if (class_exists('AgentMigration2')) {
+            AgentMigration2::run($db);
+        }
         AgentTelemetry::initTable($db);
         AIToolRegistry::init();
-        PluginRegistry::init($db);
+        if (class_exists('PluginRegistry')) {
+            PluginRegistry::init($db);
+        }
     }
 
     /**

@@ -13,11 +13,13 @@ date_default_timezone_set('Asia/Kolkata');
 
 // CORS Headers
 function sendCorsHeaders() {
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-    header("Access-Control-Allow-Origin: " . $origin);
-    header("Access-Control-Allow-Credentials: true");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    if (!headers_sent()) {
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
+        header("Access-Control-Allow-Origin: " . $origin);
+        header("Access-Control-Allow-Credentials: true");
+        header("Access-Control-Allow-Methods: GET, POST, OPTIONS, PUT, DELETE");
+        header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Worker-Token, X-Admin-Key, X-Deploy-Key");
+    }
     
     if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         exit(0);
@@ -80,29 +82,54 @@ define('FAST2SMS_API_KEY', getenv('FAST2SMS_API_KEY') ?: 'YOUR_FAST2SMS_API_KEY'
 define('FAST2SMS_MESSAGE_ID', '22325');
 define('FAST2SMS_PHONE_NUMBER_ID', '1146366028557419');
 
-// Helper function to encrypt sensitive data (SMTP passwords)
+// Autonomous Agent Engine Security Keys (Rotated & Protected)
+define('CRON_WORKER_SECRET', getenv('CRON_WORKER_SECRET') ?: 'lp_cron_sec_8f92a10b4c7e6d5e9a31b2c4d6f8e0a2b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5');
+define('DIAGNOSTIC_ADMIN_KEY', getenv('DIAGNOSTIC_ADMIN_KEY') ?: 'lp_diag_sec_1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b');
+define('DEPLOYMENT_SECRET', getenv('DEPLOYMENT_SECRET') ?: 'lp_deploy_sec_4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d2e');
+
+// Helper function to encrypt sensitive data (SMTP passwords, OAuth refresh tokens) using AES-256-CBC with HMAC-SHA256
 function encryptData($data) {
-    $key = hash('sha256', ENCRYPTION_KEY);
+    if ($data === null || $data === '') return '';
+    $key = hash('sha256', ENCRYPTION_KEY, true);
     $ivSize = openssl_cipher_iv_length(ENCRYPTION_METHOD);
-    $iv = openssl_random_pseudo_bytes($ivSize);
-    $encrypted = openssl_encrypt($data, ENCRYPTION_METHOD, $key, 0, $iv);
-    // Combine encrypted data and iv
-    return base64_encode($encrypted . '::' . base64_encode($iv));
+    $iv = random_bytes($ivSize);
+    $encrypted = openssl_encrypt($data, ENCRYPTION_METHOD, $key, OPENSSL_RAW_DATA, $iv);
+    $mac = hash_hmac('sha256', $iv . $encrypted, $key, true);
+    return base64_encode('v2:' . $iv . $mac . $encrypted);
 }
 
-// Helper function to decrypt sensitive data
+// Helper function to decrypt sensitive data with integrity verification and legacy fallback
 function decryptData($encryptedData) {
-    $key = hash('sha256', ENCRYPTION_KEY);
+    if (empty($encryptedData)) return '';
+    $raw = base64_decode($encryptedData, true);
+    if (!$raw) return false;
+
+    $key = hash('sha256', ENCRYPTION_KEY, true);
+    $ivSize = openssl_cipher_iv_length(ENCRYPTION_METHOD);
+
+    // v2 Authenticated Format (IV + HMAC-SHA256 + Ciphertext)
+    if (str_starts_with($raw, 'v2:')) {
+        $payload = substr($raw, 3);
+        $iv = substr($payload, 0, $ivSize);
+        $mac = substr($payload, $ivSize, 32);
+        $ciphertext = substr($payload, $ivSize + 32);
+
+        $computedMac = hash_hmac('sha256', $iv . $ciphertext, $key, true);
+        if (!hash_equals($mac, $computedMac)) {
+            return false; // Integrity check failed (ciphertext was tampered or corrupted)
+        }
+        return openssl_decrypt($ciphertext, ENCRYPTION_METHOD, $key, OPENSSL_RAW_DATA, $iv);
+    }
+
+    // Legacy format fallback (v1 base64 ciphertext::iv)
     $decoded = base64_decode($encryptedData);
     if (!$decoded) return false;
-    
     $parts = explode('::', $decoded);
     if (count($parts) !== 2) return false;
-    
     list($encrypted, $ivBase64) = $parts;
     $iv = base64_decode($ivBase64);
-    $decrypted = openssl_decrypt($encrypted, ENCRYPTION_METHOD, $key, 0, $iv);
-    return $decrypted;
+    $legacyKey = hash('sha256', ENCRYPTION_KEY);
+    return openssl_decrypt($encrypted, ENCRYPTION_METHOD, $legacyKey, 0, $iv);
 }
 
 // Database Connection Singleton

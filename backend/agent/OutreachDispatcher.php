@@ -133,6 +133,22 @@ class OutreachDispatcher {
             throw new Exception("Invalid or non-existent approval token '{$approvalToken}' for workspace #{$userId}.");
         }
 
+        // 1b. Check Workspace Killswitch & Daily Outreach Cap
+        require_once __DIR__ . '/WorkflowScheduler.php';
+        if (WorkflowScheduler::isOutreachPausedForWorkspace($userId, $db)) {
+            throw new Exception("Outreach is paused workspace-wide via killswitch.");
+        }
+
+        $workspaceSettings = WorkflowScheduler::getWorkspaceSettings($userId, $db);
+        $dailyLimit = $workspaceSettings['daily_outreach_limit'] ?? 20;
+        $todayStr = date('Y-m-d');
+        $stmtTotalSent = $db->prepare("SELECT COUNT(*) FROM ai_agent_outreach_logs WHERE user_id = ? AND status = 'sent' AND substr(sent_at, 1, 10) = ?");
+        $stmtTotalSent->execute([$userId, $todayStr]);
+        $totalSentToday = (int)$stmtTotalSent->fetchColumn();
+        if ($totalSentToday >= $dailyLimit) {
+            throw new Exception("Workspace daily outreach limit of {$dailyLimit} emails reached for today. Dispatch paused.");
+        }
+
         // 2. Enforce Single-Use
         if (!empty($item['used_at'])) {
             throw new Exception("Approval token '{$approvalToken}' has already been used and cannot be re-dispatched.");
@@ -245,6 +261,14 @@ class OutreachDispatcher {
             $now
         ]);
 
+        // Record general audit log
+        WorkflowScheduler::logAudit($userId, 'dispatch_outreach', 'outreach_log', $logId, [
+            'recipient' => $recipientEmail,
+            'provider' => $provider,
+            'message_id' => $messageId,
+            'status' => $sendStatus
+        ], null, $db);
+
         if ($sendStatus === 'sent') {
             // Mark approval token as used
             $stmtUse = $db->prepare("UPDATE ai_agent_batch_approvals SET used_at = ? WHERE id = ?");
@@ -267,5 +291,41 @@ class OutreachDispatcher {
                 'provider' => $provider
             ];
         }
+    }
+
+    /**
+     * Lists outreach logs for a workspace with rich filtering.
+     */
+    public static function listLogsForUser(int $userId, array $filters = [], int $limit = 50, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        AgentMigration5::run($db);
+        $limit = max(1, min(100, $limit));
+
+        $sql = "SELECT l.*, s.title as schedule_title
+                FROM ai_agent_outreach_logs l
+                LEFT JOIN ai_agent_schedule_runs r ON l.schedule_run_id = r.id
+                LEFT JOIN ai_agent_schedules s ON r.schedule_id = s.id
+                WHERE l.user_id = ?";
+        $params = [$userId];
+
+        if (!empty($filters['status'])) {
+            $sql .= " AND l.status = ?";
+            $params[] = $filters['status'];
+        }
+
+        if (!empty($filters['provider'])) {
+            $sql .= " AND l.provider = ?";
+            $params[] = $filters['provider'];
+        }
+
+        if (!empty($filters['schedule_id'])) {
+            $sql .= " AND s.id = ?";
+            $params[] = $filters['schedule_id'];
+        }
+
+        $sql .= " ORDER BY l.created_at DESC LIMIT " . (int)$limit;
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

@@ -657,4 +657,47 @@ class LeadProspectingEngine {
             'discovery_timestamp' => date('Y-m-d H:i:s')
         ];
     }
+
+    /**
+     * Lists discovered prospects for a workspace with rich filtering.
+     */
+    public static function listProspectsForUser(int $userId, array $filters = [], int $limit = 50, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        AgentMigration5::run($db);
+        $limit = max(1, min(100, $limit));
+
+        $sql = "SELECT p.*, s.title as schedule_title
+                FROM ai_agent_discovered_prospects p
+                LEFT JOIN ai_agent_schedules s ON p.schedule_id = s.id
+                WHERE p.user_id = ?";
+        $params = [$userId];
+
+        if (!empty($filters['status'])) {
+            $sql .= " AND p.status = ?";
+            $params[] = $filters['status'];
+        }
+
+        if (!empty($filters['verification_status'])) {
+            $sql .= " AND p.verification_status = ?";
+            $params[] = $filters['verification_status'];
+        }
+
+        if (!empty($filters['search'])) {
+            $term = '%' . trim($filters['search']) . '%';
+            $sql .= " AND (p.company_name LIKE ? OR p.business_email LIKE ? OR p.decision_maker_name LIKE ?)";
+            $params[] = $term;
+            $params[] = $term;
+            $params[] = $term;
+        }
+
+        if (!empty($filters['schedule_id'])) {
+            $sql .= " AND p.schedule_id = ?";
+            $params[] = $filters['schedule_id'];
+        }
+
+        $sql .= " ORDER BY p.discovery_timestamp DESC LIMIT " . (int)$limit;
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

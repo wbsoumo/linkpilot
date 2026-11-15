@@ -285,6 +285,17 @@
 
                         <!-- Right: Actions -->
                         <div class="flex items-center space-x-2 shrink-0">
+                            <!-- Phase 5 Autonomous Hub Buttons -->
+                            <button onclick="openAgentApprovalCenterModal()" id="agent-header-approvals-btn" class="px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50/90 hover:bg-emerald-100 border border-emerald-200/90 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="Review & Approve Outbound Proposals">
+                                <i data-lucide="check-check" class="h-3.5 w-3.5 text-emerald-600"></i>
+                                <span class="hidden sm:inline">Approvals</span>
+                                <span id="agent-header-approvals-count" class="h-4 px-1.5 rounded-full bg-emerald-600 text-[10px] text-white font-bold flex items-center justify-center hidden">0</span>
+                            </button>
+                            <button onclick="openAgentScheduleManagerModal()" id="agent-header-schedules-btn" class="px-2.5 py-1 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="Manage Autonomous Schedules">
+                                <i data-lucide="calendar-clock" class="h-3.5 w-3.5 text-slate-600"></i>
+                                <span class="hidden sm:inline">Schedules</span>
+                            </button>
+
                             <!-- Plugins & Integrations Hub Button -->
                             <button onclick="openAgentAppsModal()" id="agent-header-plugins-btn" class="px-2.5 py-1 text-xs font-semibold text-indigo-700 bg-indigo-50/90 hover:bg-indigo-100 border border-indigo-200/90 rounded-lg shadow-2xs flex items-center gap-1.5 transition cursor-pointer" title="Manage AI Plugins & Connected Apps">
                                 <i data-lucide="puzzle" class="h-3.5 w-3.5 text-indigo-600"></i>
@@ -408,50 +419,60 @@
                                 </div>
                             </div>
 
-                            <!-- Tab Pills (Tasks, Shield, Fingerprint) -->
-                            <div class="flex items-center justify-around p-1 bg-slate-100/90 rounded-xl text-slate-500">
-                                <button class="p-1.5 bg-white text-slate-900 rounded-lg shadow-2xs w-full flex justify-center cursor-pointer" title="Scheduled Tasks">
-                                    <i data-lucide="list-todo" class="h-4 w-4"></i>
+                            <!-- Tab Pills (Phase 5 Autonomous Hub) -->
+                            <div class="grid grid-cols-6 gap-1 p-1 bg-slate-100/90 rounded-xl text-slate-500">
+                                <button onclick="openAgentScheduleManagerModal()" class="p-1.5 hover:bg-white hover:text-slate-900 rounded-lg flex justify-center cursor-pointer transition shadow-2xs" title="Schedule Manager">
+                                    <i data-lucide="calendar-clock" class="h-4 w-4"></i>
                                 </button>
-                                <button onclick="openAgentAppsModal()" class="p-1.5 hover:text-slate-900 rounded-lg w-full flex justify-center cursor-pointer" title="Connected Apps & Security">
+                                <button onclick="openAgentApprovalCenterModal()" class="p-1.5 hover:bg-white hover:text-slate-900 rounded-lg flex justify-center cursor-pointer transition relative" title="Approval Center">
+                                    <i data-lucide="check-check" class="h-4 w-4"></i>
+                                    <span id="agent-pending-badge" class="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold rounded-full h-3.5 w-3.5 flex items-center justify-center hidden">0</span>
+                                </button>
+                                <button onclick="openAgentProspectReviewModal()" class="p-1.5 hover:bg-white hover:text-slate-900 rounded-lg flex justify-center cursor-pointer transition" title="Prospect Review">
+                                    <i data-lucide="users" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="openAgentExecutionHistoryModal()" class="p-1.5 hover:bg-white hover:text-slate-900 rounded-lg flex justify-center cursor-pointer transition" title="Execution History">
+                                    <i data-lucide="history" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="openAgentOperationalControlsModal()" class="p-1.5 hover:bg-white hover:text-slate-900 rounded-lg flex justify-center cursor-pointer transition" title="Quotas & Controls">
+                                    <i data-lucide="sliders" class="h-4 w-4"></i>
+                                </button>
+                                <button onclick="openAgentAppsModal()" class="p-1.5 hover:bg-white hover:text-slate-900 rounded-lg flex justify-center cursor-pointer transition" title="Connected Apps & Security">
                                     <i data-lucide="shield-check" class="h-4 w-4"></i>
-                                </button>
-                                <button onclick="openAgentCapabilitiesModal()" class="p-1.5 hover:text-slate-900 rounded-lg w-full flex justify-center cursor-pointer" title="Agent Identity & Tools">
-                                    <i data-lucide="fingerprint" class="h-4 w-4"></i>
                                 </button>
                             </div>
 
                             <!-- 9 Scheduled Tasks Accordion Section -->
                             <div class="border-t border-slate-100 pt-3 space-y-2">
-                                <div onclick="toggleScheduledTasksList()" class="flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer hover:text-slate-950 py-1">
+                                <div onclick="openAgentScheduleManagerModal()" class="flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer hover:text-slate-950 py-1">
                                     <span class="flex items-center gap-1">
                                         <span id="scheduled-tasks-count">9</span> scheduled tasks
                                     </span>
-                                    <i data-lucide="chevron-down" id="scheduled-tasks-chevron" class="h-4 w-4 text-slate-400 transition-transform"></i>
+                                    <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i>
                                 </div>
 
                                 <div id="scheduled-tasks-container" class="space-y-1.5">
                                     <!-- Scheduled task items rendered dynamically -->
                                 </div>
 
-                                <button onclick="openAllScheduledTasksModal()" class="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 py-1.5 transition block cursor-pointer">
-                                    See all scheduled tasks
+                                <button onclick="openAgentScheduleManagerModal()" class="w-full text-center text-xs font-semibold text-slate-500 hover:text-slate-800 py-1.5 transition block cursor-pointer">
+                                    Manage all schedules & crons →
                                 </button>
                             </div>
 
                             <!-- Date Grouped History: Nov 11 -->
                             <div class="border-t border-slate-100 pt-3 space-y-2">
-                                <div class="flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer py-1">
-                                    <span>Nov 11</span>
-                                    <i data-lucide="chevron-down" class="h-4 w-4 text-slate-400"></i>
+                                <div onclick="openAgentExecutionHistoryModal()" class="flex items-center justify-between text-xs font-bold text-slate-800 cursor-pointer py-1">
+                                    <span>Recent Executions</span>
+                                    <i data-lucide="chevron-right" class="h-4 w-4 text-slate-400"></i>
                                 </div>
-                                <div class="p-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/70 rounded-xl flex items-center space-x-2.5 transition cursor-pointer" onclick="openScheduledTaskDetailModal('st_6')">
+                                <div class="p-2.5 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/70 rounded-xl flex items-center space-x-2.5 transition cursor-pointer" onclick="openAgentExecutionHistoryModal()">
                                     <div class="h-7 w-7 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0">
                                         <i data-lucide="check" class="h-3.5 w-3.5"></i>
                                     </div>
                                     <div class="min-w-0">
-                                        <h5 class="text-xs font-semibold text-slate-800 truncate">Run batch script</h5>
-                                        <p class="text-[10px] text-slate-400">Completed</p>
+                                        <h5 class="text-xs font-semibold text-slate-800 truncate">Autonomous Prospecting</h5>
+                                        <p class="text-[10px] text-slate-400">View execution logs & message IDs</p>
                                     </div>
                                 </div>
                             </div>
@@ -464,6 +485,11 @@
             <div id="agent-task-detail-modal-root"></div>
             <div id="agent-apps-modal-root"></div>
             <div id="agent-capabilities-modal-root"></div>
+            <div id="agent-schedule-manager-modal-root"></div>
+            <div id="agent-approval-center-modal-root"></div>
+            <div id="agent-prospect-review-modal-root"></div>
+            <div id="agent-execution-history-modal-root"></div>
+            <div id="agent-controls-modal-root"></div>
         `;
 
         if (window.lucide) lucide.createIcons();
@@ -3208,6 +3234,1336 @@
     window.closeAgentCapabilitiesModal = function () {
         const root = document.getElementById('agent-capabilities-modal-root');
         if (root) root.innerHTML = '';
+    };
+
+    // ========================================================================
+    // PHASE 5: AUTONOMOUS AGENT ENGINE 2.0 UI INTEGRATION
+    // ========================================================================
+
+    let cachedSchedules = [];
+    let cachedProspects = [];
+    let cachedApprovals = [];
+    let cachedRuns = [];
+    let cachedSettings = {};
+
+    /**
+     * Updates header & sidebar badges for pending approvals.
+     */
+    async function refreshPendingApprovalsBadge() {
+        try {
+            const res = await apiCall('crm/agent.php?action=list_pending_approvals');
+            const items = res?.data?.items || [];
+            cachedApprovals = items;
+            const count = items.length;
+
+            const headerBtn = document.getElementById('agent-header-approvals-btn');
+            const headerCount = document.getElementById('agent-header-approvals-count');
+            const sidePill = document.getElementById('agent-pending-badge');
+
+            if (headerCount) {
+                headerCount.textContent = count;
+                headerCount.classList.toggle('hidden', count === 0);
+            }
+            if (sidePill) {
+                sidePill.textContent = count;
+                sidePill.classList.toggle('hidden', count === 0);
+            }
+        } catch (e) {
+            console.warn("Failed to refresh pending approvals count:", e);
+        }
+    }
+
+    // Call badge refresh on initial load and intervals
+    setTimeout(refreshPendingApprovalsBadge, 1200);
+
+    // ------------------------------------------------------------------------
+    // 1. SCHEDULE MANAGER
+    // ------------------------------------------------------------------------
+
+    window.openAgentScheduleManagerModal = async function () {
+        const root = document.getElementById('agent-schedule-manager-modal-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div id="schedule-manager-backdrop" onclick="closeAgentScheduleManagerModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-4xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 rounded-xl bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-indigo-400">
+                                <i data-lucide="calendar-clock" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-white">Autonomous Schedule Manager</h3>
+                                <p class="text-xs text-slate-400">Manage recurring cron workflows, execution leases & background agents</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openCreateScheduleModal()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs">
+                                <i data-lucide="plus" class="h-3.5 w-3.5"></i>
+                                <span>Create Schedule</span>
+                            </button>
+                            <button onclick="closeAgentScheduleManagerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                                <i data-lucide="x" class="h-5 w-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 overflow-y-auto space-y-4 agent-custom-scrollbar flex-1 bg-slate-50/50" id="schedule-manager-body">
+                        <div class="flex items-center justify-center py-12 text-slate-400 text-xs">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin mr-2 text-indigo-500"></i> Loading schedules...
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                        <span id="schedule-count-label">Loading schedules...</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="openAgentExecutionHistoryModal(); closeAgentScheduleManagerModal();" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">
+                                View Execution History →
+                            </button>
+                            <button onclick="closeAgentScheduleManagerModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        await renderScheduleManagerCards();
+    };
+
+    window.closeAgentScheduleManagerModal = function () {
+        const root = document.getElementById('agent-schedule-manager-modal-root');
+        if (root) root.innerHTML = '';
+    };
+
+    async function renderScheduleManagerCards() {
+        const body = document.getElementById('schedule-manager-body');
+        const countLabel = document.getElementById('schedule-count-label');
+        if (!body) return;
+
+        try {
+            const res = await apiCall('crm/agent.php?action=list_schedules');
+            const schedules = res?.data?.schedules || [];
+            cachedSchedules = schedules;
+
+            if (countLabel) countLabel.textContent = `${schedules.length} active schedule(s) configured`;
+
+            if (schedules.length === 0) {
+                body.innerHTML = `
+                    <div class="text-center py-12 px-4 bg-white rounded-xl border border-dashed border-slate-300">
+                        <div class="h-12 w-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="calendar-plus" class="h-6 w-6"></i>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-800">No active autonomous schedules</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
+                            You can ask Muse in chat: "Discover dental clinic leads in London every day at 9am", or configure your schedule manually.
+                        </p>
+                        <button onclick="openCreateScheduleModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-2xs">
+                            Create First Schedule
+                        </button>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            let html = '';
+            schedules.forEach(s => {
+                const isActive = (s.status === 'active');
+                const isPaused = (s.status === 'paused');
+                const statusBadge = isActive
+                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>'
+                    : (isPaused ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">Paused</span>'
+                    : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">' + escapeHtml(s.status) + '</span>');
+
+                const policyBadge = (s.approval_policy === 'auto_dispatch')
+                    ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">Auto-Dispatch</span>'
+                    : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Digest Review</span>';
+
+                const p = s.parameters || {};
+                const industryStr = p.target_industry || 'All Sectors';
+                const locationStr = p.target_location || 'Global';
+                const countStr = p.lead_count || 10;
+
+                html += `
+                    <div class="bg-white rounded-xl border border-slate-200/90 p-4.5 shadow-2xs hover:border-slate-300 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="space-y-1.5 min-w-0">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-sm text-slate-900 truncate">${escapeHtml(s.title)}</h4>
+                                ${statusBadge}
+                                ${policyBadge}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                                <span class="flex items-center gap-1 font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                                    <i data-lucide="clock" class="h-3 w-3 text-slate-400"></i> ${escapeHtml(s.cron_expression)}
+                                </span>
+                                <span>Timezone: <strong>${escapeHtml(s.timezone || 'UTC')}</strong></span>
+                                <span>Target: <strong>${escapeHtml(countStr)} ${escapeHtml(industryStr)} (${escapeHtml(locationStr)})</strong></span>
+                            </div>
+                            <div class="flex items-center gap-4 text-[11px] text-slate-400 pt-0.5">
+                                <span>Next Run: <strong class="text-slate-600">${escapeHtml(s.next_run_at || 'Scheduled')}</strong></span>
+                                <span>Last Run: <strong class="text-slate-600">${escapeHtml(s.last_run_at || 'Never')}</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2 shrink-0">
+                            <button onclick="toggleSchedulePause('${escapeHtml(s.id)}', '${s.status}')" class="px-3 py-1.5 text-xs font-semibold ${isActive ? 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200'} rounded-lg transition cursor-pointer">
+                                ${isActive ? 'Pause' : 'Resume'}
+                            </button>
+                            <button onclick="openEditScheduleModal('${escapeHtml(s.id)}')" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="Edit Schedule">
+                                <i data-lucide="edit-2" class="h-4 w-4"></i>
+                            </button>
+                            <button onclick="deleteScheduleConfirm('${escapeHtml(s.id)}')" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition" title="Delete Schedule">
+                                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            body.innerHTML = html;
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            body.innerHTML = `<div class="p-4 bg-rose-50 text-rose-700 rounded-xl text-xs">Failed to load schedules: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    window.toggleSchedulePause = async function (scheduleId, currentStatus) {
+        const nextAction = (currentStatus === 'paused') ? 'resume_schedule' : 'pause_schedule';
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: nextAction,
+                schedule_id: scheduleId
+            });
+            showNotification('success', `Schedule ${nextAction === 'resume_schedule' ? 'resumed' : 'paused'} successfully.`);
+            await renderScheduleManagerCards();
+        } catch (e) {
+            showNotification('error', `Action failed: ${e.message}`);
+        }
+    };
+
+    window.deleteScheduleConfirm = async function (scheduleId) {
+        if (!confirm("Are you sure you want to cancel and delete this schedule?")) return;
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'delete_schedule',
+                schedule_id: scheduleId
+            });
+            showNotification('success', 'Schedule deleted successfully.');
+            await renderScheduleManagerCards();
+        } catch (e) {
+            showNotification('error', `Failed to delete schedule: ${e.message}`);
+        }
+    };
+
+    window.openCreateScheduleModal = function () {
+        const root = document.getElementById('agent-schedule-manager-modal-root');
+        if (!root) return;
+
+        const subModalId = 'create-schedule-submodal';
+        let sub = document.getElementById(subModalId);
+        if (!sub) {
+            sub = document.createElement('div');
+            sub.id = subModalId;
+            root.appendChild(sub);
+        }
+
+        sub.innerHTML = `
+            <div onclick="closeCreateScheduleModal()" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-60 flex items-center justify-center p-4 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-scale-in">
+                    <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <h4 class="font-bold text-sm text-white">Create Autonomous Prospecting Schedule</h4>
+                        <button onclick="closeCreateScheduleModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+
+                    <form id="create-schedule-form" onsubmit="handleCreateScheduleSubmit(event)" class="p-5 space-y-3.5 text-xs text-slate-700">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Schedule Title</label>
+                            <input type="text" id="cs-title" required value="Daily Dental Prospecting" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500 focus:bg-white">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Frequency Preset</label>
+                                <select id="cs-cron-preset" onchange="applyCronPreset(this.value)" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                                    <option value="0 9 * * *">Every Day at 09:00 AM</option>
+                                    <option value="0 9 * * 1-5">Weekdays at 09:00 AM</option>
+                                    <option value="*/30 * * * *">Every 30 Minutes</option>
+                                    <option value="0 * * * *">Every Hour</option>
+                                    <option value="custom">Custom Cron Expression</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Cron Expression</label>
+                                <input type="text" id="cs-cron" required value="0 9 * * *" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Target Industry</label>
+                                <input type="text" id="cs-industry" required value="Dental Clinics" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Target City / Location</label>
+                                <input type="text" id="cs-location" required value="London" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Daily Lead Count (1-25)</label>
+                                <input type="number" id="cs-count" required min="1" max="25" value="10" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Approval Policy</label>
+                                <select id="cs-policy" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                                    <option value="digest_review" selected>Digest Review (Recommended: Safe)</option>
+                                    <option value="auto_dispatch">Auto-Dispatch (Requires Admin Toggle)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Value Proposition / Pitch Offer</label>
+                            <textarea id="cs-valueprop" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500" placeholder="e.g. Autonomous AI patient appointment reminders and Google review automation"></textarea>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                            <button type="button" onclick="closeCreateScheduleModal()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-xs">
+                                Activate Schedule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.closeCreateScheduleModal = function () {
+        const sub = document.getElementById('create-schedule-submodal');
+        if (sub) sub.remove();
+    };
+
+    window.applyCronPreset = function (val) {
+        const input = document.getElementById('cs-cron');
+        if (input && val !== 'custom') {
+            input.value = val;
+        }
+    };
+
+    window.handleCreateScheduleSubmit = async function (e) {
+        e.preventDefault();
+        const title = document.getElementById('cs-title').value.trim();
+        const cron = document.getElementById('cs-cron').value.trim();
+        const industry = document.getElementById('cs-industry').value.trim();
+        const location = document.getElementById('cs-location').value.trim();
+        const count = parseInt(document.getElementById('cs-count').value, 10) || 10;
+        const policy = document.getElementById('cs-policy').value;
+        const valueprop = document.getElementById('cs-valueprop').value.trim();
+
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'create_schedule',
+                title: title,
+                cron_expression: cron,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+                task_type: 'prospecting_and_outreach',
+                approval_policy: policy,
+                parameters: {
+                    target_industry: industry,
+                    target_location: location,
+                    lead_count: count,
+                    value_proposition: valueprop,
+                    sender_identity: 'outreach@linkpilot.work'
+                }
+            });
+            showNotification('success', 'Autonomous schedule created and activated!');
+            closeCreateScheduleModal();
+            await renderScheduleManagerCards();
+        } catch (err) {
+            showNotification('error', `Failed to create schedule: ${err.message}`);
+        }
+    };
+
+    window.openEditScheduleModal = async function (scheduleId) {
+        const sched = cachedSchedules.find(s => s.id === scheduleId);
+        if (!sched) return;
+
+        const root = document.getElementById('agent-schedule-manager-modal-root');
+        if (!root) return;
+
+        const subModalId = 'create-schedule-submodal';
+        let sub = document.getElementById(subModalId);
+        if (!sub) {
+            sub = document.createElement('div');
+            sub.id = subModalId;
+            root.appendChild(sub);
+        }
+
+        const p = sched.parameters || {};
+
+        sub.innerHTML = `
+            <div onclick="closeCreateScheduleModal()" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-60 flex items-center justify-center p-4 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-lg w-full border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-scale-in">
+                    <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <h4 class="font-bold text-sm text-white">Edit Schedule: ${escapeHtml(sched.title)}</h4>
+                        <button onclick="closeCreateScheduleModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+
+                    <form id="edit-schedule-form" onsubmit="handleEditScheduleSubmit(event, '${escapeHtml(sched.id)}')" class="p-5 space-y-3.5 text-xs text-slate-700">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Schedule Title</label>
+                            <input type="text" id="es-title" required value="${escapeHtml(sched.title)}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Cron Expression</label>
+                                <input type="text" id="es-cron" required value="${escapeHtml(sched.cron_expression)}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Approval Policy</label>
+                                <select id="es-policy" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                                    <option value="digest_review" ${sched.approval_policy === 'digest_review' ? 'selected' : ''}>Digest Review</option>
+                                    <option value="auto_dispatch" ${sched.approval_policy === 'auto_dispatch' ? 'selected' : ''}>Auto-Dispatch</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Target Industry</label>
+                                <input type="text" id="es-industry" required value="${escapeHtml(p.target_industry || '')}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Target Location</label>
+                                <input type="text" id="es-location" required value="${escapeHtml(p.target_location || '')}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Value Proposition</label>
+                            <textarea id="es-valueprop" rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none">${escapeHtml(p.value_proposition || '')}</textarea>
+                        </div>
+
+                        <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                            <button type="button" onclick="closeCreateScheduleModal()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-xs">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    };
+
+    window.handleEditScheduleSubmit = async function (e, scheduleId) {
+        e.preventDefault();
+        const title = document.getElementById('es-title').value.trim();
+        const cron = document.getElementById('es-cron').value.trim();
+        const policy = document.getElementById('es-policy').value;
+        const industry = document.getElementById('es-industry').value.trim();
+        const location = document.getElementById('es-location').value.trim();
+        const valueprop = document.getElementById('es-valueprop').value.trim();
+
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'update_schedule',
+                schedule_id: scheduleId,
+                title: title,
+                cron_expression: cron,
+                approval_policy: policy,
+                parameters: {
+                    target_industry: industry,
+                    target_location: location,
+                    value_proposition: valueprop
+                }
+            });
+            showNotification('success', 'Schedule updated successfully.');
+            closeCreateScheduleModal();
+            await renderScheduleManagerCards();
+        } catch (err) {
+            showNotification('error', `Update failed: ${err.message}`);
+        }
+    };
+
+    // ------------------------------------------------------------------------
+    // 2. APPROVAL CENTER
+    // ------------------------------------------------------------------------
+
+    window.openAgentApprovalCenterModal = async function (scheduleRunId = null) {
+        const root = document.getElementById('agent-approval-center-modal-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div id="approval-center-backdrop" onclick="closeAgentApprovalCenterModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-4xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
+                                <i data-lucide="check-check" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-white">Maker-Checker Approval Center</h3>
+                                <p class="text-xs text-slate-400">Review, edit, and authorize outbound emails before delivery</p>
+                            </div>
+                        </div>
+                        <button onclick="closeAgentApprovalCenterModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Top Batch Action Bar -->
+                    <div class="px-6 py-3 bg-slate-100/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="ac-select-all" onchange="toggleSelectAllApprovals(this.checked)" class="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                            <label for="ac-select-all" class="font-semibold text-slate-700 cursor-pointer">Select All Pending</label>
+                            <span id="ac-selected-count" class="text-slate-400 text-[11px]">(0 selected)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="approveSelectedDigestItems()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                <i data-lucide="send" class="h-3.5 w-3.5"></i>
+                                <span>Approve Selected</span>
+                            </button>
+                            <button onclick="approveAllDigestItems('${escapeHtml(scheduleRunId || '')}')" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                                <i data-lucide="check" class="h-3.5 w-3.5"></i>
+                                <span>Approve All</span>
+                            </button>
+                            <button onclick="rejectSelectedDigestItems()" class="px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-600 border border-slate-300 hover:border-rose-300 rounded-lg font-semibold transition cursor-pointer">
+                                Reject Selected
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 overflow-y-auto space-y-3.5 agent-custom-scrollbar flex-1 bg-slate-50/50" id="approval-center-body">
+                        <div class="flex items-center justify-center py-12 text-slate-400 text-xs">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin mr-2 text-emerald-500"></i> Loading pending proposals...
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                        <span id="ac-summary-footer">Loading...</span>
+                        <button onclick="closeAgentApprovalCenterModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        await renderApprovalCenterItems(scheduleRunId);
+    };
+
+    window.closeAgentApprovalCenterModal = function () {
+        const root = document.getElementById('agent-approval-center-modal-root');
+        if (root) root.innerHTML = '';
+        refreshPendingApprovalsBadge();
+    };
+
+    async function renderApprovalCenterItems(scheduleRunId = null) {
+        const body = document.getElementById('approval-center-body');
+        const footer = document.getElementById('ac-summary-footer');
+        if (!body) return;
+
+        try {
+            let url = 'crm/agent.php?action=list_pending_approvals';
+            if (scheduleRunId) url += `&schedule_run_id=${encodeURIComponent(scheduleRunId)}`;
+            const res = await apiCall(url);
+            const items = res?.data?.items || [];
+            cachedApprovals = items;
+
+            if (footer) footer.textContent = `${items.length} proposal(s) awaiting your authorization`;
+
+            if (items.length === 0) {
+                body.innerHTML = `
+                    <div class="text-center py-14 px-4 bg-white rounded-xl border border-dashed border-slate-300">
+                        <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="check-circle" class="h-6 w-6"></i>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-800">No pending proposals awaiting approval</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                            All prospective emails have either been approved, dispatched, or rejected. When your autonomous schedules run, new Morning Review Digests will appear here.
+                        </p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            let html = '';
+            items.forEach((item, idx) => {
+                const draft = item.draft || {};
+                const token = item.token;
+                const company = item.company_name || draft.company_name || 'Prospective Enterprise';
+                const recipient = item.recipient_email || draft.recipient_email;
+                const subject = item.subject || draft.subject || 'Strategic Business Proposal';
+                const bodyText = (item.body || draft.body || '').substring(0, 180) + '...';
+
+                html += `
+                    <div id="appr-card-${escapeHtml(token)}" class="bg-white rounded-xl border border-slate-200/90 p-4.5 shadow-2xs hover:border-slate-300 transition space-y-3">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start space-x-3 min-w-0">
+                                <input type="checkbox" data-token="${escapeHtml(token)}" onchange="updateSelectedApprovalsCount()" class="ac-item-checkbox mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="font-bold text-sm text-slate-900 truncate">${escapeHtml(company)}</h4>
+                                        <span class="text-slate-400 text-xs">→</span>
+                                        <span class="font-mono text-xs text-slate-600 truncate">${escapeHtml(recipient)}</span>
+                                    </div>
+                                    <p class="text-xs font-semibold text-slate-800 mt-0.5 truncate">Subject: ${escapeHtml(subject)}</p>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
+                                Pending
+                            </span>
+                        </div>
+
+                        <!-- Draft Body Preview -->
+                        <div class="p-3 bg-slate-50 rounded-lg text-xs text-slate-600 border border-slate-200/70 leading-relaxed font-mono whitespace-pre-wrap">
+                            ${escapeHtml(bodyText)}
+                        </div>
+
+                        <!-- Card Actions -->
+                        <div class="flex items-center justify-between text-xs pt-1">
+                            <span class="text-[11px] text-slate-400">Expires: ${escapeHtml(item.expires_at || '72 hours')}</span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="openEditProposalModal('${escapeHtml(token)}')" class="px-3 py-1 text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg font-semibold transition cursor-pointer flex items-center gap-1">
+                                    <i data-lucide="edit-3" class="h-3 w-3"></i>
+                                    <span>Edit Content</span>
+                                </button>
+                                <button onclick="rejectDigestItem('${escapeHtml(token)}')" class="px-3 py-1 text-rose-600 bg-white hover:bg-rose-50 border border-slate-300 hover:border-rose-300 rounded-lg font-semibold transition cursor-pointer">
+                                    Reject
+                                </button>
+                                <button onclick="approveDigestItem('${escapeHtml(token)}', true)" class="px-3.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer">
+                                    <i data-lucide="send" class="h-3 w-3"></i>
+                                    <span>Approve & Dispatch</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            body.innerHTML = html;
+            if (window.lucide) lucide.createIcons();
+            updateSelectedApprovalsCount();
+        } catch (e) {
+            body.innerHTML = `<div class="p-4 bg-rose-50 text-rose-700 rounded-xl text-xs">Failed to load approvals: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    window.updateSelectedApprovalsCount = function () {
+        const checked = document.querySelectorAll('.ac-item-checkbox:checked');
+        const countSpan = document.getElementById('ac-selected-count');
+        if (countSpan) countSpan.textContent = `(${checked.length} selected)`;
+    };
+
+    window.toggleSelectAllApprovals = function (isChecked) {
+        document.querySelectorAll('.ac-item-checkbox').forEach(cb => {
+            cb.checked = isChecked;
+        });
+        updateSelectedApprovalsCount();
+    };
+
+    window.approveDigestItem = async function (token, dispatch = true) {
+        try {
+            showNotification('info', 'Authorizing proposal...');
+            const res = await apiCall('crm/agent.php', 'POST', {
+                action: 'approve_item',
+                token: token,
+                dispatch: dispatch
+            });
+            const d = res?.data?.dispatch;
+            if (d && d.status === 'sent') {
+                showNotification('success', `Proposal dispatched! Message ID: ${d.message_id || 'sent'}`);
+            } else {
+                showNotification('success', 'Proposal approved successfully.');
+            }
+            await renderApprovalCenterItems();
+            refreshPendingApprovalsBadge();
+        } catch (e) {
+            showNotification('error', `Approval failed: ${e.message}`);
+        }
+    };
+
+    window.rejectDigestItem = async function (token) {
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'reject_item',
+                token: token,
+                reason: 'Rejected by user in Approval Center'
+            });
+            showNotification('info', 'Proposal rejected and dismissed.');
+            await renderApprovalCenterItems();
+            refreshPendingApprovalsBadge();
+        } catch (e) {
+            showNotification('error', `Rejection failed: ${e.message}`);
+        }
+    };
+
+    window.approveSelectedDigestItems = async function () {
+        const checked = Array.from(document.querySelectorAll('.ac-item-checkbox:checked')).map(cb => cb.getAttribute('data-token'));
+        if (checked.length === 0) {
+            showNotification('warning', 'Please select at least one proposal.');
+            return;
+        }
+
+        try {
+            showNotification('info', `Authorizing ${checked.length} selected proposal(s)...`);
+            const res = await apiCall('crm/agent.php', 'POST', {
+                action: 'approve_selected',
+                tokens: checked,
+                dispatch: true
+            });
+            const apprs = res?.data?.approvals?.approved_count || checked.length;
+            showNotification('success', `${apprs} proposal(s) approved and queued for outreach!`);
+            await renderApprovalCenterItems();
+            refreshPendingApprovalsBadge();
+        } catch (e) {
+            showNotification('error', `Batch approval failed: ${e.message}`);
+        }
+    };
+
+    window.approveAllDigestItems = async function (scheduleRunId = '') {
+        try {
+            showNotification('info', 'Approving all pending proposals in batch...');
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'approve_all',
+                schedule_run_id: scheduleRunId || (cachedApprovals[0]?.schedule_run_id || 'batch_all')
+            });
+            showNotification('success', 'All pending proposals in batch authorized!');
+            await renderApprovalCenterItems(scheduleRunId);
+            refreshPendingApprovalsBadge();
+        } catch (e) {
+            showNotification('error', `Failed to approve all: ${e.message}`);
+        }
+    };
+
+    window.rejectSelectedDigestItems = async function () {
+        const checked = Array.from(document.querySelectorAll('.ac-item-checkbox:checked')).map(cb => cb.getAttribute('data-token'));
+        if (checked.length === 0) {
+            showNotification('warning', 'Please select proposals to reject.');
+            return;
+        }
+        if (!confirm(`Reject ${checked.length} selected proposal(s)?`)) return;
+
+        for (const tok of checked) {
+            try {
+                await apiCall('crm/agent.php', 'POST', { action: 'reject_item', token: tok });
+            } catch (e) {}
+        }
+        showNotification('info', 'Selected proposals rejected.');
+        await renderApprovalCenterItems();
+        refreshPendingApprovalsBadge();
+    };
+
+    window.openEditProposalModal = async function (token) {
+        try {
+            const res = await apiCall(`crm/agent.php?action=preview_approval_item&token=${encodeURIComponent(token)}`);
+            const item = res?.data?.item;
+            if (!item) throw new Error("Could not load preview.");
+
+            const draft = item.draft || {};
+            const root = document.getElementById('agent-approval-center-modal-root');
+            if (!root) return;
+
+            const editSubId = 'edit-proposal-submodal';
+            let sub = document.getElementById(editSubId);
+            if (!sub) {
+                sub = document.createElement('div');
+                sub.id = editSubId;
+                root.appendChild(sub);
+            }
+
+            sub.innerHTML = `
+                <div onclick="closeEditProposalModal()" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-60 flex items-center justify-center p-4 animate-fade-in">
+                    <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl flex flex-col overflow-hidden animate-scale-in">
+                        <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                            <div>
+                                <h4 class="font-bold text-sm text-white">Edit Proposal to: ${escapeHtml(item.recipient_email)}</h4>
+                                <p class="text-[10px] text-slate-400">Modifying draft regenerates cryptographic authorization token</p>
+                            </div>
+                            <button onclick="closeEditProposalModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                                <i data-lucide="x" class="h-4 w-4"></i>
+                            </button>
+                        </div>
+
+                        <form onsubmit="handleEditProposalSubmit(event, '${escapeHtml(token)}')" class="p-5 space-y-3.5 text-xs text-slate-700">
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Subject Line</label>
+                                <input type="text" id="ep-subject" required value="${escapeHtml(draft.subject || item.subject || '')}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-slate-700 mb-1">Email Body Content</label>
+                                <textarea id="ep-body" rows="8" required class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono outline-none focus:border-indigo-500 leading-relaxed">${escapeHtml(draft.body || item.body || '')}</textarea>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
+                                <button type="button" onclick="closeEditProposalModal()" class="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition shadow-xs">
+                                    Save & Regenerate Token
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            showNotification('error', `Failed to open editor: ${e.message}`);
+        }
+    };
+
+    window.closeEditProposalModal = function () {
+        const sub = document.getElementById('edit-proposal-submodal');
+        if (sub) sub.remove();
+    };
+
+    window.handleEditProposalSubmit = async function (e, token) {
+        e.preventDefault();
+        const subject = document.getElementById('ep-subject').value.trim();
+        const body = document.getElementById('ep-body').value.trim();
+
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'update_approval_item',
+                token: token,
+                subject: subject,
+                body: body
+            });
+            showNotification('success', 'Email updated and new cryptographic authorization token generated!');
+            closeEditProposalModal();
+            await renderApprovalCenterItems();
+        } catch (err) {
+            showNotification('error', `Failed to update email: ${err.message}`);
+        }
+    };
+
+    // ------------------------------------------------------------------------
+    // 3. PROSPECT REVIEW
+    // ------------------------------------------------------------------------
+
+    window.openAgentProspectReviewModal = async function () {
+        const root = document.getElementById('agent-prospect-review-modal-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div id="prospect-review-backdrop" onclick="closeAgentProspectReviewModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-5xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-purple-400">
+                                <i data-lucide="users" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-white">Autonomous Lead Prospecting Review</h3>
+                                <p class="text-xs text-slate-400">Verified prospects discovered by LinkPilot Lead Engine</p>
+                            </div>
+                        </div>
+                        <button onclick="closeAgentProspectReviewModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Search & Filter Bar -->
+                    <div class="px-6 py-3 bg-slate-100/90 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center space-x-2 flex-1 max-w-sm">
+                            <input type="text" id="pr-search" oninput="filterProspectReviewList()" placeholder="Search company, contact, or email..." class="w-full px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="pr-status-filter" onchange="filterProspectReviewList()" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none">
+                                <option value="">All CRM Statuses</option>
+                                <option value="ingested">CRM Ingested</option>
+                                <option value="discovered">Discovered</option>
+                                <option value="skipped_duplicate">Skipped Duplicate</option>
+                            </select>
+                            <select id="pr-verification-filter" onchange="filterProspectReviewList()" class="px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs outline-none">
+                                <option value="">All Verifications</option>
+                                <option value="domain_has_mx">✓ MX Verified</option>
+                                <option value="disposable">✕ Disposable</option>
+                                <option value="invalid_syntax">✕ Invalid Syntax</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 overflow-y-auto space-y-3 agent-custom-scrollbar flex-1 bg-slate-50/50" id="prospect-review-body">
+                        <div class="flex items-center justify-center py-12 text-slate-400 text-xs">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin mr-2 text-purple-500"></i> Loading prospects...
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                        <span id="pr-summary-footer">Loading...</span>
+                        <button onclick="closeAgentProspectReviewModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        await loadAndRenderProspects();
+    };
+
+    window.closeAgentProspectReviewModal = function () {
+        const root = document.getElementById('agent-prospect-review-modal-root');
+        if (root) root.innerHTML = '';
+    };
+
+    async function loadAndRenderProspects() {
+        const body = document.getElementById('prospect-review-body');
+        const footer = document.getElementById('pr-summary-footer');
+        if (!body) return;
+
+        try {
+            const res = await apiCall('crm/agent.php?action=list_discovered_prospects&limit=100');
+            const prospects = res?.data?.prospects || [];
+            cachedProspects = prospects;
+            renderProspectsTable(prospects);
+        } catch (e) {
+            body.innerHTML = `<div class="p-4 bg-rose-50 text-rose-700 rounded-xl text-xs">Failed to load prospects: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    function renderProspectsTable(prospects) {
+        const body = document.getElementById('prospect-review-body');
+        const footer = document.getElementById('pr-summary-footer');
+        if (!body) return;
+
+        if (footer) footer.textContent = `Showing ${prospects.length} prospect(s)`;
+
+        if (prospects.length === 0) {
+            body.innerHTML = `
+                <div class="text-center py-14 px-4 bg-white rounded-xl border border-dashed border-slate-300">
+                    <div class="h-12 w-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="search" class="h-6 w-6"></i>
+                    </div>
+                    <h4 class="font-bold text-sm text-slate-800">No prospects match your criteria</h4>
+                    <p class="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                        Trigger autonomous prospecting in chat or let your background schedules execute to populate verified business leads.
+                    </p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+            return;
+        }
+
+        let html = '';
+        prospects.forEach(p => {
+            const isMx = (p.verification_status === 'domain_has_mx');
+            const isDisp = (p.verification_status === 'disposable');
+            const vBadge = isMx
+                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">✓ MX Verified</span>'
+                : (isDisp ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">✕ Disposable</span>'
+                : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">' + escapeHtml(p.verification_status) + '</span>');
+
+            const score = p.lead_score || 50;
+            const scoreColor = (score >= 80) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ((score >= 60) ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200');
+
+            const websiteLink = p.website ? `<a href="${escapeHtml(p.website)}" target="_blank" rel="noopener" class="text-indigo-600 hover:underline flex items-center gap-1">${escapeHtml(p.website)} <i data-lucide="external-link" class="h-2.5 w-2.5"></i></a>` : '—';
+            const sourceUrlLink = p.source_url ? `<a href="${escapeHtml(p.source_url)}" target="_blank" rel="noopener" class="text-slate-400 hover:text-slate-700 text-[10px] truncate max-w-xs block">Source: ${escapeHtml(p.source_url)}</a>` : '';
+
+            html += `
+                <div class="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs hover:border-slate-300 transition flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-sm text-slate-900 truncate">${escapeHtml(p.company_name)}</h4>
+                            ${vBadge}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${scoreColor}" title="${escapeHtml(p.lead_score_explanation || 'Lead quality score')}">
+                                Score: ${score}/100
+                            </span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+                            <span>Decision Maker: <strong>${escapeHtml(p.decision_maker_name || 'Business Contact')}</strong> (${escapeHtml(p.decision_maker_role || 'Executive')})</span>
+                            <span>Email: <strong class="font-mono text-slate-700">${escapeHtml(p.business_email || '—')}</strong></span>
+                            <span>Phone: <strong>${escapeHtml(p.business_phone || '—')}</strong></span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-slate-400 pt-0.5">
+                            <span>Location: <strong>${escapeHtml(p.business_location || 'Global')}</strong></span>
+                            <span>Website: ${websiteLink}</span>
+                            ${sourceUrlLink}
+                        </div>
+                    </div>
+
+                    <div class="shrink-0 text-right">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${p.status === 'ingested' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600'}">
+                            ${p.crm_lead_id ? `CRM Lead #${p.crm_lead_id}` : escapeHtml(p.status)}
+                        </span>
+                        <p class="text-[10px] text-slate-400 mt-1">${escapeHtml(p.discovery_timestamp || '')}</p>
+                    </div>
+                </div>
+            `;
+        });
+
+        body.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    window.filterProspectReviewList = function () {
+        const query = (document.getElementById('pr-search')?.value || '').toLowerCase().trim();
+        const status = document.getElementById('pr-status-filter')?.value;
+        const verif = document.getElementById('pr-verification-filter')?.value;
+
+        const filtered = cachedProspects.filter(p => {
+            if (status && p.status !== status) return false;
+            if (verif && p.verification_status !== verif) return false;
+            if (query) {
+                const searchCorpus = `${p.company_name} ${p.business_email} ${p.decision_maker_name} ${p.business_location}`.toLowerCase();
+                if (!searchCorpus.includes(query)) return false;
+            }
+            return true;
+        });
+
+        renderProspectsTable(filtered);
+    };
+
+    // ------------------------------------------------------------------------
+    // 4. EXECUTION HISTORY & RETRY
+    // ------------------------------------------------------------------------
+
+    window.openAgentExecutionHistoryModal = async function () {
+        const root = document.getElementById('agent-execution-history-modal-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div id="execution-history-backdrop" onclick="closeAgentExecutionHistoryModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-4xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400">
+                                <i data-lucide="history" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-white">Autonomous Background Execution History</h3>
+                                <p class="text-xs text-slate-400">Audit timeline of headless worker executions, lead extractions & outbox logs</p>
+                            </div>
+                        </div>
+                        <button onclick="closeAgentExecutionHistoryModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 overflow-y-auto space-y-3.5 agent-custom-scrollbar flex-1 bg-slate-50/50" id="execution-history-body">
+                        <div class="flex items-center justify-center py-12 text-slate-400 text-xs">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin mr-2 text-blue-500"></i> Loading execution history...
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                        <span id="eh-summary-footer">Loading history...</span>
+                        <button onclick="closeAgentExecutionHistoryModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        await loadAndRenderExecutionRuns();
+    };
+
+    window.closeAgentExecutionHistoryModal = function () {
+        const root = document.getElementById('agent-execution-history-modal-root');
+        if (root) root.innerHTML = '';
+    };
+
+    async function loadAndRenderExecutionRuns() {
+        const body = document.getElementById('execution-history-body');
+        const footer = document.getElementById('eh-summary-footer');
+        if (!body) return;
+
+        try {
+            const res = await apiCall('crm/agent.php?action=list_schedule_runs&limit=50');
+            const runs = res?.data?.runs || [];
+            cachedRuns = runs;
+
+            if (footer) footer.textContent = `Showing last ${runs.length} execution run(s)`;
+
+            if (runs.length === 0) {
+                body.innerHTML = `
+                    <div class="text-center py-14 px-4 bg-white rounded-xl border border-dashed border-slate-300">
+                        <div class="h-12 w-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                            <i data-lucide="clock" class="h-6 w-6"></i>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-800">No background executions recorded yet</h4>
+                        <p class="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                            When your cron worker triggers active schedules, completed and ongoing executions will be logged here with complete provenance.
+                        </p>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            let html = '';
+            runs.forEach(r => {
+                const s = r.status;
+                const statusBadge = (s === 'completed')
+                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">Completed</span>'
+                    : ((s === 'waiting_for_approval')
+                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-200">Waiting Approval</span>'
+                    : ((s === 'failed')
+                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">Failed</span>'
+                    : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">Running</span>'));
+
+                const sum = r.summary || {};
+                const discCount = sum.discovered_count || 0;
+                const ingestedCount = sum.ingested_count || 0;
+                const proposalsCount = sum.proposals_count || 0;
+
+                const retryBtn = (s === 'failed' || s === 'cancelled')
+                    ? `<button onclick="retryScheduleRunAction('${escapeHtml(r.id)}')" class="px-2.5 py-1 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg transition flex items-center gap-1 cursor-pointer"><i data-lucide="rotate-ccw" class="h-3 w-3"></i><span>Retry Run</span></button>`
+                    : '';
+
+                html += `
+                    <div class="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs hover:border-slate-300 transition space-y-2.5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-bold text-sm text-slate-900">${escapeHtml(r.schedule_title || 'Autonomous Prospecting Run')}</h4>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-[11px] font-mono text-slate-400 mt-0.5">Run ID: ${escapeHtml(r.id)} • Workflow: ${escapeHtml(r.workflow_id || '—')}</p>
+                            </div>
+                            ${retryBtn}
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium">Started At</span>
+                                <span class="font-semibold text-slate-700">${escapeHtml(r.started_at)}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium">Completed At</span>
+                                <span class="font-semibold text-slate-700">${escapeHtml(r.completed_at || 'In progress...')}</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium">Prospects Discovered</span>
+                                <span class="font-semibold text-slate-700">${discCount} found (${ingestedCount} in CRM)</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium">Proposals Prepared</span>
+                                <span class="font-semibold text-slate-700">${proposalsCount} drafts</span>
+                            </div>
+                        </div>
+
+                        ${r.error_message ? `<div class="p-2.5 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 font-mono">Error: ${escapeHtml(r.error_message)}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            body.innerHTML = html;
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            body.innerHTML = `<div class="p-4 bg-rose-50 text-rose-700 rounded-xl text-xs">Failed to load execution runs: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    window.retryScheduleRunAction = async function (runId) {
+        try {
+            showNotification('info', `Queuing retry for run ${runId}...`);
+            const res = await apiCall('crm/agent.php', 'POST', {
+                action: 'retry_schedule_run',
+                run_id: runId
+            });
+            showNotification('success', `Retry queued cleanly! New Run ID: ${res?.data?.new_run_id || 'queued'}`);
+            await loadAndRenderExecutionRuns();
+        } catch (e) {
+            showNotification('error', `Retry failed: ${e.message}`);
+        }
+    };
+
+    // ------------------------------------------------------------------------
+    // 5. OPERATIONAL CONTROLS & QUOTAS
+    // ------------------------------------------------------------------------
+
+    window.openAgentOperationalControlsModal = async function () {
+        const root = document.getElementById('agent-controls-modal-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div id="controls-backdrop" onclick="closeAgentOperationalControlsModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 animate-fade-in">
+                <div onclick="event.stopPropagation()" class="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-amber-400">
+                                <i data-lucide="sliders" class="h-5 w-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-base text-white">Workspace Operational Controls & Quotas</h3>
+                                <p class="text-xs text-slate-400">Daily discovery caps, outreach limits, provider quotas & emergency killswitch</p>
+                            </div>
+                        </div>
+                        <button onclick="closeAgentOperationalControlsModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+                            <i data-lucide="x" class="h-5 w-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="p-6 overflow-y-auto space-y-5 agent-custom-scrollbar flex-1 bg-slate-50/50" id="controls-body">
+                        <div class="flex items-center justify-center py-12 text-slate-400 text-xs">
+                            <i data-lucide="loader-2" class="h-4 w-4 animate-spin mr-2 text-amber-500"></i> Loading operational controls...
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-3.5 bg-white border-t border-slate-200 flex items-center justify-end space-x-2 text-xs">
+                        <button onclick="closeAgentOperationalControlsModal()" class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg">
+                            Cancel
+                        </button>
+                        <button onclick="saveOperationalControls()" class="px-4 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition shadow-xs">
+                            Save Controls & Quotas
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        await loadAndRenderOperationalControls();
+    };
+
+    window.closeAgentOperationalControlsModal = function () {
+        const root = document.getElementById('agent-controls-modal-root');
+        if (root) root.innerHTML = '';
+    };
+
+    async function loadAndRenderOperationalControls() {
+        const body = document.getElementById('controls-body');
+        if (!body) return;
+
+        try {
+            const res = await apiCall('crm/agent.php?action=get_operational_controls');
+            const s = res?.data?.settings || {};
+            cachedSettings = s;
+
+            const isKillswitchActive = !!s.pause_all_outreach;
+            const autoDispatchActive = !!s.auto_dispatch_enabled;
+
+            body.innerHTML = `
+                <!-- Emergency Killswitch Banner -->
+                <div class="p-4 rounded-xl border ${isKillswitchActive ? 'bg-rose-50 border-rose-300 text-rose-900' : 'bg-white border-slate-200 text-slate-800'} space-y-2 shadow-2xs">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="alert-octagon" class="h-5 w-5 ${isKillswitchActive ? 'text-rose-600 animate-pulse' : 'text-slate-400'}"></i>
+                            <div>
+                                <h4 class="font-bold text-sm">Emergency Kill-Switch (Pause All Outreach)</h4>
+                                <p class="text-xs ${isKillswitchActive ? 'text-rose-700 font-semibold' : 'text-slate-500'}">
+                                    ${isKillswitchActive ? 'OUTREACH IS CURRENTLY PAUSED ACROSS ENTIRE WORKSPACE' : 'Immediately halts all outbound email dispatches across all connected providers'}
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="toggleEmergencyKillswitch(${isKillswitchActive})" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition shadow-2xs cursor-pointer ${isKillswitchActive ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-slate-200 text-slate-700 hover:bg-rose-100 hover:text-rose-700'}">
+                            ${isKillswitchActive ? 'Deactivate Kill-Switch' : 'Activate Kill-Switch'}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Limits & Caps Grid -->
+                <div class="bg-white rounded-xl border border-slate-200/90 p-5 space-y-4 shadow-2xs">
+                    <h4 class="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">Daily Workspace Volume Caps</h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Max Daily Prospects Discovered</label>
+                            <input type="number" id="oc-prospect-limit" min="1" max="500" value="${s.daily_prospect_limit || 50}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:border-indigo-500">
+                            <span class="text-[11px] text-slate-400 mt-0.5 block">Stops background crawling once reached for the day</span>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">Max Daily Outbound Emails</label>
+                            <input type="number" id="oc-outreach-limit" min="1" max="500" value="${s.daily_outreach_limit || 20}" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none focus:border-indigo-500">
+                            <span class="text-[11px] text-slate-400 mt-0.5 block">Protects sender reputation & deliverability quota</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Approval Policy Safety Standard -->
+                <div class="bg-white rounded-xl border border-slate-200/90 p-5 space-y-3 shadow-2xs">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-900">Default Approval Standard</h4>
+                            <p class="text-xs text-slate-500">LinkPilot operates in Maker-Checker Digest Review mode by default</p>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                            Digest Review Enforced
+                        </span>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                            <span class="font-semibold text-xs text-slate-800 block">Allow Automatic Dispatch Mode</span>
+                            <span class="text-[11px] text-slate-400">Strictly requires workspace owner explicit authorization</span>
+                        </div>
+                        <input type="checkbox" id="oc-auto-dispatch" ${autoDispatchActive ? 'checked' : ''} class="h-4 w-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                    </div>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        } catch (e) {
+            body.innerHTML = `<div class="p-4 bg-rose-50 text-rose-700 rounded-xl text-xs">Failed to load controls: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+
+    window.toggleEmergencyKillswitch = async function (currentVal) {
+        try {
+            const nextVal = !currentVal;
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'update_operational_controls',
+                pause_all_outreach: nextVal
+            });
+            showNotification(nextVal ? 'warning' : 'success', nextVal ? 'Outreach killswitch activated! All dispatches blocked.' : 'Killswitch deactivated. Normal operations resumed.');
+            await loadAndRenderOperationalControls();
+        } catch (e) {
+            showNotification('error', `Failed to toggle killswitch: ${e.message}`);
+        }
+    };
+
+    window.saveOperationalControls = async function () {
+        const prospectLimit = parseInt(document.getElementById('oc-prospect-limit')?.value, 10) || 50;
+        const outreachLimit = parseInt(document.getElementById('oc-outreach-limit')?.value, 10) || 20;
+        const autoDispatch = document.getElementById('oc-auto-dispatch')?.checked || false;
+
+        try {
+            await apiCall('crm/agent.php', 'POST', {
+                action: 'update_operational_controls',
+                daily_prospect_limit: prospectLimit,
+                daily_outreach_limit: outreachLimit,
+                auto_dispatch_enabled: autoDispatch
+            });
+            showNotification('success', 'Operational controls and quotas updated successfully.');
+            closeAgentOperationalControlsModal();
+        } catch (e) {
+            showNotification('error', `Save failed: ${e.message}`);
+        }
     };
 
 })();

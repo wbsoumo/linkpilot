@@ -155,6 +155,32 @@ class AgentMigration5 {
             );");
             $results[] = 'Table ai_agent_suppression_list verified (SQLite).';
 
+            // 7. ai_agent_workspace_settings table
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_workspace_settings` (
+                `user_id` INTEGER PRIMARY KEY,
+                `daily_prospect_limit` INTEGER NOT NULL DEFAULT 50,
+                `daily_outreach_limit` INTEGER NOT NULL DEFAULT 20,
+                `pause_all_outreach` INTEGER NOT NULL DEFAULT 0,
+                `auto_dispatch_enabled` INTEGER NOT NULL DEFAULT 0,
+                `default_approval_mode` TEXT NOT NULL DEFAULT 'digest_review',
+                `provider_quotas_json` TEXT DEFAULT NULL,
+                `updated_at` TEXT DEFAULT CURRENT_TIMESTAMP
+            );");
+            $results[] = 'Table ai_agent_workspace_settings verified (SQLite).';
+
+            // 8. ai_agent_audit_history table
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_audit_history` (
+                `id` TEXT PRIMARY KEY,
+                `user_id` INTEGER NOT NULL,
+                `action_type` TEXT NOT NULL,
+                `entity_type` TEXT NOT NULL,
+                `entity_id` TEXT DEFAULT NULL,
+                `details_json` TEXT DEFAULT NULL,
+                `ip_address` TEXT DEFAULT NULL,
+                `created_at` TEXT DEFAULT CURRENT_TIMESTAMP
+            );");
+            $results[] = 'Table ai_agent_audit_history verified (SQLite).';
+
         } else {
             // MySQL Production schema
 
@@ -293,6 +319,34 @@ class AgentMigration5 {
                 INDEX `idx_suppression_domain` (`domain`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
             $results[] = 'Table ai_agent_suppression_list verified (MySQL).';
+
+            // 7. ai_agent_workspace_settings table
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_workspace_settings` (
+                `user_id` INT PRIMARY KEY,
+                `daily_prospect_limit` INT NOT NULL DEFAULT 50,
+                `daily_outreach_limit` INT NOT NULL DEFAULT 20,
+                `pause_all_outreach` TINYINT(1) NOT NULL DEFAULT 0,
+                `auto_dispatch_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+                `default_approval_mode` VARCHAR(32) NOT NULL DEFAULT 'digest_review',
+                `provider_quotas_json` LONGTEXT DEFAULT NULL,
+                `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+            $results[] = 'Table ai_agent_workspace_settings verified (MySQL).';
+
+            // 8. ai_agent_audit_history table
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_audit_history` (
+                `id` VARCHAR(64) PRIMARY KEY,
+                `user_id` INT NOT NULL,
+                `action_type` VARCHAR(64) NOT NULL,
+                `entity_type` VARCHAR(64) NOT NULL,
+                `entity_id` VARCHAR(64) DEFAULT NULL,
+                `details_json` LONGTEXT DEFAULT NULL,
+                `ip_address` VARCHAR(64) DEFAULT NULL,
+                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                INDEX `idx_audit_user` (`user_id`, `created_at`),
+                INDEX `idx_audit_action` (`action_type`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+            $results[] = 'Table ai_agent_audit_history verified (MySQL).';
         }
 
         self::$migrated = true;
@@ -312,6 +366,8 @@ class AgentMigration5 {
             }
         }
 
+        $db->exec("DROP TABLE IF EXISTS `ai_agent_audit_history`");
+        $db->exec("DROP TABLE IF EXISTS `ai_agent_workspace_settings`");
         $db->exec("DROP TABLE IF EXISTS `ai_agent_suppression_list`");
         $db->exec("DROP TABLE IF EXISTS `ai_agent_outreach_logs`");
         $db->exec("DROP TABLE IF EXISTS `ai_agent_discovered_prospects`");

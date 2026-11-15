@@ -4,16 +4,29 @@
 // Atomically executes due schedules headlessly using Phase 4 ExecutionEngine,
 // enforces idempotency, manages leases, and generates Morning Review Digests.
 
+require_once __DIR__ . '/config.php';
+
+// Strict Authentication Gate for Cron Worker
 if (php_sapi_name() !== 'cli') {
-    $token = $_GET['token'] ?? '';
-    if ($token !== 'LP_CRON_WORKER_7719') {
-        http_response_code(403);
-        echo "Access denied.";
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $workerToken = '';
+    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $m)) {
+        $workerToken = $m[1];
+    } elseif (!empty($_SERVER['HTTP_X_WORKER_TOKEN'])) {
+        $workerToken = trim($_SERVER['HTTP_X_WORKER_TOKEN']);
+    }
+
+    $secret = defined('CRON_WORKER_SECRET') ? CRON_WORKER_SECRET : '';
+    if (empty($workerToken) || empty($secret) || !hash_equals($secret, $workerToken)) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Unauthorized cron execution. Valid Authorization: Bearer header or X-Worker-Token required.'
+        ]);
         exit;
     }
 }
-
-require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/agent/AgentMigration5.php';
 require_once __DIR__ . '/agent/WorkflowScheduler.php';
 require_once __DIR__ . '/agent/SlotFillingEngine.php';
@@ -108,8 +121,18 @@ foreach ($claimedSchedules as $sched) {
         $valueProp = $params['value_proposition'] ?? 'Business collaboration';
         $senderId = $params['sender_identity'] ?? 'outreach@linkpilot.work';
 
+        // Check workspace daily prospect limit
+        $wsSettings = WorkflowScheduler::getWorkspaceSettings($userId, $db);
+        $dailyProspectLimit = $wsSettings['daily_prospect_limit'] ?? 50;
+        $todayStr = date('Y-m-d');
+        $stmtDiscToday = $db->prepare("SELECT COUNT(*) FROM ai_agent_discovered_prospects WHERE user_id = ? AND substr(discovery_timestamp, 1, 10) = ?");
+        $stmtDiscToday->execute([$userId, $todayStr]);
+        $discToday = (int)$stmtDiscToday->fetchColumn();
+        $remainingProspectQuota = max(0, $dailyProspectLimit - $discToday);
+        $leadCount = min($leadCount, $remainingProspectQuota);
+
         // Discover and enrich prospects via modular provider adapter
-        $discovered = LeadProspectingEngine::discoverProspects($industry, $location, $leadCount, 'mock');
+        $discovered = ($leadCount > 0) ? LeadProspectingEngine::discoverProspects($industry, $location, $leadCount, 'mock') : [];
         $ingestedProposals = [];
 
         foreach ($discovered as $p) {

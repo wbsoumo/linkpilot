@@ -421,4 +421,306 @@ class WorkflowScheduler {
 
         return ($upd->rowCount() > 0);
     }
+
+    /**
+     * Updates an existing schedule.
+     */
+    public static function updateSchedule(string $scheduleId, int $userId, array $data, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        $sched = self::getSchedule($scheduleId, $userId, $db);
+        if (!$sched) {
+            throw new InvalidArgumentException("Schedule not found or unauthorized.");
+        }
+
+        $title = !empty($data['title']) ? trim($data['title']) : $sched['title'];
+        $cron = !empty($data['cron_expression']) ? trim($data['cron_expression']) : $sched['cron_expression'];
+        $timezone = !empty($data['timezone']) ? trim($data['timezone']) : $sched['timezone'];
+        $approvalPolicy = !empty($data['approval_policy']) ? $data['approval_policy'] : $sched['approval_policy'];
+        $parameters = isset($data['parameters']) ? $data['parameters'] : $sched['parameters'];
+
+        if (!self::validateCron($cron)) {
+            throw new InvalidArgumentException("Invalid cron expression '{$cron}'.");
+        }
+
+        // Verify auto_dispatch is permitted in workspace settings
+        if ($approvalPolicy === self::POLICY_AUTO_DISPATCH) {
+            $settings = self::getWorkspaceSettings($userId, $db);
+            if (empty($settings['auto_dispatch_enabled'])) {
+                $approvalPolicy = self::POLICY_DIGEST_REVIEW;
+            }
+        }
+
+        $now = new DateTimeImmutable('now', new DateTimeZone($timezone));
+        $nextRun = self::calculateNextRun($cron, $timezone, $now);
+        $nextRunFormatted = $nextRun->format('Y-m-d H:i:s');
+        $nowFormatted = date('Y-m-d H:i:s');
+
+        $stmt = $db->prepare("UPDATE ai_agent_schedules
+            SET title = ?, cron_expression = ?, timezone = ?, approval_policy = ?, parameters_json = ?, next_run_at = ?, updated_at = ?
+            WHERE id = ? AND user_id = ?");
+        $stmt->execute([
+            $title,
+            $cron,
+            $timezone,
+            $approvalPolicy,
+            json_encode($parameters, JSON_UNESCAPED_UNICODE),
+            $nextRunFormatted,
+            $nowFormatted,
+            $scheduleId,
+            $userId
+        ]);
+
+        self::logAudit($userId, 'update_schedule', 'schedule', $scheduleId, ['title' => $title, 'cron' => $cron], null, $db);
+        return self::getSchedule($scheduleId, $userId, $db);
+    }
+
+    /**
+     * Lists schedule execution runs for a user with optional schedule filter.
+     */
+    public static function listRuns(int $userId, ?string $scheduleId = null, int $limit = 50, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        $limit = max(1, min(100, $limit));
+
+        $sql = "SELECT r.*, s.title as schedule_title, s.task_type
+                FROM ai_agent_schedule_runs r
+                LEFT JOIN ai_agent_schedules s ON r.schedule_id = s.id
+                WHERE r.user_id = ?";
+        $params = [$userId];
+
+        if (!empty($scheduleId)) {
+            $sql .= " AND r.schedule_id = ?";
+            $params[] = $scheduleId;
+        }
+
+        $sql .= " ORDER BY r.started_at DESC LIMIT " . (int)$limit;
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $runs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($runs as &$run) {
+            $run['summary'] = json_decode($run['summary_json'] ?? '{}', true) ?: [];
+        }
+        unset($run);
+
+        return $runs;
+    }
+
+    /**
+     * Retries a failed or stuck schedule run.
+     */
+    public static function retryScheduleRun(string $runId, int $userId, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        $stmt = $db->prepare("SELECT * FROM ai_agent_schedule_runs WHERE id = ? AND user_id = ? LIMIT 1");
+        $stmt->execute([$runId, $userId]);
+        $prevRun = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$prevRun) {
+            throw new InvalidArgumentException("Schedule run not found or unauthorized.");
+        }
+
+        $schedId = $prevRun['schedule_id'];
+        $sched = self::getSchedule($schedId, $userId, $db);
+        if (!$sched) {
+            throw new InvalidArgumentException("Associated schedule no longer exists.");
+        }
+
+        // Create a new retry run
+        $newRunId = 'run_retry_' . bin2hex(random_bytes(10));
+        $now = date('Y-m-d H:i:s');
+        $idempotencyKey = 'retry_' . $runId . '_' . time();
+
+        $stmtIns = $db->prepare("INSERT INTO ai_agent_schedule_runs (
+            id, schedule_id, user_id, workflow_id, idempotency_key, scheduled_for, started_at, status, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'running', ?)");
+
+        $stmtIns->execute([
+            $newRunId,
+            $schedId,
+            $userId,
+            'wf_' . $newRunId,
+            $idempotencyKey,
+            $now,
+            $now,
+            $now
+        ]);
+
+        self::logAudit($userId, 'retry_schedule_run', 'schedule_run', $newRunId, ['retried_from' => $runId], null, $db);
+
+        return [
+            'status' => 'queued_for_retry',
+            'new_run_id' => $newRunId,
+            'schedule_id' => $schedId,
+            'started_at' => $now
+        ];
+    }
+
+    /**
+     * Retrieves workspace operational controls and quotas.
+     */
+    public static function getWorkspaceSettings(int $userId, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        AgentMigration5::run($db);
+
+        $stmt = $db->prepare("SELECT * FROM ai_agent_workspace_settings WHERE user_id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($row) {
+            return [
+                'user_id' => (int)$row['user_id'],
+                'daily_prospect_limit' => (int)$row['daily_prospect_limit'],
+                'daily_outreach_limit' => (int)$row['daily_outreach_limit'],
+                'pause_all_outreach' => (bool)$row['pause_all_outreach'],
+                'auto_dispatch_enabled' => (bool)$row['auto_dispatch_enabled'],
+                'default_approval_mode' => $row['default_approval_mode'] ?: self::POLICY_DIGEST_REVIEW,
+                'provider_quotas' => json_decode($row['provider_quotas_json'] ?? '{"smtp":200,"gmail":500,"mock":1000}', true) ?: ['smtp' => 200, 'gmail' => 500, 'mock' => 1000]
+            ];
+        }
+
+        // Return secure defaults
+        return [
+            'user_id' => $userId,
+            'daily_prospect_limit' => 50,
+            'daily_outreach_limit' => 20,
+            'pause_all_outreach' => false,
+            'auto_dispatch_enabled' => false,
+            'default_approval_mode' => self::POLICY_DIGEST_REVIEW,
+            'provider_quotas' => ['smtp' => 200, 'gmail' => 500, 'mock' => 1000]
+        ];
+    }
+
+    /**
+     * Updates workspace operational controls.
+     */
+    public static function updateWorkspaceSettings(int $userId, array $settings, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        AgentMigration5::run($db);
+
+        $current = self::getWorkspaceSettings($userId, $db);
+
+        $prospectLimit = isset($settings['daily_prospect_limit']) ? max(1, min(500, (int)$settings['daily_prospect_limit'])) : $current['daily_prospect_limit'];
+        $outreachLimit = isset($settings['daily_outreach_limit']) ? max(1, min(500, (int)$settings['daily_outreach_limit'])) : $current['daily_outreach_limit'];
+        $pauseAll = isset($settings['pause_all_outreach']) ? (int)(bool)$settings['pause_all_outreach'] : (int)$current['pause_all_outreach'];
+        $autoDispatch = isset($settings['auto_dispatch_enabled']) ? (int)(bool)$settings['auto_dispatch_enabled'] : (int)$current['auto_dispatch_enabled'];
+        $approvalMode = (!empty($settings['default_approval_mode']) && in_array($settings['default_approval_mode'], [self::POLICY_DIGEST_REVIEW, self::POLICY_AUTO_DISPATCH]))
+            ? $settings['default_approval_mode']
+            : $current['default_approval_mode'];
+
+        // Auto-dispatch cannot be enabled as default unless auto_dispatch_enabled is on
+        if (!$autoDispatch) {
+            $approvalMode = self::POLICY_DIGEST_REVIEW;
+        }
+
+        $quotas = isset($settings['provider_quotas']) && is_array($settings['provider_quotas']) ? $settings['provider_quotas'] : $current['provider_quotas'];
+        $quotasJson = json_encode($quotas);
+        $now = date('Y-m-d H:i:s');
+
+        $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $stmt = $db->prepare("INSERT INTO ai_agent_workspace_settings (
+                user_id, daily_prospect_limit, daily_outreach_limit, pause_all_outreach,
+                auto_dispatch_enabled, default_approval_mode, provider_quotas_json, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id) DO UPDATE SET
+                daily_prospect_limit = excluded.daily_prospect_limit,
+                daily_outreach_limit = excluded.daily_outreach_limit,
+                pause_all_outreach = excluded.pause_all_outreach,
+                auto_dispatch_enabled = excluded.auto_dispatch_enabled,
+                default_approval_mode = excluded.default_approval_mode,
+                provider_quotas_json = excluded.provider_quotas_json,
+                updated_at = excluded.updated_at");
+        } else {
+            $stmt = $db->prepare("INSERT INTO ai_agent_workspace_settings (
+                user_id, daily_prospect_limit, daily_outreach_limit, pause_all_outreach,
+                auto_dispatch_enabled, default_approval_mode, provider_quotas_json, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                daily_prospect_limit = VALUES(daily_prospect_limit),
+                daily_outreach_limit = VALUES(daily_outreach_limit),
+                pause_all_outreach = VALUES(pause_all_outreach),
+                auto_dispatch_enabled = VALUES(auto_dispatch_enabled),
+                default_approval_mode = VALUES(default_approval_mode),
+                provider_quotas_json = VALUES(provider_quotas_json),
+                updated_at = VALUES(updated_at)");
+        }
+
+        $stmt->execute([
+            $userId,
+            $prospectLimit,
+            $outreachLimit,
+            $pauseAll,
+            $autoDispatch,
+            $approvalMode,
+            $quotasJson,
+            $now
+        ]);
+
+        self::logAudit($userId, 'update_workspace_settings', 'workspace_settings', (string)$userId, [
+            'pause_all_outreach' => (bool)$pauseAll,
+            'daily_outreach_limit' => $outreachLimit,
+            'daily_prospect_limit' => $prospectLimit
+        ], null, $db);
+
+        return self::getWorkspaceSettings($userId, $db);
+    }
+
+    /**
+     * Checks if all outreach is paused for the workspace.
+     */
+    public static function isOutreachPausedForWorkspace(int $userId, ?PDO $db = null): bool {
+        $settings = self::getWorkspaceSettings($userId, $db);
+        return !empty($settings['pause_all_outreach']);
+    }
+
+    /**
+     * Logs an operational or user action to audit history.
+     */
+    public static function logAudit(
+        int $userId,
+        string $actionType,
+        string $entityType,
+        ?string $entityId = null,
+        ?array $details = null,
+        ?string $ip = null,
+        ?PDO $db = null
+    ): bool {
+        if (!$db) {
+            try { $db = Database::getConnection(); } catch (Throwable $e) { return false; }
+        }
+        AgentMigration5::run($db);
+
+        $id = 'audit_' . bin2hex(random_bytes(12));
+        $now = date('Y-m-d H:i:s');
+        $ip = $ip ?: ($_SERVER['REMOTE_ADDR'] ?? '127.0.0.1');
+        $detailsJson = $details ? json_encode($details, JSON_UNESCAPED_UNICODE) : null;
+
+        try {
+            $stmt = $db->prepare("INSERT INTO ai_agent_audit_history (
+                id, user_id, action_type, entity_type, entity_id, details_json, ip_address, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            return $stmt->execute([$id, $userId, $actionType, $entityType, $entityId, $detailsJson, $ip, $now]);
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Retrieves audit history records for workspace.
+     */
+    public static function getAuditLogs(int $userId, int $limit = 50, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        AgentMigration5::run($db);
+        $limit = max(1, min(100, $limit));
+
+        $stmt = $db->prepare("SELECT * FROM ai_agent_audit_history WHERE user_id = ? ORDER BY created_at DESC LIMIT " . (int)$limit);
+        $stmt->execute([$userId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($rows as &$r) {
+            $r['details'] = json_decode($r['details_json'] ?? '{}', true) ?: [];
+        }
+        unset($r);
+
+        return $rows;
+    }
 }

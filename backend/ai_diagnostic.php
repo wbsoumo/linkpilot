@@ -1,15 +1,45 @@
 <?php
 // backend/ai_diagnostic.php
 header('Content-Type: text/plain; charset=utf-8');
-
-$token = $_GET['token'] ?? '';
-if ($token !== 'LP_DIAGNOSTIC_9823') {
-    http_response_code(403);
-    echo "Access denied.";
-    exit;
-}
-
 require_once __DIR__ . '/config.php';
+
+// Strict Authentication Gate for Diagnostic Endpoint
+if (php_sapi_name() !== 'cli') {
+    $remoteIp = $_SERVER['REMOTE_ADDR'] ?? '';
+    $isLocalhost = in_array($remoteIp, ['127.0.0.1', '::1'], true);
+
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $diagToken = '';
+    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $m)) {
+        $diagToken = $m[1];
+    } elseif (!empty($_SERVER['HTTP_X_ADMIN_KEY'])) {
+        $diagToken = trim($_SERVER['HTTP_X_ADMIN_KEY']);
+    }
+
+    $secret = defined('DIAGNOSTIC_ADMIN_KEY') ? DIAGNOSTIC_ADMIN_KEY : '';
+    $isAuthorized = (!empty($diagToken) && !empty($secret) && hash_equals($secret, $diagToken));
+
+    // Also allow authenticated admin session if available
+    if (!$isAuthorized && !$isLocalhost) {
+        if (file_exists(__DIR__ . '/jwt_helper.php')) {
+            require_once __DIR__ . '/jwt_helper.php';
+            try {
+                $sessionUser = JWTHelper::getUserFromToken();
+                if (!empty($sessionUser) && ($sessionUser['role'] ?? '') === 'admin') {
+                    $isAuthorized = true;
+                }
+            } catch (Throwable $eAuth) {
+                $isAuthorized = false;
+            }
+        }
+    }
+
+    if (!$isAuthorized && !$isLocalhost) {
+        http_response_code(401);
+        echo "Access denied. Valid Authorization: Bearer header or X-Admin-Key required.";
+        exit;
+    }
+}
 
 // Direct GitHub Sync handler with cache-busting
 if (isset($_GET['sync'])) {
@@ -51,6 +81,8 @@ if (isset($_GET['sync'])) {
         'tests/test_phase4.php',
         'tests/test_phase5a.php',
         'tests/test_phase5.php',
+        'tests/test_security_audit.php',
+        'tests/test_phase5_hardening.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
         'dashboard/assets/css/style.css',
@@ -141,9 +173,27 @@ if (isset($_GET['run_phase4_tests'])) {
     exit;
 }
 
+if (isset($_GET['run_phase5a_tests'])) {
+    echo "=== RUNNING PHASE 5A REGRESSION TESTS ON SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_phase5a.php';
+    exit;
+}
+
 if (isset($_GET['run_phase5_tests'])) {
     echo "=== RUNNING PHASE 5 REGRESSION TESTS ON SERVER ===\n";
     require_once dirname(__DIR__) . '/tests/test_phase5.php';
+    exit;
+}
+
+if (isset($_GET['run_security_tests'])) {
+    echo "=== RUNNING SECURITY AUDIT TESTS ON SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_security_audit.php';
+    exit;
+}
+
+if (isset($_GET['run_hardening_tests'])) {
+    echo "=== RUNNING PHASE 5 HARDENING & RELIABILITY TESTS ON SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_phase5_hardening.php';
     exit;
 }
 
@@ -200,10 +250,22 @@ try {
     echo "[!] DB heal error: " . $e->getMessage() . "\n";
 }
 
-// 1. Check Super Admin User
+// Helper for diagnostic redaction
+function redactEmail($email) {
+    if (!$email || !str_contains($email, '@')) return '[REDACTED]';
+    $parts = explode('@', $email);
+    $name = $parts[0];
+    $maskedName = (strlen($name) > 2) ? substr($name, 0, 1) . str_repeat('*', strlen($name) - 2) . substr($name, -1) : '***';
+    return $maskedName . '@' . $parts[1];
+}
+
+// 1. Check Super Admin User (Redacted)
 $stmt = $db->query("SELECT id, name, email, role, active_ai_provider, active_ai_model, CASE WHEN google_key IS NOT NULL AND google_key != '' THEN 1 ELSE 0 END as has_google, CASE WHEN openrouter_key IS NOT NULL AND openrouter_key != '' THEN 1 ELSE 0 END as has_or, CASE WHEN github_key IS NOT NULL AND github_key != '' THEN 1 ELSE 0 END as has_gh FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1");
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
-echo "Admin Record:\n";
+if ($admin) {
+    $admin['email'] = redactEmail($admin['email'] ?? '');
+}
+echo "Admin Record (Redacted):\n";
 print_r($admin);
 
 $adminId = $admin['id'] ?? 1;
@@ -215,11 +277,16 @@ $aiKeys = $stmtKeys->fetchAll(PDO::FETCH_ASSOC);
 echo "\nUser AI Keys in DB:\n";
 print_r($aiKeys);
 
-// 2b. Check external app connections
+// 2b. Check external app connections (Redacted)
 $stmtAppConns = $db->prepare("SELECT id, user_id, provider, email, connected_email, scopes, status, updated_at FROM external_app_connections WHERE user_id = ?");
 $stmtAppConns->execute([$adminId]);
 $appConns = $stmtAppConns->fetchAll(PDO::FETCH_ASSOC);
-echo "\nExternal App Connections in DB:\n";
+foreach ($appConns as &$conn) {
+    if (!empty($conn['email'])) $conn['email'] = redactEmail($conn['email']);
+    if (!empty($conn['connected_email'])) $conn['connected_email'] = redactEmail($conn['connected_email']);
+}
+unset($conn);
+echo "\nExternal App Connections in DB (Redacted):\n";
 print_r($appConns);
 
 // 3. Resolve candidates using getAllAvailableProviders
@@ -227,7 +294,8 @@ require_once __DIR__ . '/agent_ai_client.php';
 $candidates = AgentAIClient::getAllAvailableProviders($adminId);
 echo "\nResolved Candidates for Admin:\n";
 foreach ($candidates as $idx => $c) {
-    $maskedKey = substr($c['api_key'], 0, 8) . '...' . substr($c['api_key'], -4);
+    $rawKey = (string)$c['api_key'];
+    $maskedKey = (strlen($rawKey) > 8) ? substr($rawKey, 0, 4) . '...' . substr($rawKey, -4) : '****';
     echo "[$idx] Provider: {$c['provider']}, Model: {$c['model']}, Key: {$maskedKey}\n";
 }
 

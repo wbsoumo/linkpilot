@@ -333,4 +333,59 @@ class BatchApprovalEngine {
             'reason' => $reason
         ];
     }
+
+    /**
+     * Lists pending approval items for a workspace, optionally filtered by schedule_run_id.
+     */
+    public static function listPendingForUser(int $userId, ?string $scheduleRunId = null, int $limit = 100, ?PDO $db = null): array {
+        if (!$db) $db = Database::getConnection();
+        AgentMigration5::run($db);
+        $limit = max(1, min(200, $limit));
+
+        $sql = "SELECT b.*, s.title as schedule_title
+                FROM ai_agent_batch_approvals b
+                LEFT JOIN ai_agent_schedule_runs r ON b.schedule_run_id = r.id
+                LEFT JOIN ai_agent_schedules s ON r.schedule_id = s.id
+                WHERE b.user_id = ? AND b.status = 'pending'";
+        $params = [$userId];
+
+        if (!empty($scheduleRunId)) {
+            $sql .= " AND b.schedule_run_id = ?";
+            $params[] = $scheduleRunId;
+        }
+
+        $sql .= " ORDER BY b.created_at DESC LIMIT " . (int)$limit;
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $now = date('Y-m-d H:i:s');
+        $items = [];
+        foreach ($rows as $r) {
+            $isExpired = ($r['expires_at'] < $now);
+            if ($isExpired) {
+                // Auto-mark expired in background
+                $db->prepare("UPDATE ai_agent_batch_approvals SET status = 'expired' WHERE id = ?")->execute([$r['id']]);
+                continue;
+            }
+            $payload = json_decode($r['draft_payload_json'] ?? '{}', true) ?: [];
+            $items[] = [
+                'id' => $r['id'],
+                'token' => $r['token'],
+                'item_key' => $r['item_key'],
+                'schedule_run_id' => $r['schedule_run_id'],
+                'schedule_title' => $r['schedule_title'] ?? 'Autonomous Prospecting',
+                'recipient_email' => $r['recipient_email'],
+                'company_name' => $payload['company_name'] ?? '',
+                'subject' => $payload['subject'] ?? '',
+                'body' => $payload['body'] ?? '',
+                'status' => $r['status'],
+                'expires_at' => $r['expires_at'],
+                'created_at' => $r['created_at'],
+                'draft' => $payload
+            ];
+        }
+
+        return $items;
+    }
 }

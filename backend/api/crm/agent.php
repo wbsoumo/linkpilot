@@ -791,6 +791,280 @@ try {
         ]);
     }
 
+    // 7c. Autonomous Schedules Management
+    elseif ($action === 'list_schedules') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $status = !empty($_GET['status']) ? trim($_GET['status']) : null;
+        $schedules = WorkflowScheduler::listSchedules($userId, $status, $db);
+        sendJsonResponse('success', 'Schedules retrieved successfully.', [
+            'schedules' => $schedules
+        ]);
+    }
+
+    elseif ($action === 'create_schedule') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $title = trim($input['title'] ?? 'Autonomous Prospecting Schedule');
+        $cron = trim($input['cron_expression'] ?? '0 9 * * *');
+        $timezone = trim($input['timezone'] ?? 'UTC');
+        $taskType = trim($input['task_type'] ?? 'prospecting_and_outreach');
+        $parameters = isset($input['parameters']) && is_array($input['parameters']) ? $input['parameters'] : [];
+        $approvalPolicy = trim($input['approval_policy'] ?? 'digest_review');
+
+        $schedule = WorkflowScheduler::createSchedule(
+            $userId, $title, $cron, $timezone, $taskType, $parameters, null, $approvalPolicy, $db
+        );
+        WorkflowScheduler::logAudit($userId, 'create_schedule', 'schedule', $schedule['id'], ['title' => $title, 'cron' => $cron], null, $db);
+        sendJsonResponse('success', 'Schedule created successfully.', [
+            'schedule' => $schedule
+        ]);
+    }
+
+    elseif ($action === 'update_schedule') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) {
+            sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        }
+        $updated = WorkflowScheduler::updateSchedule($scheduleId, $userId, $input, $db);
+        sendJsonResponse('success', 'Schedule updated successfully.', [
+            'schedule' => $updated
+        ]);
+    }
+
+    elseif ($action === 'pause_schedule') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) {
+            sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        }
+        $ok = WorkflowScheduler::pauseSchedule($scheduleId, $userId, $db);
+        if ($ok) {
+            WorkflowScheduler::logAudit($userId, 'pause_schedule', 'schedule', $scheduleId, null, null, $db);
+            sendJsonResponse('success', 'Schedule paused successfully.');
+        } else {
+            sendJsonResponse('error', 'Failed to pause schedule or unauthorized.', [], 400);
+        }
+    }
+
+    elseif ($action === 'resume_schedule') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) {
+            sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        }
+        $ok = WorkflowScheduler::resumeSchedule($scheduleId, $userId, $db);
+        if ($ok) {
+            WorkflowScheduler::logAudit($userId, 'resume_schedule', 'schedule', $scheduleId, null, null, $db);
+            sendJsonResponse('success', 'Schedule resumed successfully.');
+        } else {
+            sendJsonResponse('error', 'Failed to resume schedule or unauthorized.', [], 400);
+        }
+    }
+
+    elseif ($action === 'delete_schedule') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $scheduleId = trim($input['schedule_id'] ?? ($_GET['schedule_id'] ?? ''));
+        if (empty($scheduleId)) {
+            sendJsonResponse('error', 'Schedule ID is required.', [], 400);
+        }
+        $ok = WorkflowScheduler::deleteSchedule($scheduleId, $userId, $db);
+        if ($ok) {
+            sendJsonResponse('success', 'Schedule deleted successfully.');
+        } else {
+            sendJsonResponse('error', 'Failed to delete schedule or unauthorized.', [], 400);
+        }
+    }
+
+    // 7d. Execution History & Retry
+    elseif ($action === 'list_schedule_runs') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $scheduleId = !empty($_GET['schedule_id']) ? trim($_GET['schedule_id']) : null;
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $runs = WorkflowScheduler::listRuns($userId, $scheduleId, $limit, $db);
+        sendJsonResponse('success', 'Schedule runs retrieved successfully.', [
+            'runs' => $runs
+        ]);
+    }
+
+    elseif ($action === 'retry_schedule_run') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $runId = trim($input['run_id'] ?? ($_GET['run_id'] ?? ''));
+        if (empty($runId)) {
+            sendJsonResponse('error', 'Run ID is required.', [], 400);
+        }
+        $retryRes = WorkflowScheduler::retryScheduleRun($runId, $userId, $db);
+        sendJsonResponse('success', 'Schedule run queued for retry.', $retryRes);
+    }
+
+    // 7e. Approval Center
+    elseif ($action === 'list_pending_approvals') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        $scheduleRunId = !empty($_GET['schedule_run_id']) ? trim($_GET['schedule_run_id']) : null;
+        $items = BatchApprovalEngine::listPendingForUser($userId, $scheduleRunId, 100, $db);
+        sendJsonResponse('success', 'Pending approvals retrieved successfully.', [
+            'items' => $items,
+            'total_pending' => count($items)
+        ]);
+    }
+
+    elseif ($action === 'preview_approval_item') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        $token = trim($input['token'] ?? ($_GET['token'] ?? ''));
+        if (empty($token)) {
+            sendJsonResponse('error', 'Approval token is required.', [], 400);
+        }
+        $preview = BatchApprovalEngine::previewItem($userId, $token, $db);
+        sendJsonResponse('success', 'Approval item preview retrieved.', [
+            'item' => $preview
+        ]);
+    }
+
+    elseif ($action === 'update_approval_item') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        $token = trim($input['token'] ?? '');
+        $subject = trim($input['subject'] ?? '');
+        $body = trim($input['body'] ?? '');
+        if (empty($token) || empty($subject) || empty($body)) {
+            sendJsonResponse('error', 'Token, subject, and body are required for editing.', [], 400);
+        }
+        $res = BatchApprovalEngine::editItem($userId, $token, $subject, $body, $db);
+        sendJsonResponse('success', 'Draft proposal updated and new token issued.', $res);
+    }
+
+    elseif ($action === 'approve_item') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        require_once __DIR__ . '/../../agent/OutreachDispatcher.php';
+        $token = trim($input['token'] ?? '');
+        $dispatchNow = !empty($input['dispatch']);
+        $provider = trim($input['provider'] ?? 'smtp');
+
+        if (empty($token)) {
+            sendJsonResponse('error', 'Approval token is required.', [], 400);
+        }
+
+        $appr = BatchApprovalEngine::approveItem($userId, $token, $db);
+        $dispatchRes = null;
+        if ($dispatchNow) {
+            $dispatchRes = OutreachDispatcher::dispatchApprovedItem($userId, $token, $provider, [], $db);
+        }
+
+        sendJsonResponse('success', 'Proposal approved successfully.', [
+            'approval' => $appr,
+            'dispatch' => $dispatchRes
+        ]);
+    }
+
+    elseif ($action === 'approve_selected') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        require_once __DIR__ . '/../../agent/OutreachDispatcher.php';
+        $tokens = isset($input['tokens']) && is_array($input['tokens']) ? $input['tokens'] : [];
+        $dispatchNow = !empty($input['dispatch']);
+        $provider = trim($input['provider'] ?? 'smtp');
+
+        if (empty($tokens)) {
+            sendJsonResponse('error', 'List of tokens is required.', [], 400);
+        }
+
+        $batchRes = BatchApprovalEngine::approveSelected($userId, $tokens, $db);
+        $dispatches = [];
+        if ($dispatchNow) {
+            foreach ($batchRes['approved'] as $appr) {
+                try {
+                    $dRes = OutreachDispatcher::dispatchApprovedItem($userId, $appr['token'] ?? '', $provider, [], $db);
+                    $dispatches[] = $dRes;
+                } catch (Throwable $eD) {
+                    $dispatches[] = ['error' => $eD->getMessage()];
+                }
+            }
+        }
+
+        sendJsonResponse('success', 'Selected proposals approved.', [
+            'approvals' => $batchRes,
+            'dispatches' => $dispatches
+        ]);
+    }
+
+    elseif ($action === 'approve_all') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        $scheduleRunId = trim($input['schedule_run_id'] ?? ($_GET['schedule_run_id'] ?? ''));
+        if (empty($scheduleRunId)) {
+            sendJsonResponse('error', 'schedule_run_id is required to approve all items in a batch.', [], 400);
+        }
+        $res = BatchApprovalEngine::approveAll($userId, $scheduleRunId, $db);
+        sendJsonResponse('success', 'All pending proposals in batch approved.', $res);
+    }
+
+    elseif ($action === 'reject_item') {
+        require_once __DIR__ . '/../../agent/BatchApprovalEngine.php';
+        $token = trim($input['token'] ?? '');
+        $reason = trim($input['reason'] ?? 'Rejected by user');
+        if (empty($token)) {
+            sendJsonResponse('error', 'Approval token is required.', [], 400);
+        }
+        $res = BatchApprovalEngine::rejectItem($userId, $token, $reason, $db);
+        sendJsonResponse('success', 'Proposal rejected successfully.', $res);
+    }
+
+    // 7f. Prospect Review
+    elseif ($action === 'list_discovered_prospects') {
+        require_once __DIR__ . '/../../agent/LeadProspectingEngine.php';
+        $filters = [
+            'status' => !empty($_GET['status']) ? trim($_GET['status']) : null,
+            'verification_status' => !empty($_GET['verification_status']) ? trim($_GET['verification_status']) : null,
+            'search' => !empty($_GET['search']) ? trim($_GET['search']) : null,
+            'schedule_id' => !empty($_GET['schedule_id']) ? trim($_GET['schedule_id']) : null,
+        ];
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $prospects = LeadProspectingEngine::listProspectsForUser($userId, $filters, $limit, $db);
+        sendJsonResponse('success', 'Discovered prospects retrieved successfully.', [
+            'prospects' => $prospects,
+            'count' => count($prospects)
+        ]);
+    }
+
+    // 7g. Outreach Logs
+    elseif ($action === 'list_outreach_logs') {
+        require_once __DIR__ . '/../../agent/OutreachDispatcher.php';
+        $filters = [
+            'status' => !empty($_GET['status']) ? trim($_GET['status']) : null,
+            'provider' => !empty($_GET['provider']) ? trim($_GET['provider']) : null,
+            'schedule_id' => !empty($_GET['schedule_id']) ? trim($_GET['schedule_id']) : null,
+        ];
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $logs = OutreachDispatcher::listLogsForUser($userId, $filters, $limit, $db);
+        sendJsonResponse('success', 'Outreach logs retrieved successfully.', [
+            'logs' => $logs,
+            'count' => count($logs)
+        ]);
+    }
+
+    // 7h. Operational Controls
+    elseif ($action === 'get_operational_controls') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $settings = WorkflowScheduler::getWorkspaceSettings($userId, $db);
+        sendJsonResponse('success', 'Operational controls retrieved.', [
+            'settings' => $settings
+        ]);
+    }
+
+    elseif ($action === 'update_operational_controls') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $updated = WorkflowScheduler::updateWorkspaceSettings($userId, $input, $db);
+        sendJsonResponse('success', 'Operational controls updated successfully.', [
+            'settings' => $updated
+        ]);
+    }
+
+    // 7i. Audit History
+    elseif ($action === 'get_audit_history') {
+        require_once __DIR__ . '/../../agent/WorkflowScheduler.php';
+        $limit = !empty($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $logs = WorkflowScheduler::getAuditLogs($userId, $limit, $db);
+        sendJsonResponse('success', 'Audit history retrieved successfully.', [
+            'audit_logs' => $logs
+        ]);
+    }
+
     // 8. Chat Execution (Streaming or Standard JSON)
     elseif ($action === 'chat') {
         $convId = trim($input['conversation_id'] ?? ($_GET['conversation_id'] ?? ''));

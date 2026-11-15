@@ -1,7 +1,32 @@
 <?php
 // backend/git_pull.php
-header('Content-Type: text/plain');
-ini_set('display_errors', 1);
+header('Content-Type: text/plain; charset=utf-8');
+require_once __DIR__ . '/config.php';
+
+// Strict Authentication Gate for Deployment / Git Pull
+if (php_sapi_name() !== 'cli') {
+    $remoteIp = $_SERVER['REMOTE_ADDR'] ?? '';
+    $isLocalhost = in_array($remoteIp, ['127.0.0.1', '::1'], true);
+
+    $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+    $deployToken = '';
+    if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $m)) {
+        $deployToken = $m[1];
+    } elseif (!empty($_SERVER['HTTP_X_DEPLOY_KEY'])) {
+        $deployToken = trim($_SERVER['HTTP_X_DEPLOY_KEY']);
+    }
+
+    $secret = defined('DEPLOYMENT_SECRET') ? DEPLOYMENT_SECRET : '';
+    $isAuthorized = (!empty($deployToken) && !empty($secret) && hash_equals($secret, $deployToken));
+
+    if (!$isAuthorized && !$isLocalhost) {
+        http_response_code(401);
+        echo "Access denied. Valid Authorization: Bearer header or X-Deploy-Key required.";
+        exit;
+    }
+}
+
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
 $root = dirname(__DIR__);
@@ -19,7 +44,9 @@ $cmd = "GIT_TERMINAL_PROMPT=0 git pull origin main 2>&1";
 $output = [];
 $executed = false;
 
-if (function_exists('shell_exec')) {
+$forcePhpSync = isset($_GET['force_php_sync']) || (isset($_SERVER['HTTP_X_SYNC_MODE']) && strtolower($_SERVER['HTTP_X_SYNC_MODE']) === 'php');
+
+if (!$forcePhpSync && function_exists('shell_exec')) {
     try {
         $res = @shell_exec($cmd);
         if ($res !== null) {
@@ -110,6 +137,8 @@ if (!$executed) {
         'tests/test_phase4.php',
         'tests/test_phase5a.php',
         'tests/test_phase5.php',
+        'tests/test_security_audit.php',
+        'tests/test_phase5_hardening.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
         'dashboard/assets/css/style.css',

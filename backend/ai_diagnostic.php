@@ -16,19 +16,35 @@ if (isset($_GET['sync'])) {
     echo "=== DIRECT GITHUB SYNC ===\n";
     $syncFiles = [
         'backend/agent/AgentMigration2.php',
+        'backend/agent/AgentMigration4.php',
         'backend/agent/PluginRegistry.php',
         'backend/agent/WorkflowEngine.php',
         'backend/agent/ContextManager.php',
+        'backend/agent/TaskPlanDAG.php',
+        'backend/agent/VerificationEngine.php',
+        'backend/agent/TaskPlanner.php',
+        'backend/agent/ExecutionEngine.php',
         'backend/agent_db_migration.php',
         'backend/temp_file_service.php',
         'backend/cron_cleanup_temp_files.php',
+        'backend/crm_sync_helper.php',
+        'backend/agent_cache.php',
+        'backend/agent_telemetry.php',
         'backend/agent_router.php',
+        'backend/agent_ai_client.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
+        'backend/web_search_helper.php',
+        'backend/config.php',
         'backend/api/crm/agent.php',
         'backend/api/crm/download_temp_file.php',
         'tests/test_phase2_phase3.php',
+        'tests/test_phase4.php',
         'dashboard/assets/js/agent.js',
+        'dashboard/assets/css/agent.css',
+        'dashboard/assets/css/style.css',
+        'dashboard/index.html',
+        'backend/git_pull.php',
         'backend/ai_diagnostic.php'
     ];
     $root = dirname(__DIR__);
@@ -39,7 +55,7 @@ if (isset($_GET['sync'])) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 12);
         curl_setopt($ch, CURLOPT_HTTPHEADER, ['Cache-Control: no-cache', 'Pragma: no-cache']);
         $c = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -63,20 +79,81 @@ if (isset($_GET['sync'])) {
     try {
         require_once __DIR__ . '/agent_db_migration.php';
         require_once __DIR__ . '/agent/AgentMigration2.php';
+        require_once __DIR__ . '/agent/AgentMigration4.php';
         require_once __DIR__ . '/agent/PluginRegistry.php';
         $db = Database::getConnection();
         AgentDBMigration::run($db);
         AgentMigration2::run($db);
+        AgentMigration4::run($db);
         PluginRegistry::init($db);
-        echo "[OK] Ran AgentDBMigration, AgentMigration2, and PluginRegistry::init on AWS server.\n";
+        echo "[OK] Ran AgentDBMigration, AgentMigration2, AgentMigration4, and PluginRegistry::init on server.\n";
     } catch (Throwable $e) {
         echo "[!] Migration error: " . $e->getMessage() . "\n";
     }
 }
 
-if (isset($_GET['run_tests'])) {
-    echo "=== RUNNING REGRESSION TESTS ON AWS SERVER ===\n";
+if (isset($_GET['view_errors'])) {
+    echo "=== RECENT PHP ERROR LOGS ===\n";
+    $root = dirname(__DIR__);
+    $logFiles = [
+        $root . '/error_log',
+        $root . '/backend/error_log',
+        $root . '/backend/api/crm/error_log'
+    ];
+    $found = false;
+    foreach ($logFiles as $lf) {
+        if (file_exists($lf)) {
+            $found = true;
+            echo "--- Log: $lf (" . filesize($lf) . " bytes) ---\n";
+            $lines = file($lf);
+            $lastLines = array_slice($lines, -40);
+            echo implode('', $lastLines) . "\n\n";
+        }
+    }
+    if (!$found) {
+        echo "No error_log files found in root or backend directories.\n";
+    }
+    exit;
+}
+
+if (isset($_GET['run_phase2_phase3_tests'])) {
+    echo "=== RUNNING PHASE 2 & 3 REGRESSION TESTS ON SERVER ===\n";
     require_once dirname(__DIR__) . '/tests/test_phase2_phase3.php';
+    exit;
+}
+
+if (isset($_GET['run_phase4_tests'])) {
+    echo "=== RUNNING PHASE 4 REGRESSION TESTS ON SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_phase4.php';
+    exit;
+}
+
+if (isset($_GET['test_chat'])) {
+    echo "=== TESTING LIVE AGENT CHAT DIRECTLY ===\n";
+    require_once __DIR__ . '/agent_orchestrator.php';
+    $db = Database::getConnection();
+    $adminId = 1;
+    $testMsg = $_GET['msg'] ?? 'hey';
+    echo "Testing user message: '{$testMsg}'\n";
+    try {
+        $conv = AgentOrchestrator::createConversation($adminId, 'Diagnostic Test Chat', $db);
+        $convId = $conv['id'];
+        echo "Conversation created: {$convId}\n";
+        $t0 = microtime(true);
+        $events = [];
+        $res = AgentOrchestrator::processChat($adminId, $convId, $testMsg, [], function($event, $data) use (&$events) {
+            $events[] = ['event' => $event, 'data' => $data];
+            echo "  [SSE Event: {$event}] " . json_encode($data) . "\n";
+        }, $db);
+        $took = round(microtime(true) - $t0, 3);
+        echo "\nExecution took {$took}s.\n";
+        echo "Result status: " . ($res['status'] ?? 'unknown') . "\n";
+        echo "Result content: " . ($res['content'] ?? ($res['message']['content'] ?? 'NO CONTENT')) . "\n";
+    } catch (Throwable $eChat) {
+        echo "[ERROR] ProcessChat threw exception: " . $eChat->getMessage() . "\n";
+        echo "File: " . $eChat->getFile() . " on line " . $eChat->getLine() . "\n";
+        echo "Trace:\n" . $eChat->getTraceAsString() . "\n";
+    }
     exit;
 }
 

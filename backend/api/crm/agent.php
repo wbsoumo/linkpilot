@@ -12,7 +12,11 @@ $userId = (int)$user['id'];
 $db = Database::getConnection();
 
 // Self-healing migration
-AgentOrchestrator::init($db);
+try {
+    AgentOrchestrator::init($db);
+} catch (Throwable $eInit) {
+    error_log("AgentOrchestrator::init notice: " . $eInit->getMessage());
+}
 
 $rawInput = file_get_contents('php://input');
 $input = json_decode($rawInput, true) ?: [];

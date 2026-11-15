@@ -72,6 +72,22 @@ if (!$executed) {
 
     $syncFiles = [
         '.cpanel.yml',
+        'backend/agent/AgentMigration2.php',
+        'backend/agent/AgentMigration4.php',
+        'backend/agent/PluginRegistry.php',
+        'backend/agent/WorkflowEngine.php',
+        'backend/agent/ContextManager.php',
+        'backend/agent/TaskPlanDAG.php',
+        'backend/agent/VerificationEngine.php',
+        'backend/agent/TaskPlanner.php',
+        'backend/agent/ExecutionEngine.php',
+        'backend/agent_db_migration.php',
+        'backend/temp_file_service.php',
+        'backend/cron_cleanup_temp_files.php',
+        'backend/crm_sync_helper.php',
+        'backend/agent_cache.php',
+        'backend/agent_telemetry.php',
+        'backend/agent_router.php',
         'backend/agent_ai_client.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
@@ -80,6 +96,9 @@ if (!$executed) {
         'backend/ai_diagnostic.php',
         'backend/git_pull.php',
         'backend/api/crm/agent.php',
+        'backend/api/crm/download_temp_file.php',
+        'tests/test_phase2_phase3.php',
+        'tests/test_phase4.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
         'dashboard/assets/css/style.css',
@@ -151,7 +170,29 @@ if (!$executed) {
         }
     }
     echo "Pure PHP sync completed: {$synced}/" . count($syncFiles) . " files updated.\n";
+
+    try {
+        require_once $root . '/backend/config.php';
+        require_once $root . '/backend/agent_db_migration.php';
+        if (file_exists($root . '/backend/agent/AgentMigration2.php')) {
+            require_once $root . '/backend/agent/AgentMigration2.php';
+            require_once $root . '/backend/agent/PluginRegistry.php';
+        }
+        if (file_exists($root . '/backend/agent/AgentMigration4.php')) {
+            require_once $root . '/backend/agent/AgentMigration4.php';
+        }
+        $db = Database::getConnection();
+        AgentDBMigration::run($db);
+        if (class_exists('AgentMigration2')) AgentMigration2::run($db);
+        if (class_exists('AgentMigration4')) AgentMigration4::run($db);
+        if (class_exists('PluginRegistry')) PluginRegistry::init($db);
+        echo "[OK] Ran AgentDBMigration, AgentMigration2, AgentMigration4, and PluginRegistry::init on server.\n";
+    } catch (Throwable $e) {
+        echo "[!] Auto-migration notice: " . $e->getMessage() . "\n";
+    }
 }
+
+if (function_exists('opcache_reset')) @opcache_reset();
 
 // Touch .htaccess to flush LiteSpeed PHP opcache
 $htaccess = $root . '/.htaccess';

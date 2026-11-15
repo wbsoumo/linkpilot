@@ -361,15 +361,26 @@ You are not a passive text generator. You execute real actions using your tool l
         // 1b. MULTI-TURN WORKFLOW & CONTEXT RESOLUTION (Phase 2 & Phase 3)
         // Resolves pronouns ('it', 'that', 'send him') and entities ('meet_link', 'file_url')
         // =========================================================================
-        $contextResolution = ContextManager::resolveContext($userId, $convId, $userMessage, $historyRows, $db);
-        $activeWorkflow = $contextResolution['active_workflow'];
-        $retainedPluginIds = $contextResolution['retained_plugin_ids'];
+        if (class_exists('ContextManager')) {
+            $contextResolution = ContextManager::resolveContext($userId, $convId, $userMessage, $historyRows, $db);
+            $activeWorkflow = $contextResolution['active_workflow'];
+            $retainedPluginIds = $contextResolution['retained_plugin_ids'];
 
-        if (!empty($contextResolution['prompt_context'])) {
-            $messages[] = [
-                'role' => 'system',
-                'content' => $contextResolution['prompt_context']
+            if (!empty($contextResolution['prompt_context'])) {
+                $messages[] = [
+                    'role' => 'system',
+                    'content' => $contextResolution['prompt_context']
+                ];
+            }
+        } else {
+            $contextResolution = [
+                'resolved_message' => $userMessage,
+                'prompt_context' => '',
+                'active_workflow' => null,
+                'retained_plugin_ids' => []
             ];
+            $activeWorkflow = null;
+            $retainedPluginIds = [];
         }
 
         foreach ($historyRows as $row) {
@@ -481,7 +492,11 @@ You are not a passive text generator. You execute real actions using your tool l
         // 2. DYNAMIC TOOL DISCOVERY RETAINING ACTIVE WORKFLOW TOOLS
         // Discovers tools dynamically while preserving tools needed for active workflows
         // =========================================================================
-        $availableTools = PluginRegistry::getToolsForContext($userMessage, $classification, $retainedPluginIds, $historyRows);
+        if (class_exists('PluginRegistry')) {
+            $availableTools = PluginRegistry::getToolsForContext($userMessage, $classification, $retainedPluginIds, $historyRows);
+        } else {
+            $availableTools = [];
+        }
         if (empty($availableTools)) {
             $availableTools = AIToolRegistry::getToolsForMessage($userMessage, $classification, $historyRows);
         }
@@ -674,7 +689,7 @@ You are not a passive text generator. You execute real actions using your tool l
         }
 
         // Transition running workflow to completed if all tool executions finished without pause
-        if ($activeWorkflow && ($activeWorkflow['state'] ?? '') === WorkflowEngine::STATE_RUNNING && empty($approvalRequiredPayload)) {
+        if ($activeWorkflow && class_exists('WorkflowEngine') && ($activeWorkflow['state'] ?? '') === WorkflowEngine::STATE_RUNNING && empty($approvalRequiredPayload)) {
             try {
                 WorkflowEngine::transitionState($activeWorkflow['id'], WorkflowEngine::STATE_COMPLETED, null, [], 'Workflow turn finished', $db);
             } catch (Throwable $eWf) {}

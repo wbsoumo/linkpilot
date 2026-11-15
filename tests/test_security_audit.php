@@ -80,6 +80,9 @@ assertTest(defined('DEPLOYMENT_SECRET') && strlen(DEPLOYMENT_SECRET) >= 32, "DEP
 assertTest(hash_equals(CRON_WORKER_SECRET, CRON_WORKER_SECRET), "Constant-time comparison succeeds for exact token match");
 assertTest(!hash_equals(CRON_WORKER_SECRET, 'LP_CRON_WORKER_7719'), "Deprecated token 'LP_CRON_WORKER_7719' is rejected");
 assertTest(!hash_equals(DIAGNOSTIC_ADMIN_KEY, 'LP_DIAGNOSTIC_9823'), "Deprecated token 'LP_DIAGNOSTIC_9823' is rejected");
+assertTest(!hash_equals(CRON_WORKER_SECRET, 'lp_cron_sec_8f92a10b4c7e6d5e9a31b2c4d6f8e0a2b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5'), "Prior token 'lp_cron_sec_...' is rejected");
+assertTest(!hash_equals(DIAGNOSTIC_ADMIN_KEY, 'lp_diag_sec_1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b'), "Prior token 'lp_diag_sec_...' is rejected");
+assertTest(!hash_equals(DEPLOYMENT_SECRET, 'lp_deploy_sec_4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d2e'), "Prior token 'lp_deploy_sec_...' is rejected");
 
 // ------------------------------------------------------------------------
 // SUITE 3: Workspace Multi-Tenant Authorization & IDOR Protection

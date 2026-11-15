@@ -41,6 +41,32 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
+// Secure Secret Rotation Handler
+if (isset($_POST['rotate_secrets']) || isset($_GET['rotate_secrets'])) {
+    $cronSec = trim($_POST['new_cron_secret'] ?? $_GET['new_cron_secret'] ?? '');
+    $diagSec = trim($_POST['new_diag_secret'] ?? $_GET['new_diag_secret'] ?? '');
+    $depSec  = trim($_POST['new_deploy_secret'] ?? $_GET['new_deploy_secret'] ?? '');
+
+    if (strlen($cronSec) >= 32 && strlen($diagSec) >= 32 && strlen($depSec) >= 32) {
+        $content = "<?php\n" .
+                   "// backend/secrets.php\n" .
+                   "// Production Autonomous Agent Security Keys\n" .
+                   "// EXCLUDED FROM GIT REPOSITORY - DO NOT COMMIT\n\n" .
+                   "define('CRON_WORKER_SECRET', " . var_export($cronSec, true) . ");\n" .
+                   "define('DIAGNOSTIC_ADMIN_KEY', " . var_export($diagSec, true) . ");\n" .
+                   "define('DEPLOYMENT_SECRET', " . var_export($depSec, true) . ");\n";
+        $secretsFile = __DIR__ . '/secrets.php';
+        file_put_contents($secretsFile, $content);
+        if (function_exists('opcache_invalidate')) @opcache_invalidate($secretsFile, true);
+        echo "Secrets rotated successfully into backend/secrets.php.\n";
+        exit;
+    } else {
+        http_response_code(400);
+        echo "Error: All secrets must be at least 32 characters in length.\n";
+        exit;
+    }
+}
+
 // Direct GitHub Sync handler with cache-busting
 if (isset($_GET['sync'])) {
     echo "=== DIRECT GITHUB SYNC ===\n";
@@ -83,6 +109,8 @@ if (isset($_GET['sync'])) {
         'tests/test_phase5.php',
         'tests/test_security_audit.php',
         'tests/test_phase5_hardening.php',
+        'tests/test_phase5_5_e2e.php',
+        'backend/external_apps_helper.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
         'dashboard/assets/css/style.css',
@@ -194,6 +222,12 @@ if (isset($_GET['run_security_tests'])) {
 if (isset($_GET['run_hardening_tests'])) {
     echo "=== RUNNING PHASE 5 HARDENING & RELIABILITY TESTS ON SERVER ===\n";
     require_once dirname(__DIR__) . '/tests/test_phase5_hardening.php';
+    exit;
+}
+
+if (isset($_GET['run_phase5_5_e2e_tests'])) {
+    echo "=== RUNNING PHASE 5.5 END-TO-END BUSINESS WORKFLOW VALIDATION ON SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_phase5_5_e2e.php';
     exit;
 }
 

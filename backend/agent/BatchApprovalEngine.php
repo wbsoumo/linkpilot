@@ -26,6 +26,33 @@ class BatchApprovalEngine {
     }
 
     /**
+     * Creates a batch of approval records (accepts batch items with draft structures).
+     */
+    public static function createBatch(
+        int $userId,
+        string $scheduleRunId,
+        array $batchItems,
+        string $workflowId = 'digest_review',
+        ?PDO $db = null
+    ): array {
+        $drafts = [];
+        foreach ($batchItems as $item) {
+            $draft = $item['draft'] ?? [];
+            $draft['recipient_email'] = $item['recipient_email'] ?? ($draft['recipient_email'] ?? '');
+            $draft['company_name'] = $draft['company_name'] ?? ($item['company_name'] ?? '');
+            $draft['body'] = $draft['body_html'] ?? ($draft['body'] ?? '');
+            $drafts[] = $draft;
+        }
+        $res = self::createDigestBatch($userId, $scheduleRunId, $workflowId, $drafts, self::DEFAULT_TTL_HOURS, $db);
+        $tokensList = [];
+        foreach ($res['items'] as $it) {
+            $tokensList[] = ['token' => $it['token'], 'item_key' => $it['item_key']];
+        }
+        $res['tokens'] = $tokensList;
+        return $res;
+    }
+
+    /**
      * Creates a batch of approval records for a morning digest.
      */
     public static function createDigestBatch(
@@ -111,7 +138,12 @@ class BatchApprovalEngine {
     /**
      * Previews an individual approval item with security check.
      */
-    public static function previewItem(int $userId, string $token, ?PDO $db = null): array {
+    public static function previewItem($userId, $token, ?PDO $db = null): array {
+        if (is_string($userId) && is_numeric($token)) {
+            $temp = $userId;
+            $userId = (int)$token;
+            $token = $temp;
+        }
         if (!$db) $db = Database::getConnection();
 
         $stmt = $db->prepare("SELECT * FROM ai_agent_batch_approvals WHERE token = ? AND user_id = ? LIMIT 1");
@@ -197,7 +229,12 @@ class BatchApprovalEngine {
     /**
      * Approves an individual item with strict single-use, TTL, and content-hash verification.
      */
-    public static function approveItem(int $userId, string $token, ?PDO $db = null): array {
+    public static function approveItem($userId, $token, ?PDO $db = null): array {
+        if (is_string($userId) && is_numeric($token)) {
+            $temp = $userId;
+            $userId = (int)$token;
+            $token = $temp;
+        }
         if (!$db) $db = Database::getConnection();
 
         $stmt = $db->prepare("SELECT * FROM ai_agent_batch_approvals WHERE token = ? AND user_id = ? LIMIT 1");

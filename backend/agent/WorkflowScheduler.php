@@ -237,6 +237,7 @@ class WorkflowScheduler {
 
         $row['parameters'] = json_decode($row['parameters_json'] ?? '{}', true) ?: [];
         $row['dag_template'] = json_decode($row['dag_template_json'] ?? 'null', true);
+        $row['default_approval_policy'] = $row['approval_policy'] ?? 'digest_review';
         return $row;
     }
 
@@ -321,7 +322,12 @@ class WorkflowScheduler {
      * Atomically claims due schedules for background worker execution.
      * Prevents overlapping executions via lease tokens and recovers stale locks.
      */
-    public static function claimDueSchedules(int $limit = 10, int $leaseSeconds = self::DEFAULT_LEASE_SECONDS, ?PDO $db = null): array {
+    public static function claimDueSchedules(int $limit = 10, $leaseSeconds = self::DEFAULT_LEASE_SECONDS, ?PDO $db = null): array {
+        if ($leaseSeconds instanceof PDO) {
+            $db = $leaseSeconds;
+            $leaseSeconds = self::DEFAULT_LEASE_SECONDS;
+        }
+        $leaseSeconds = (int)$leaseSeconds;
         if (!$db) $db = Database::getConnection();
         AgentMigration5::run($db);
 

@@ -62,8 +62,8 @@ class ProposalGenerator {
             "{$senderName}\n" .
             "{$senderIdentity}\n\n" .
             "---\n" .
-            "Compliance & Preferences: You received this business inquiry because your organization is active in this sector. " .
-            "If you prefer not to receive future updates, please unsubscribe here: {$unsubUrl}";
+            "Compliance & Preferences (GDPR / Legitimate Interest): You received this business inquiry because your organization is active in this sector. " .
+            "If you prefer not to receive future updates, please Unsubscribe here: {$unsubUrl}";
 
         // Professional HTML body
         $htmlBody = <<<HTML
@@ -120,5 +120,15 @@ HTML;
             'unsubscribe_url' => $unsubUrl,
             'created_at' => date('Y-m-d H:i:s')
         ];
+    }
+
+    /**
+     * Convenience method to generate draft with options array.
+     */
+    public static function generateDraft(array $prospect, array $options = []): array {
+        $valueProp = $options['value_proposition'] ?? 'Autonomous AI appointment confirmations & patient reactivation';
+        $senderEmail = $options['sender_email'] ?? 'contact@linkpilot.work';
+        $senderName = $options['sender_name'] ?? 'LinkPilot Team';
+        return self::generateProposal($prospect, $valueProp, $senderEmail, $senderName, $options);
     }
 }

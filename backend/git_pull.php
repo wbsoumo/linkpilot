@@ -139,6 +139,8 @@ if (!$executed) {
         'tests/test_phase5.php',
         'tests/test_security_audit.php',
         'tests/test_phase5_hardening.php',
+        'tests/test_phase5_5_e2e.php',
+        'backend/external_apps_helper.php',
         'dashboard/assets/js/agent.js',
         'dashboard/assets/css/agent.css',
         'dashboard/assets/css/style.css',

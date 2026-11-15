@@ -600,6 +600,10 @@ class ExternalAppsHelper {
         }
     }
 
+    public static function sendGmailMessage($userId, $recipientEmail, $subject, $body, $attachments = [], $inReplyTo = null, $ccEmails = []) {
+        return self::sendGmailEmail($userId, $recipientEmail, $subject, $body, $attachments, $inReplyTo, $ccEmails);
+    }
+
     /**
      * Send email via Gmail API
      */

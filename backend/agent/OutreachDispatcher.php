@@ -211,10 +211,24 @@ class OutreachDispatcher {
             if (is_callable(self::$customTransport)) {
                 $customRes = call_user_func(self::$customTransport, $userId, $recipientEmail, $subject, $body, $senderEmail);
                 $messageId = $customRes['message_id'] ?? ('msg_mock_' . bin2hex(random_bytes(8)));
-            } elseif ($provider === self::PROVIDER_GMAIL && class_exists('ExternalAppsHelper')) {
-                // Gmail OAuth dispatch
-                $res = ExternalAppsHelper::sendGmailMessage($userId, $recipientEmail, $subject, $body);
-                $messageId = $res['id'] ?? ('msg_gmail_' . bin2hex(random_bytes(8)));
+            } elseif ($provider === self::PROVIDER_GMAIL) {
+                if (!class_exists('ExternalAppsHelper')) {
+                    if (file_exists(__DIR__ . '/../external_apps_helper.php')) {
+                        require_once __DIR__ . '/../external_apps_helper.php';
+                    }
+                }
+                if (!class_exists('ExternalAppsHelper')) {
+                    throw new Exception("ExternalAppsHelper not available for Gmail dispatch.");
+                }
+                if (method_exists('ExternalAppsHelper', 'sendGmailEmail')) {
+                    $res = ExternalAppsHelper::sendGmailEmail($userId, $recipientEmail, $subject, $body);
+                } else {
+                    $res = ExternalAppsHelper::sendGmailMessage($userId, $recipientEmail, $subject, $body);
+                }
+                if (is_array($res) && isset($res['status']) && $res['status'] === false) {
+                    throw new Exception($res['message'] ?? 'Gmail API dispatch failed.');
+                }
+                $messageId = $res['message_id'] ?? $res['id'] ?? ('msg_gmail_' . bin2hex(random_bytes(8)));
             } elseif ($provider === self::PROVIDER_SMTP && class_exists('SMTPHelper')) {
                 // SMTP dispatch
                 $res = SMTPHelper::sendEmail($userId, $recipientEmail, $subject, $body);

@@ -82,10 +82,19 @@ define('FAST2SMS_API_KEY', getenv('FAST2SMS_API_KEY') ?: 'YOUR_FAST2SMS_API_KEY'
 define('FAST2SMS_MESSAGE_ID', '22325');
 define('FAST2SMS_PHONE_NUMBER_ID', '1146366028557419');
 
-// Autonomous Agent Engine Security Keys (Rotated & Protected)
-define('CRON_WORKER_SECRET', getenv('CRON_WORKER_SECRET') ?: 'lp_cron_sec_8f92a10b4c7e6d5e9a31b2c4d6f8e0a2b5c7d9e1f3a5b7c9d1e3f5a7b9c1d3e5');
-define('DIAGNOSTIC_ADMIN_KEY', getenv('DIAGNOSTIC_ADMIN_KEY') ?: 'lp_diag_sec_1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d2e4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b');
-define('DEPLOYMENT_SECRET', getenv('DEPLOYMENT_SECRET') ?: 'lp_deploy_sec_4f6a8b0c2d4e6f8a0b2c4d6e8f0a2b1a3b5c7d9e0f2a4b6c8d0e1f3a5b7c9d2e');
+// Autonomous Agent Engine Security Keys (Stored in external secrets.php or environment)
+if (file_exists(__DIR__ . '/secrets.php')) {
+    require_once __DIR__ . '/secrets.php';
+}
+if (!defined('CRON_WORKER_SECRET')) {
+    define('CRON_WORKER_SECRET', getenv('CRON_WORKER_SECRET') ?: '');
+}
+if (!defined('DIAGNOSTIC_ADMIN_KEY')) {
+    define('DIAGNOSTIC_ADMIN_KEY', getenv('DIAGNOSTIC_ADMIN_KEY') ?: '');
+}
+if (!defined('DEPLOYMENT_SECRET')) {
+    define('DEPLOYMENT_SECRET', getenv('DEPLOYMENT_SECRET') ?: '');
+}
 
 // Helper function to encrypt sensitive data (SMTP passwords, OAuth refresh tokens) using AES-256-CBC with HMAC-SHA256
 function encryptData($data) {

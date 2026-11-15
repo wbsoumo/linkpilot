@@ -1,6 +1,9 @@
 # LinkPilot AI Git Ignore Rules
 # Exclude sensitive configuration settings containing database passwords
 backend/config.php
+backend/secrets.php
+.env
+backend/.env
 
 # Exclude system files and IDE configurations
 .DS_Store

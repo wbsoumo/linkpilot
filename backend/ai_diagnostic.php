@@ -287,6 +287,15 @@ if (isset($_GET['test_temp_files'])) {
     $dl = TempFileService::getDownloadFile($tokens['xlsx'], $adminId, $db);
     echo "Download resolution for XLSX: " . ($dl['success'] ? 'SUCCESS' : 'FAIL') . " (File: {$dl['filename']}, Size: {$dl['size']} bytes)\n";
 
+    // 2b. Test Cross-User Isolation (User 999 attempting to download User 1's file)
+    $crossDl = TempFileService::getDownloadFile($tokens['xlsx'], 999, $db);
+    echo "Cross-user download isolation: " . (($crossDl['error'] ?? '') === 'forbidden' ? 'PASSED (HTTP 403 Forbidden)' : 'FAIL: ' . json_encode($crossDl)) . "\n";
+
+    // 2c. Test Tampered Token Rejection
+    $tamperedToken = substr($tokens['xlsx'], 0, -4) . 'XXXX';
+    $tampDl = TempFileService::getDownloadFile($tamperedToken, $adminId, $db);
+    echo "Tampered token rejection: " . (($tampDl['error'] ?? '') === 'invalid_token' ? 'PASSED (HTTP 400 Invalid Token)' : 'FAIL: ' . json_encode($tampDl)) . "\n";
+
     // 3. Test 30-minute expiration check
     $testExp = TempFileService::createTempFile($adminId, null, 'csv', 'exp_test.csv', 'Exp Test', $sampleData, '', '', $db);
     $expToken = $testExp['token'];

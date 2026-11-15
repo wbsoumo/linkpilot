@@ -80,9 +80,48 @@ try {
             $categories[$cat][] = $t;
         }
 
+        $plugins = PluginRegistry::listPlugins($userId, $db);
+
         sendJsonResponse('success', 'Agent capabilities loaded.', [
             'total_tools' => count($tools),
-            'categories' => $categories
+            'categories' => $categories,
+            'plugins' => $plugins
+        ]);
+    }
+
+    // 6a. List Universal Plugins with Connection Status
+    elseif ($action === 'list_plugins') {
+        $plugins = PluginRegistry::listPlugins($userId, $db);
+        sendJsonResponse('success', 'Universal plugins loaded.', [
+            'plugins' => $plugins,
+            'total_plugins' => count($plugins)
+        ]);
+    }
+
+    // 6a2. Toggle Plugin Activation Status
+    elseif ($action === 'toggle_plugin') {
+        $pluginId = trim($input['plugin_id'] ?? ($_GET['plugin_id'] ?? ''));
+        $enabled = isset($input['enabled']) ? (bool)$input['enabled'] : (isset($_GET['enabled']) ? (bool)$_GET['enabled'] : true);
+        if (empty($pluginId)) {
+            sendJsonResponse('error', 'Plugin ID is required.', [], 400);
+        }
+        $updated = PluginRegistry::setPluginActivation($pluginId, $enabled, $db);
+        sendJsonResponse('success', "Plugin '{$pluginId}' activation updated.", [
+            'plugin_id' => $pluginId,
+            'is_enabled' => $enabled,
+            'updated' => $updated
+        ]);
+    }
+
+    // 6a3. Get Active Multi-Turn Workflow
+    elseif ($action === 'get_active_workflow') {
+        $convId = trim($input['conversation_id'] ?? ($_GET['conversation_id'] ?? ''));
+        if (empty($convId)) {
+            sendJsonResponse('error', 'Conversation ID is required.', [], 400);
+        }
+        $activeWf = WorkflowEngine::getActiveWorkflow($userId, $convId, $db);
+        sendJsonResponse('success', 'Active workflow state retrieved.', [
+            'workflow' => $activeWf
         ]);
     }
 

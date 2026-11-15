@@ -9,6 +9,10 @@ require_once __DIR__ . '/crm_sync_helper.php';
 require_once __DIR__ . '/agent_cache.php';
 require_once __DIR__ . '/agent_telemetry.php';
 require_once __DIR__ . '/agent_router.php';
+require_once __DIR__ . '/agent/AgentMigration2.php';
+require_once __DIR__ . '/agent/PluginRegistry.php';
+require_once __DIR__ . '/agent/WorkflowEngine.php';
+require_once __DIR__ . '/agent/ContextManager.php';
 
 class AgentOrchestrator {
 
@@ -17,8 +21,10 @@ class AgentOrchestrator {
      */
     public static function init(PDO $db) {
         AgentDBMigration::run($db);
+        AgentMigration2::run($db);
         AgentTelemetry::initTable($db);
         AIToolRegistry::init();
+        PluginRegistry::init($db);
     }
 
     /**
@@ -332,6 +338,21 @@ You are not a passive text generator. You execute real actions using your tool l
         $stmtHist->execute([$convId, $userId, $userMsgId]);
         $historyRows = array_reverse($stmtHist->fetchAll(PDO::FETCH_ASSOC));
 
+        // =========================================================================
+        // 1b. MULTI-TURN WORKFLOW & CONTEXT RESOLUTION (Phase 2 & Phase 3)
+        // Resolves pronouns ('it', 'that', 'send him') and entities ('meet_link', 'file_url')
+        // =========================================================================
+        $contextResolution = ContextManager::resolveContext($userId, $convId, $userMessage, $historyRows, $db);
+        $activeWorkflow = $contextResolution['active_workflow'];
+        $retainedPluginIds = $contextResolution['retained_plugin_ids'];
+
+        if (!empty($contextResolution['prompt_context'])) {
+            $messages[] = [
+                'role' => 'system',
+                'content' => $contextResolution['prompt_context']
+            ];
+        }
+
         foreach ($historyRows as $row) {
             $role = $row['role'];
             $content = $row['content'];
@@ -341,9 +362,13 @@ You are not a passive text generator. You execute real actions using your tool l
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
         // =========================================================================
-        // 2. DYNAMIC CATEGORY-BASED TOOL LOADING WITH MULTI-TURN CONTEXT
+        // 2. DYNAMIC TOOL DISCOVERY RETAINING ACTIVE WORKFLOW TOOLS
+        // Discovers tools dynamically while preserving tools needed for active workflows
         // =========================================================================
-        $availableTools = AIToolRegistry::getToolsForMessage($userMessage, $classification, $historyRows);
+        $availableTools = PluginRegistry::getToolsForContext($userMessage, $classification, $retainedPluginIds, $historyRows);
+        if (empty($availableTools)) {
+            $availableTools = AIToolRegistry::getToolsForMessage($userMessage, $classification, $historyRows);
+        }
         $toolExecutionSteps = [];
         $maxLoops = 6;
         $loopCount = 0;
@@ -395,6 +420,19 @@ You are not a passive text generator. You execute real actions using your tool l
                         $streamEmitter('approval_required', $approvalRequiredPayload);
                     }
 
+                    // Transition workflow state machine to waiting_for_approval
+                    if ($activeWorkflow) {
+                        try {
+                            WorkflowEngine::transitionState($activeWorkflow['id'], WorkflowEngine::STATE_WAITING_FOR_APPROVAL, $tc['name'], $tc['arguments'], 'Approval required', $db);
+                        } catch (Throwable $eWf) {}
+                    } else {
+                        try {
+                            $newWf = WorkflowEngine::createWorkflow($userId, $convId, $toolDef['plugin_id'] ?? 'crm_tasks_plugin', $tc['name'], 'User approval required for ' . $toolDef['name'], $tc['arguments'], null, $db);
+                            WorkflowEngine::transitionState($newWf['id'], WorkflowEngine::STATE_WAITING_FOR_APPROVAL, $tc['name'], $tc['arguments'], 'Approval required', $db);
+                            $activeWorkflow = $newWf;
+                        } catch (Throwable $eWf) {}
+                    }
+
                     $stmtAudit = $db->prepare("INSERT INTO ai_agent_audit_logs (user_id, conversation_id, tool_id, tool_name, risk_level, input_json, approval_status) VALUES (?, ?, ?, ?, ?, ?, 'rejected')");
                     $stmtAudit->execute([$userId, $convId, $tc['name'], $toolDef['name'], $toolDef['risk_level'], json_encode($tc['arguments'])]);
 
@@ -430,6 +468,12 @@ You are not a passive text generator. You execute real actions using your tool l
                         ]);
                     }
 
+                    if ($activeWorkflow) {
+                        try {
+                            WorkflowEngine::transitionState($activeWorkflow['id'], WorkflowEngine::STATE_RUNNING, $toolId, $toolArgs, 'Executing ' . $toolId, $db);
+                        } catch (Throwable $eWf) {}
+                    }
+
                     try {
                         $toolResult = AIToolRegistry::executeTool($toolId, $userId, $toolArgs, $db);
                         $stepStatus = 'completed';
@@ -452,6 +496,34 @@ You are not a passive text generator. You execute real actions using your tool l
                             $isApprovalReq ? 'approved_by_user' : 'auto_approved'
                         ]);
                     } catch (Throwable $e) {}
+
+                    // Extract and accumulate entities in workflow
+                    $extractedEntities = [];
+                    if (!empty($toolResult['meet_link'])) {
+                        $extractedEntities['meet_link'] = $toolResult['meet_link'];
+                    }
+                    if (!empty($toolResult['download_url'])) {
+                        $extractedEntities['file_url'] = $toolResult['download_url'];
+                        $extractedEntities['filename'] = $toolArgs['filename'] ?? 'file';
+                    }
+                    if (!empty($toolResult['contact']['id'])) {
+                        $extractedEntities['contact_id'] = $toolResult['contact']['id'];
+                        $extractedEntities['contact_name'] = $toolResult['contact']['name'] ?? '';
+                        $extractedEntities['contact_email'] = $toolResult['contact']['email'] ?? '';
+                    }
+
+                    if (!empty($extractedEntities)) {
+                        if ($activeWorkflow) {
+                            WorkflowEngine::updateEntities($activeWorkflow['id'], $extractedEntities, $db);
+                        } else {
+                            try {
+                                $pluginId = $toolDef['plugin_id'] ?? 'crm_contacts_plugin';
+                                $newWf = WorkflowEngine::createWorkflow($userId, $convId, $pluginId, $toolId, "Workflow for {$toolId}", $extractedEntities, null, $db);
+                                WorkflowEngine::transitionState($newWf['id'], WorkflowEngine::STATE_COMPLETED, $toolId, $extractedEntities, 'Completed', $db);
+                                $activeWorkflow = $newWf;
+                            } catch (Throwable $eWf) {}
+                        }
+                    }
 
                     $toolExecutionSteps[] = [
                         'step_id' => $stepId,
@@ -483,6 +555,13 @@ You are not a passive text generator. You execute real actions using your tool l
                     'content' => "Tool {$toolId} output: " . json_encode($toolResult)
                 ];
             }
+        }
+
+        // Transition running workflow to completed if all tool executions finished without pause
+        if ($activeWorkflow && ($activeWorkflow['state'] ?? '') === WorkflowEngine::STATE_RUNNING && empty($approvalRequiredPayload)) {
+            try {
+                WorkflowEngine::transitionState($activeWorkflow['id'], WorkflowEngine::STATE_COMPLETED, null, [], 'Workflow turn finished', $db);
+            } catch (Throwable $eWf) {}
         }
 
         // If no text was produced yet, generate final synthesis without re-passing tool schemas
@@ -617,18 +696,33 @@ You are not a passive text generator. You execute real actions using your tool l
             $db = Database::getConnection(true);
         }
 
-        // Save Assistant Message
-        $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, ?, ?, ?, ?)");
+        // Save Assistant Message with workflow association
+        $wfId = $activeWorkflow ? ($activeWorkflow['id'] ?? null) : null;
         $status = $approvalRequiredPayload ? 'waiting_approval' : 'completed';
-        $stmtAssistant->execute([
-            $convId,
-            $userId,
-            $finalAssistantText,
-            json_encode($toolExecutionSteps),
-            json_encode($approvalRequiredPayload ?: []),
-            $status,
-            $totalTokensUsed
-        ]);
+        try {
+            $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, workflow_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, ?, 'assistant', ?, ?, ?, ?, ?)");
+            $stmtAssistant->execute([
+                $convId,
+                $wfId,
+                $userId,
+                $finalAssistantText,
+                json_encode($toolExecutionSteps),
+                json_encode($approvalRequiredPayload ?: []),
+                $status,
+                $totalTokensUsed
+            ]);
+        } catch (Throwable $eMsg) {
+            $stmtAssistant = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, ?, ?, ?, ?)");
+            $stmtAssistant->execute([
+                $convId,
+                $userId,
+                $finalAssistantText,
+                json_encode($toolExecutionSteps),
+                json_encode($approvalRequiredPayload ?: []),
+                $status,
+                $totalTokensUsed
+            ]);
+        }
         $assistantMsgId = $db->lastInsertId();
 
         // Update conversation timestamp
@@ -875,6 +969,15 @@ You are not a passive text generator. You execute real actions using your tool l
             $stmtAudit->execute([$userId, $convId, $toolId, $toolName, json_encode($toolArgs), json_encode($toolResult)]);
         } catch (Throwable $e) {}
 
+        // 5b. Synchronize Workflow state machine
+        try {
+            $activeWf = WorkflowEngine::getActiveWorkflow($userId, $convId, $db);
+            if ($activeWf) {
+                $nextState = $execSuccess ? WorkflowEngine::STATE_COMPLETED : WorkflowEngine::STATE_FAILED;
+                WorkflowEngine::transitionState($activeWf['id'], $nextState, $toolId, $toolArgs, 'Conversational approval execution', $db);
+            }
+        } catch (Throwable $eWf) {}
+
         // 6. Formulate conversational confirmation response
         if ($isEmail) {
             $recipient = $toolArgs['recipient'] ?? ($toolArgs['to'] ?? 'the recipient');
@@ -1005,6 +1108,14 @@ You are not a passive text generator. You execute real actions using your tool l
                 'is_email' => $isEmail
             ]);
         }
+
+        // 2b. Synchronize Workflow state machine to cancelled
+        try {
+            $activeWf = WorkflowEngine::getActiveWorkflow($userId, $convId, $db);
+            if ($activeWf) {
+                WorkflowEngine::transitionState($activeWf['id'], WorkflowEngine::STATE_CANCELLED, null, [], 'User rejected action conversationally', $db);
+            }
+        } catch (Throwable $eWf) {}
 
         $cancelText = $isEmail 
             ? "I have cancelled sending the email. The draft has been discarded.\n\nLet me know if you would like me to adjust the content or assist with anything else!"

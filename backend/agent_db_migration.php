@@ -10,6 +10,59 @@ class AgentDBMigration {
         if (self::$migrated) return;
         if (!$db) $db = Database::getConnection();
 
+        $driver = $db->getAttribute(PDO::ATTR_DRIVER_NAME);
+        if ($driver === 'sqlite') {
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_conversations` (
+                `id` TEXT PRIMARY KEY,
+                `user_id` INTEGER NOT NULL,
+                `title` TEXT NOT NULL DEFAULT 'New Conversation',
+                `summary` TEXT DEFAULT NULL,
+                `is_pinned` INTEGER DEFAULT 0,
+                `is_archived` INTEGER DEFAULT 0,
+                `created_at` TEXT DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TEXT DEFAULT CURRENT_TIMESTAMP
+            );");
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_messages` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `conversation_id` TEXT NOT NULL,
+                `workflow_id` TEXT DEFAULT NULL,
+                `user_id` INTEGER NOT NULL,
+                `role` TEXT NOT NULL,
+                `content` TEXT NOT NULL,
+                `tool_calls_json` TEXT DEFAULT NULL,
+                `tool_results_json` TEXT DEFAULT NULL,
+                `plan_json` TEXT DEFAULT NULL,
+                `status` TEXT DEFAULT 'completed',
+                `tokens_used` INTEGER DEFAULT 0,
+                `created_at` TEXT DEFAULT CURRENT_TIMESTAMP
+            );");
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_memory` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `user_id` INTEGER NOT NULL,
+                `memory_type` TEXT NOT NULL DEFAULT 'preference',
+                `key_name` TEXT NOT NULL,
+                `value_text` TEXT NOT NULL,
+                `created_at` TEXT DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TEXT DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (`user_id`, `key_name`)
+            );");
+            $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_audit_logs` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                `user_id` INTEGER NOT NULL,
+                `conversation_id` TEXT DEFAULT NULL,
+                `tool_id` TEXT NOT NULL,
+                `tool_name` TEXT DEFAULT NULL,
+                `risk_level` TEXT DEFAULT 'READ',
+                `input_json` TEXT DEFAULT NULL,
+                `output_json` TEXT DEFAULT NULL,
+                `approval_status` TEXT NOT NULL DEFAULT 'auto_approved',
+                `error_message` TEXT DEFAULT NULL,
+                `created_at` TEXT DEFAULT CURRENT_TIMESTAMP
+            );");
+            self::$migrated = true;
+            return;
+        }
+
         // 1. Conversations session table
         $db->exec("CREATE TABLE IF NOT EXISTS `ai_agent_conversations` (
             `id` VARCHAR(64) PRIMARY KEY,

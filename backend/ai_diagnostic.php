@@ -16,13 +16,19 @@ require_once __DIR__ . '/agent_orchestrator.php';
 if (isset($_GET['sync'])) {
     echo "=== DIRECT GITHUB SYNC ===\n";
     $syncFiles = [
+        'backend/agent/AgentMigration2.php',
+        'backend/agent/PluginRegistry.php',
+        'backend/agent/WorkflowEngine.php',
+        'backend/agent/ContextManager.php',
         'backend/agent_db_migration.php',
         'backend/temp_file_service.php',
         'backend/cron_cleanup_temp_files.php',
         'backend/agent_router.php',
         'backend/agent_orchestrator.php',
         'backend/ai_tool_registry.php',
+        'backend/api/crm/agent.php',
         'backend/api/crm/download_temp_file.php',
+        'tests/test_phase2_phase3.php',
         'dashboard/assets/js/agent.js',
         'backend/ai_diagnostic.php'
     ];
@@ -57,12 +63,22 @@ if (isset($_GET['sync'])) {
 
     try {
         require_once __DIR__ . '/agent_db_migration.php';
+        require_once __DIR__ . '/agent/AgentMigration2.php';
+        require_once __DIR__ . '/agent/PluginRegistry.php';
         $db = Database::getConnection();
         AgentDBMigration::run($db);
-        echo "[OK] Ran AgentDBMigration on AWS server.\n";
+        AgentMigration2::run($db);
+        PluginRegistry::init($db);
+        echo "[OK] Ran AgentDBMigration, AgentMigration2, and PluginRegistry::init on AWS server.\n";
     } catch (Throwable $e) {
         echo "[!] Migration error: " . $e->getMessage() . "\n";
     }
+}
+
+if (isset($_GET['run_tests'])) {
+    echo "=== RUNNING REGRESSION TESTS ON AWS SERVER ===\n";
+    require_once dirname(__DIR__) . '/tests/test_phase2_phase3.php';
+    exit;
 }
 
 $db = Database::getConnection();

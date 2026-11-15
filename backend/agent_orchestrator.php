@@ -15,6 +15,13 @@ if (file_exists(__DIR__ . '/agent/AgentMigration2.php')) {
     require_once __DIR__ . '/agent/WorkflowEngine.php';
     require_once __DIR__ . '/agent/ContextManager.php';
 }
+if (file_exists(__DIR__ . '/agent/AgentMigration4.php')) {
+    require_once __DIR__ . '/agent/AgentMigration4.php';
+    require_once __DIR__ . '/agent/TaskPlanDAG.php';
+    require_once __DIR__ . '/agent/VerificationEngine.php';
+    require_once __DIR__ . '/agent/TaskPlanner.php';
+    require_once __DIR__ . '/agent/ExecutionEngine.php';
+}
 
 class AgentOrchestrator {
 
@@ -25,6 +32,9 @@ class AgentOrchestrator {
         AgentDBMigration::run($db);
         if (class_exists('AgentMigration2')) {
             AgentMigration2::run($db);
+        }
+        if (class_exists('AgentMigration4')) {
+            AgentMigration4::run($db);
         }
         AgentTelemetry::initTable($db);
         AIToolRegistry::init();
@@ -143,9 +153,12 @@ class AgentOrchestrator {
      */
     public static function buildSystemPrompt($userId, PDO $db) {
         // User profile & organization
-        $stmt = $db->prepare("SELECT u.name, u.email, u.role, p.company_name, p.industry, p.timezone FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
-        $stmt->execute([$userId]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        $user = [];
+        try {
+            $stmt = $db->prepare("SELECT u.name, u.email, u.role, p.company_name, p.industry, p.timezone FROM users u LEFT JOIN user_profiles p ON u.id = p.user_id WHERE u.id = ?");
+            $stmt->execute([$userId]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        } catch (Throwable $e) {}
         $userName = $user['name'] ?? 'User';
         $companyName = $user['company_name'] ?? 'LinkPilot Workspace';
 
@@ -366,6 +379,103 @@ You are not a passive text generator. You execute real actions using your tool l
         }
 
         $messages[] = ['role' => 'user', 'content' => $userMessage];
+
+        // =========================================================================
+        // 1c. STRUCTURED TASK PLANNING & TWO-TIER EXECUTION ENGINE (Phase 4)
+        // Synthesizes compound business requests into explicit DAG task graphs
+        // and executes with safe dependencies, bounded retries, and verification.
+        // =========================================================================
+        if (class_exists('TaskPlanner') && class_exists('ExecutionEngine') && empty($options['approved_tool_id'])) {
+            $dagPlan = TaskPlanner::createPlan($userMessage, $classification, $contextResolution, $userId, $convId, $db);
+            if (count($dagPlan->getNodes()) > 0) {
+                $workflowId = $activeWorkflow ? $activeWorkflow['id'] : null;
+                $dagExecResult = ExecutionEngine::executeDAG($dagPlan, $userId, $convId, $workflowId, $streamEmitter, $db, $options);
+
+                // If paused at Maker-Checker approval gate
+                if (!empty($dagExecResult['approval_required'])) {
+                    $appr = $dagExecResult['approval_required'];
+                    $toolCallsJson = json_encode([[
+                        'id' => $appr['approval_token'],
+                        'name' => $appr['tool_id'],
+                        'arguments' => $appr['arguments']
+                    ]]);
+                    $toolResultsJson = json_encode([
+                        'status' => 'waiting_approval',
+                        'workflow_id' => $dagExecResult['workflow_id'],
+                        'task_key' => $appr['task_key'],
+                        'tool_id' => $appr['tool_id'],
+                        'tool_name' => $appr['tool_name'],
+                        'arguments' => $appr['arguments'],
+                        'approval_token' => $appr['approval_token']
+                    ]);
+                    $approvalPromptText = "I have prepared the planned action **{$appr['tool_name']}** for your review.\n\nPlease approve or reject this action to continue.";
+
+                    $stmtApprMsg = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, ?, ?, 'waiting_approval', 0)");
+                    $stmtApprMsg->execute([$convId, $userId, $approvalPromptText, $toolCallsJson, $toolResultsJson]);
+                    $apprMsgId = $db->lastInsertId();
+
+                    if ($streamEmitter) {
+                        $streamEmitter('approval_required', [
+                            'message_id' => $apprMsgId,
+                            'workflow_id' => $dagExecResult['workflow_id'],
+                            'task_key' => $appr['task_key'],
+                            'tool_id' => $appr['tool_id'],
+                            'tool_name' => $appr['tool_name'],
+                            'arguments' => $appr['arguments'],
+                            'approval_token' => $appr['approval_token']
+                        ]);
+                        $streamEmitter('done', ['message_id' => $apprMsgId, 'status' => 'waiting_approval']);
+                    }
+
+                    return [
+                        'status' => 'waiting_approval',
+                        'message_id' => $apprMsgId,
+                        'content' => $approvalPromptText,
+                        'workflow_id' => $dagExecResult['workflow_id'],
+                        'approval_payload' => $appr,
+                        'dag' => $dagExecResult['dag']
+                    ];
+                }
+
+                $assistantContent = self::synthesizeDAGResponse($dagPlan, $dagExecResult);
+
+                if ($streamEmitter) {
+                    $streamEmitter('token', ['content' => $assistantContent]);
+                    $streamEmitter('proactive_suggestions', [
+                        'suggestions' => ['View execution logs', 'Schedule next action', 'Export CRM report']
+                    ]);
+                }
+
+                $hasFailures = $dagPlan->hasFailures();
+                $statusStr = $hasFailures ? 'failed' : 'completed';
+                $stmtAssist = $db->prepare("INSERT INTO ai_agent_messages (conversation_id, user_id, role, content, tool_calls_json, tool_results_json, status, tokens_used) VALUES (?, ?, 'assistant', ?, ?, ?, ?, 0)");
+                $stmtAssist->execute([
+                    $convId,
+                    $userId,
+                    $assistantContent,
+                    json_encode(array_values($dagPlan->getNodes())),
+                    json_encode($dagExecResult['entities']),
+                    $statusStr
+                ]);
+                $finalMsgId = $db->lastInsertId();
+
+                $nowTime = date('Y-m-d H:i:s');
+                $db->prepare("UPDATE ai_agent_conversations SET updated_at = ? WHERE id = ?")->execute([$nowTime, $convId]);
+
+                if ($streamEmitter) {
+                    $streamEmitter('done', ['message_id' => $finalMsgId, 'status' => $statusStr]);
+                }
+
+                return [
+                    'status' => 'success',
+                    'message_id' => $finalMsgId,
+                    'content' => $assistantContent,
+                    'workflow_id' => $dagExecResult['workflow_id'],
+                    'dag' => $dagExecResult['dag'],
+                    'entities' => $dagExecResult['entities']
+                ];
+            }
+        }
 
         // =========================================================================
         // 2. DYNAMIC TOOL DISCOVERY RETAINING ACTIVE WORKFLOW TOOLS
@@ -732,7 +842,7 @@ You are not a passive text generator. You execute real actions using your tool l
         $assistantMsgId = $db->lastInsertId();
 
         // Update conversation timestamp
-        $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+        $db->prepare("UPDATE ai_agent_conversations SET updated_at = ? WHERE id = ?")->execute([date('Y-m-d H:i:s'), $convId]);
 
         // Background Rolling Summary: update memory periodically so no facts are ever lost
         self::maybeUpdateRollingSummary($userId, $convId, $existingSummary, $userMessage, $finalAssistantText, $db);
@@ -956,17 +1066,35 @@ You are not a passive text generator. You execute real actions using your tool l
             ]);
         }
 
-        // 4. Execute the tool
+        // 4. Execute the tool or resume workflow task
         $execSuccess = true;
         $toolResult = [];
-        try {
-            $toolResult = AIToolRegistry::executeTool($toolId, $userId, $toolArgs, $db);
-            if (isset($toolResult['error']) && !empty($toolResult['error'])) {
+        $wfTaskResumed = false;
+        $pendingResults = json_decode($pendingRow['tool_results_json'] ?? '{}', true) ?: [];
+        $pendingWfId = $pendingResults['workflow_id'] ?? null;
+        $pendingTaskKey = $pendingResults['task_key'] ?? null;
+
+        if ($pendingWfId && $pendingTaskKey && class_exists('ExecutionEngine')) {
+            try {
+                $resumeRes = ExecutionEngine::resumeAfterApproval($pendingWfId, $pendingTaskKey, $userId, [], $streamEmitter, $db);
+                $execSuccess = ($resumeRes['status'] === 'completed');
+                $toolResult = $resumeRes['executed_tasks'][0]['output'] ?? ['status' => 'completed'];
+                $wfTaskResumed = true;
+            } catch (Throwable $eWf) {
+                // fall through to standard execution if resume fails
+            }
+        }
+
+        if (!$wfTaskResumed) {
+            try {
+                $toolResult = AIToolRegistry::executeTool($toolId, $userId, $toolArgs, $db);
+                if (isset($toolResult['error']) && !empty($toolResult['error'])) {
+                    $execSuccess = false;
+                }
+            } catch (Throwable $eExec) {
+                $toolResult = ['error' => $eExec->getMessage()];
                 $execSuccess = false;
             }
-        } catch (Throwable $eExec) {
-            $toolResult = ['error' => $eExec->getMessage()];
-            $execSuccess = false;
         }
 
         // 5. Audit log final result
@@ -1043,7 +1171,7 @@ You are not a passive text generator. You execute real actions using your tool l
         ]);
         $assistantMsgId = $db->lastInsertId();
 
-        $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+        $db->prepare("UPDATE ai_agent_conversations SET updated_at = ? WHERE id = ?")->execute([date('Y-m-d H:i:s'), $convId]);
 
         if ($streamEmitter) {
             $streamEmitter('done', [
@@ -1117,6 +1245,16 @@ You are not a passive text generator. You execute real actions using your tool l
 
         // 2b. Synchronize Workflow state machine to cancelled
         try {
+            $pendingResults = json_decode($pendingRow['tool_results_json'] ?? '{}', true) ?: [];
+            $pendingWfId = $pendingResults['workflow_id'] ?? null;
+            $pendingTaskKey = $pendingResults['task_key'] ?? null;
+
+            if ($pendingWfId && $pendingTaskKey && class_exists('ExecutionEngine')) {
+                try {
+                    ExecutionEngine::rejectTask($pendingWfId, $pendingTaskKey, $userId, 'User rejected action conversationally', $streamEmitter, $db);
+                } catch (Throwable $eWfTask) {}
+            }
+
             $activeWf = WorkflowEngine::getActiveWorkflow($userId, $convId, $db);
             if ($activeWf) {
                 WorkflowEngine::transitionState($activeWf['id'], WorkflowEngine::STATE_CANCELLED, null, [], 'User rejected action conversationally', $db);
@@ -1147,7 +1285,7 @@ You are not a passive text generator. You execute real actions using your tool l
         ]);
         $assistantMsgId = $db->lastInsertId();
 
-        $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+        $db->prepare("UPDATE ai_agent_conversations SET updated_at = ? WHERE id = ?")->execute([date('Y-m-d H:i:s'), $convId]);
 
         if ($streamEmitter) {
             $streamEmitter('done', [
@@ -1174,5 +1312,73 @@ You are not a passive text generator. You execute real actions using your tool l
                 'message_id' => $pendingMsgId
             ]
         ];
+    }
+
+    /**
+     * Synthesizes an executive response from a completed TaskPlanDAG.
+     */
+    public static function synthesizeDAGResponse(TaskPlanDAG $dag, array $execResult): string {
+        $nodes = $dag->getNodes();
+        $entities = $dag->getEntities();
+        $completed = [];
+        $failed = [];
+        $skipped = [];
+
+        foreach ($nodes as $node) {
+            if ($node['state'] === 'completed') {
+                $completed[] = $node;
+            } elseif ($node['state'] === 'failed') {
+                $failed[] = $node;
+            } elseif ($node['state'] === 'skipped') {
+                $skipped[] = $node;
+            }
+        }
+
+        $lines = [];
+
+        if (!empty($entities['meet_link']) && !empty($entities['recipient_email'])) {
+            $lines[] = "I have generated your Google Meet conference room and dispatched the invitation to **{$entities['recipient_email']}**.\n";
+            $lines[] = "- **Meeting Room**: {$entities['meet_link']}";
+            $lines[] = "- **Recipient**: `{$entities['recipient_email']}`";
+            $lines[] = "- **Status**: Dispatched & verified in mail transport";
+        } elseif (!empty($entities['file_url']) && !empty($entities['recipient_email'])) {
+            $filename = $entities['filename'] ?? 'export file';
+            $lines[] = "I have generated **{$filename}** and emailed the secure download link to **{$entities['recipient_email']}**.\n";
+            $lines[] = "- **Download Link**: [Download File]({$entities['file_url']}) *(expires in 30 minutes)*";
+            $lines[] = "- **Recipient**: `{$entities['recipient_email']}`";
+            $lines[] = "- **Status**: Dispatched & verified";
+        } elseif (!empty($entities['meet_link'])) {
+            $lines[] = "I have generated your instant Google Meet conference room:\n";
+            $lines[] = "- **Meeting Room**: {$entities['meet_link']}";
+            $lines[] = "- **Status**: Ready to join (verified room format)";
+        } elseif (!empty($entities['file_url'])) {
+            $filename = $entities['filename'] ?? 'export file';
+            $lines[] = "Your requested export **{$filename}** is ready:\n";
+            $lines[] = "- **Download Link**: [Download Document]({$entities['file_url']}) *(valid for 30 minutes)*";
+            $lines[] = "- **Status**: File verified on secure storage";
+        } else {
+            $lines[] = "Task workflow execution completed successfully.\n";
+            foreach ($completed as $c) {
+                $verNote = !empty($c['verification_note']) ? " (" . $c['verification_note'] . ")" : "";
+                $lines[] = "- **{$c['title']}**: Completed{$verNote}";
+            }
+        }
+
+        if (!empty($failed)) {
+            $lines[] = "\n**Execution Notices:**";
+            foreach ($failed as $f) {
+                $lines[] = "- Notice on *{$f['title']}*: " . ($f['error'] ?? 'Execution error');
+            }
+        }
+
+        if (!empty($skipped)) {
+            $lines[] = "\n**Skipped Actions:**";
+            foreach ($skipped as $s) {
+                $lines[] = "- *{$s['title']}*: Skipped due to predecessor task outcome.";
+            }
+        }
+
+        $lines[] = "\nWhat would you like me to do next?";
+        return implode("\n", $lines);
     }
 }

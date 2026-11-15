@@ -392,7 +392,7 @@ class AgentRouter {
                 $stmt->execute([$convId, $userId, $responseText]);
                 $assistantMsgId = (int)$db->lastInsertId();
 
-                $db->prepare("UPDATE ai_agent_conversations SET updated_at = NOW() WHERE id = ?")->execute([$convId]);
+                $db->prepare("UPDATE ai_agent_conversations SET updated_at = ? WHERE id = ?")->execute([date('Y-m-d H:i:s'), $convId]);
             } catch (Throwable $e) {}
         }
 

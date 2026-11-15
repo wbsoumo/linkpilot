@@ -125,6 +125,65 @@ try {
         ]);
     }
 
+    // 6a4. Get Workflow Task DAG Graph & Status (Phase 4)
+    elseif ($action === 'get_workflow_dag') {
+        $wfId = trim($input['workflow_id'] ?? ($_GET['workflow_id'] ?? ''));
+        if (empty($wfId)) {
+            sendJsonResponse('error', 'Workflow ID is required.', [], 400);
+        }
+        $wf = WorkflowEngine::getWorkflow($wfId, $userId, $db);
+        if (!$wf) {
+            sendJsonResponse('error', 'Workflow not found.', [], 404);
+        }
+        $dag = ExecutionEngine::loadDAGFromWorkflow($wf, $db);
+        sendJsonResponse('success', 'Workflow DAG retrieved.', [
+            'workflow_id' => $wfId,
+            'status' => $wf['state'],
+            'dag' => $dag->toArray(),
+            'nodes' => array_values($dag->getNodes())
+        ]);
+    }
+
+    // 6a5. Explicit Maker-Checker Approval for Workflow Task (Phase 4)
+    elseif ($action === 'approve_workflow_task') {
+        $wfId = trim($input['workflow_id'] ?? '');
+        $taskKey = trim($input['task_key'] ?? '');
+        $token = trim($input['approval_token'] ?? '');
+        if (empty($wfId) || empty($taskKey)) {
+            sendJsonResponse('error', 'Workflow ID and Task Key are required.', [], 400);
+        }
+        try {
+            $res = ExecutionEngine::resumeAfterApproval($wfId, $taskKey, $userId, ['approval_token' => $token], null, $db);
+            sendJsonResponse('success', 'Workflow task approved and executed.', $res);
+        } catch (Throwable $eAppr) {
+            sendJsonResponse('error', 'Failed to approve workflow task: ' . $eAppr->getMessage(), [], 400);
+        }
+    }
+
+    // 6a6. Reject Workflow Task (Phase 4)
+    elseif ($action === 'reject_workflow_task') {
+        $wfId = trim($input['workflow_id'] ?? '');
+        $taskKey = trim($input['task_key'] ?? '');
+        $reason = trim($input['reason'] ?? 'Rejected by user');
+        if (empty($wfId) || empty($taskKey)) {
+            sendJsonResponse('error', 'Workflow ID and Task Key are required.', [], 400);
+        }
+        try {
+            $res = ExecutionEngine::rejectTask($wfId, $taskKey, $userId, $reason, null, $db);
+            sendJsonResponse('success', 'Workflow task rejected.', $res);
+        } catch (Throwable $eRej) {
+            sendJsonResponse('error', 'Failed to reject workflow task: ' . $eRej->getMessage(), [], 400);
+        }
+    }
+
+    // 6a7. Recover Interrupted Workflows (Phase 4)
+    elseif ($action === 'recover_workflows') {
+        $recoveredCount = ExecutionEngine::recoverAllInterruptedWorkflows($userId, $db);
+        sendJsonResponse('success', "Recovered {$recoveredCount} interrupted workflows.", [
+            'recovered_count' => $recoveredCount
+        ]);
+    }
+
     // 6b. Get Agent Profile & Settings
     elseif ($action === 'get_agent_settings') {
         $agentName = 'Muse';
@@ -284,6 +343,25 @@ try {
             }
         } catch (Throwable $eDb) {
             error_log("Failed to update message status to approved: " . $eDb->getMessage());
+        }
+
+        // Check if pending message was paused at a Workflow DAG approval gate
+        $pendingResults = isset($waitingRow) ? (json_decode($waitingRow['tool_results_json'] ?? '{}', true) ?: []) : [];
+        $pendingWfId = $pendingResults['workflow_id'] ?? null;
+        $pendingTaskKey = $pendingResults['task_key'] ?? null;
+
+        if ($pendingWfId && $pendingTaskKey && class_exists('ExecutionEngine')) {
+            try {
+                $resumeRes = ExecutionEngine::resumeAfterApproval($pendingWfId, $pendingTaskKey, $userId, [], null, $db);
+                sendJsonResponse('success', 'Workflow task approved and execution resumed.', [
+                    'workflow_id' => $pendingWfId,
+                    'task_key' => $pendingTaskKey,
+                    'resume_result' => $resumeRes
+                ]);
+                return;
+            } catch (Throwable $eResume) {
+                // fall through to standard tool execution if DAG resume throws
+            }
         }
 
         // Execute tool directly

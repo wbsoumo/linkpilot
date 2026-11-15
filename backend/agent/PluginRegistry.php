@@ -421,15 +421,19 @@ class PluginRegistry {
             }
         }
 
-        if (empty($tool['handler']) || !is_callable($tool['handler'])) {
-            throw new Exception("Tool '{$toolId}' has no executable handler registered.");
-        }
-
         if (!$db) {
             try { $db = Database::getConnection(); } catch (Throwable $e) {}
         }
 
-        return call_user_func($tool['handler'], $userId, $params, $db);
+        if (!empty($tool['handler']) && is_callable($tool['handler'])) {
+            return call_user_func($tool['handler'], $userId, $params, $db);
+        }
+
+        if (class_exists('AIToolRegistry')) {
+            return AIToolRegistry::executeTool($toolId, $userId, $params, $db);
+        }
+
+        throw new Exception("Tool '{$toolId}' has no executable handler registered.");
     }
 
     /**

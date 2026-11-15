@@ -150,4 +150,11 @@ class JWTHelper {
         }
         return $user;
     }
+
+    /**
+     * Alias for getAuthenticatedUser
+     */
+    public static function getUserFromToken() {
+        return self::getAuthenticatedUser();
+    }
 }

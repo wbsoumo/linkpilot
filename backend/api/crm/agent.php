@@ -811,7 +811,7 @@ try {
         $approvalPolicy = trim($input['approval_policy'] ?? 'digest_review');
 
         $schedule = WorkflowScheduler::createSchedule(
-            $userId, $title, $cron, $timezone, $taskType, $parameters, null, $approvalPolicy, $db
+            $userId, $title, $cron, $timezone, $parameters, null, $approvalPolicy, 'skip', $db
         );
         WorkflowScheduler::logAudit($userId, 'create_schedule', 'schedule', $schedule['id'], ['title' => $title, 'cron' => $cron], null, $db);
         sendJsonResponse('success', 'Schedule created successfully.', [

@@ -171,12 +171,29 @@ class WorkflowScheduler {
         string $title,
         string $cronExpression,
         string $timezone,
-        array $parameters,
-        ?array $dagTemplate = null,
-        string $approvalPolicy = self::POLICY_DIGEST_REVIEW,
-        string $missedRunPolicy = self::MISSED_SKIP,
-        ?PDO $db = null
+        $arg5,
+        $arg6 = null,
+        $arg7 = self::POLICY_DIGEST_REVIEW,
+        $arg8 = self::MISSED_SKIP,
+        $arg9 = null
     ): array {
+        // If arg5 is string (e.g. $taskType) and arg6 is array (parameters)
+        if (is_string($arg5) && is_array($arg6)) {
+            $taskType = $arg5;
+            $parameters = $arg6;
+            $dagTemplate = is_array($arg7) ? $arg7 : null;
+            $approvalPolicy = is_string($arg8) ? $arg8 : (is_string($arg7) ? $arg7 : self::POLICY_DIGEST_REVIEW);
+            $missedRunPolicy = self::MISSED_SKIP;
+            $db = ($arg9 instanceof PDO) ? $arg9 : (($arg8 instanceof PDO) ? $arg8 : null);
+        } else {
+            $taskType = 'prospecting_and_outreach';
+            $parameters = is_array($arg5) ? $arg5 : [];
+            $dagTemplate = is_array($arg6) ? $arg6 : null;
+            $approvalPolicy = is_string($arg7) ? $arg7 : self::POLICY_DIGEST_REVIEW;
+            $missedRunPolicy = is_string($arg8) ? $arg8 : self::MISSED_SKIP;
+            $db = ($arg9 instanceof PDO) ? $arg9 : null;
+        }
+
         if (!$db) $db = Database::getConnection();
         AgentMigration5::run($db);
 
